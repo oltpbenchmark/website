@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head></head>
+<body>
+<form action="/auth/" method="POST"> {% csrf_token %}
+    <div data-role="fieldcontain">
+        <label for="email">Email:</label><input type="email" name="email" id="email" value="" />
+    </div>
+    <div data-role="fieldcontain">
+        <label for="password">Password:</label><input type="password" name="password" id="password" value="" />
+    </div>    
+    <button type="submit" name="submit" value="submit-value">Sign in</button>
+</form>
+<body>
+<form action="/signup/" method="POST"> {% csrf_token %}
+    <div data-role="fieldcontain">
+        <label for="email">Email:</label><input type="email" name="email" id="email" value="" />
+    </div>
+    <div data-role="fieldcontain">
+        <label for="password">Password:</label><input type="password" name="password" id="password" value="" />
+    </div>    
+    <button type="submit" name="submit" value="submit-value">Sign up</button>
+</form>
+</body>
+</html>
