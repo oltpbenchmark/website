@@ -1,8 +1,64 @@
 <!DOCTYPE html>
 <html>
+<script type="text/javascript" src="{{ STATIC_URL }} /static/jquery-1.10.2.min.js"></script>
+<!-- nvd3 stuff -->
+<script type="text/javascript" src="{{ STATIC_URL }} /static/d3.v3.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }} /static/nv.d3.min.js"></script>
+<link href="{{ STATIC_URL }} /static/nv.d3.min.css" rel="stylesheet" type="text/css">
+
 <head></head>
 <body>
 <p>You are {{ username }}.</p>
+
+<div id="options">
+    <label>Count:</label> <input type="text" name="count" value="100" id="count">
+    <label>Scale:</label> <input type="text" name="scale" value="10" id="scale">
+    <input type="submit" class="btn-link" name="update"
+    value="Update" id="update-button" />
+</div>
+
+<script type="text/javascript">
+$(document).ready(function() {
+    $("#update-button").click(function(){
+        updateChart()
+    });
+});
+</script>
+
+<div id="chart">
+  <svg></svg>
+</div>
+
+<script type="text/javascript">
+getOptions = function() {
+    count = document.getElementById("count").value;
+    scale = document.getElementById("scale").value;
+    return "count=" + count + "&scale=" + scale;
+};
+
+updateChart = function() {
+    reqPar = getOptions();
+    var request = $.ajax({
+        url: "/get_data?" + reqPar,
+        type: "GET",
+        dataType: "json",
+        success: function(result) {
+            // start nvd3 code
+            nv.addGraph(function() {
+                var chart = nv.models.lineChart();
+                chart.xAxis.tickFormat(d3.format(',.1f'));
+                chart.yAxis.tickFormat(d3.format(',.3f'));
+                d3.select('#chart svg').datum(result).transition().duration(500).call(chart);
+                nv.utils.windowResize(chart.update);
+                return chart;
+            });
+        }
+      });
+    };
+
+updateChart();
+</script>
+
 <a href="/logout">logout</a>
 </body>
 </html>

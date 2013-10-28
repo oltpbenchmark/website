@@ -10,6 +10,7 @@ urlpatterns = patterns('',
     url(r'^signup/', 'website.views.sign_up_in'),
     url(r'^$', 'website.views.secured'),
     url(r'^logout/', 'website.views.logout_view'),
+    url(r'^get_data/', 'website.views.get_data'),
     # Examples:
     # url(r'^$', 'website.views.home', name='home'),
     # url(r'^website/', include('website.foo.urls')),

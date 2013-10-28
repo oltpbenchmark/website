@@ -3,6 +3,9 @@ from django.shortcuts import render_to_response, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.http import HttpResponse
+import math
+import json
 
 def login_view(request):
     c = {}
@@ -46,3 +49,15 @@ def secured(request):
 def logout_view(request):
     logout(request)
     return redirect("/login/")
+
+@login_required(login_url='/login/')
+def get_data(request):
+    cnt = int(request.GET["count"])
+    scale = float(request.GET["scale"])
+    results = []
+    for i in range(0, cnt):
+        results.append({'x': i/scale, 'y': math.sin(i/scale)})
+    resultDict = {'key': 'Sine Wave', 'values': results, 'color': '#ff7f0e'}
+    finalResults = [resultDict]
+    res = json.dumps(finalResults, encoding="UTF-8")
+    return HttpResponse(res, mimetype='application/json')
