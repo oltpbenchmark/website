@@ -10,20 +10,61 @@
 <body>
 <p>You are {{ username }}.</p>
 
+<div id="upload">
+<form name="input" action="get_new_upload_code" method="get">
+<label>Your upload code is {{ upload_code }}</label>
+<input type="submit" value="Get a new upload code">
+</form>
+</div>
+
+<div id="data">
+<label>Your uploaded data:</label>
+<table id="data_table" border="1">
+    <tr><td>Id</td><td>Data</td></tr>
+</table>
+</div>
+<script type="text/javascript">
+deleteRow = function(r) {
+    var id = r.parentNode.parentNode.cells[0].innerHTML;
+    var request = $.ajax({
+        url: "/del_upload_data/?id=" + id,
+        type: "GET",
+        dataType: "json",
+        complete: function(response) {
+            updateTable();
+        }
+      });
+    };
+
+updateTable = function() {
+    table = document.getElementById('data_table')
+    while (table.rows.length > 1) {
+        table.deleteRow(-1);
+    }
+    var request = $.ajax({
+        url: "/get_upload_data/",
+        type: "GET",
+        dataType: "json",
+        success: function(result) {
+            for (var i=0; i<result.length; i++) {
+                row = table.insertRow(-1);
+                row.insertCell(0).innerHTML=result[i].id;
+                row.insertCell(1).innerHTML=result[i].data;
+                row.insertCell(2).innerHTML="<input type=\"button\" value=\"Delete\" onclick=\"deleteRow(this)\">";
+            }
+        }
+      });
+    };
+
+updateTable();
+</script>
+
+
 <div id="options">
     <label>Count:</label> <input type="text" name="count" value="100" id="count">
     <label>Scale:</label> <input type="text" name="scale" value="10" id="scale">
-    <input type="submit" class="btn-link" name="update"
-    value="Update" id="update-button" />
+    <input type="submit" onclick="updateChart()" value="Update" id="update-button" />
 </div>
-
-<script type="text/javascript">
-$(document).ready(function() {
-    $("#update-button").click(function(){
-        updateChart()
-    });
-});
-</script>
 
 <div id="chart">
   <svg></svg>
@@ -39,7 +80,7 @@ getOptions = function() {
 updateChart = function() {
     reqPar = getOptions();
     var request = $.ajax({
-        url: "/get_data?" + reqPar,
+        url: "/get_data/?" + reqPar,
         type: "GET",
         dataType: "json",
         success: function(result) {
@@ -56,7 +97,9 @@ updateChart = function() {
       });
     };
 
-updateChart();
+$(function() {
+    updateChart();
+})
 </script>
 
 <a href="/logout">logout</a>
