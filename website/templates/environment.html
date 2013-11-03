@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+
+<div id="update_env_form">
+<form action="/update_env/" method="POST"> {% csrf_token %}
+    <table border="0">
+        <tr>
+            <td><label>Name:</label></td>
+            <td><input type="text" name="name" value="{{ environment.name }}" maxlength="50" required></td>
+        </tr>
+        <tr>
+            <td><label>Description:</label></td>
+            <td><textarea name="description" maxlength="500" rows="5" cols="40" required>{{ environment.description }}</textarea></td>
+        </tr>
+    </table>
+
+    <button type="submit" name="id" value="{{ environment.pk }}">Update this environment</button>
+</form>
+</div>
+
+</body>
+</html>

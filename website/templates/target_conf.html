@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+<table id="para_table" border="1">
+    <tr><td>Parameter</td><td>Value</td></tr>
+    {% for pair in parameters %}
+        <tr>
+            <td>{{ pair.0 }}</td>
+            <td>{{ pair.1 }}</td>
+        </tr>
+    {% endfor %}
+</table>
+
+</body>
+</html>

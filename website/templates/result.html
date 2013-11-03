@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<script type="text/javascript" src="{{ STATIC_URL }} /static/jquery-1.10.2.min.js"></script>
+<!-- nvd3 stuff -->
+<script type="text/javascript" src="{{ STATIC_URL }} /static/d3.v3.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }} /static/nv.d3.min.js"></script>
+<link href="{{ STATIC_URL }} /static/nv.d3.min.css" rel="stylesheet" type="text/css">
+
+<head>
+    <title></title>
+</head>
+<body>
+
+<p>Result ID: {{ result.pk }} </p>
+<p>Target: {{ result.target.name }} </p>
+<p>Environment: {{ result.environment.name }} </p>
+
+<div>
+    {% for field in fields %}
+        <input type="radio" name="field" value="{{field}}" onclick="updateChart()">{{field}}<br>
+    {% endfor %}
+</div>
+
+<div id="chart">
+    <svg></svg>
+</div>
+
+<script type="text/javascript">
+updateChart = function() {
+    reqPar = "id=" + {{ result.pk }} + "&field=" + $('input[name="field"]:checked').val();
+    var request = $.ajax({
+        url: "/get_result_data/?" + reqPar,
+        type: "GET",
+        dataType: "json",
+        success: function(result) {
+            // start nvd3 code
+            nv.addGraph(function() {
+                var chart = nv.models.lineChart();
+                chart.xAxis.tickFormat(d3.format(',.1f'));
+                chart.yAxis.tickFormat(d3.format(',.3f'));
+                d3.select('#chart svg').datum(result).call(chart);
+                nv.utils.windowResize(chart.update);
+                return chart;
+            });
+        }
+      });
+    };
+
+$(function() {
+    $("input[name='field']")[0].checked= true;
+    updateChart();
+})
+</script>
+
+</body>
+</html>

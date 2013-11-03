@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<script type="text/javascript" src="{{ STATIC_URL }} /static/jquery-1.10.2.min.js"></script>
+<head>
+    <title></title>
+</head>
+<body>
+
+<div id="update_proj_form">
+<form action="/update_project/" method="POST"> {% csrf_token %}
+    <table border="0">
+        <tr>
+            <td><label>Name:</label></td>
+            <td><input type="text" name="name" value="{{ project.name }}" maxlength="50" required></td>
+        </tr>
+        <tr>
+            <td><label>Description:</label></td>
+            <td><textarea name="description" maxlength="500" rows="5" cols="40" required>{{ project.description }}</textarea></td>
+        </tr>
+    </table>
+
+    <button type="submit" name="id" value="{{ project.pk }}">Update project information</button>
+</form>
+</div>
+
+<hr>
+
+<div id="new_experiment_conf">
+<p>Generate uploading conf for an experiment:</p>
+<table border="1">
+<tr>
+    <th>Target</th>
+    <th>Benchmark</th>
+    <th>Environment</th>
+</tr>
+<tr>
+    <td>
+        <input id="match_target" type="radio" name="target" value="match" checked="true"/>Auto-match with existing targets<br>
+        <input type="radio" name="target" value="new" class="more"/>Create new target with name:
+            <input type="text" name="target_name" id="target_name" value=""><br>
+    </td>
+    <td>
+        <input id="match_benchmark" type="radio" name="benchmark" value="match" checked="true"/>Auto-match with existing benchmarks<br>
+        <input type="radio" name="benchmark" value="new" class="more"/>Create new benchmark with name:
+            <input type="text" name="benchmark_name" id="benchmark_name" value="">
+    </td>
+    <td>
+        {% for env in environments %}
+            <input type="radio" name="environment" value="{{env.pk}}" class="required"/>{{ env.name }}<br>
+        {% endfor %}
+    </td>
+    <td><button onclick="updateConf()">update conf</button><div id="error_msg"></div></td>
+</tr>
+<tr>
+    <td id="test" colspan="4"><div id="conf_box"></div></td>
+</tr>
+</table>
+</div>
+
+<script language="JavaScript">
+$(document).ready(function() {
+    $("#target_name").hide();
+    $("#benchmark_name").hide();
+    $("input[name='environment']")[0].checked= true;
+    $("input[type='radio']").change(function() {
+        if ($(this).hasClass('more')) $(this).next().show();
+        else $(this).parent().children("input[type='text']").hide();
+    });
+});
+
+updateConf = function() {
+    if ($('input[name="environment"]:checked').val())
+        document.getElementById("error_msg").innerHTML="";
+    else {
+        document.getElementById("error_msg").innerHTML="Please select an environment";
+        return;
+    }
+    conf = "upload_code={{ upload_code }}\n" +
+           "project_id={{ project.pk }}\n" +
+           "environment_id=" + $('input[name="environment"]:checked').val() + "\n";
+    if ($("#match_target").is(':checked')) {
+        conf += "create_target=false\ntarget_name=\n";
+    }
+    else {
+        conf += "create_target=true\ntarget_name=" + $("#target_name").val() + "\n";
+    }
+    if ($("#match_benchmark").is(':checked')) {
+        conf += "create_benchmark=false\nbenchmark_name=\n";
+    }
+    else {
+        conf += "create_benchmark=true\nbenchmark_name=" + $("#benchmark_name").val() + "\n";
+    }
+    $("#conf_box").html("<pre>" + conf + "</pre>");
+
+    var range = document.createRange();
+    range.selectNodeContents(document.getElementById("conf_box"));
+    var sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+};
+</script>
+
+<hr>
+
+<p>Results:</p>
+<table id="result_table" border="1">
+    <tr>
+        <th>Result ID</th>
+        <th>Creation Time</th>
+        <th>Environment</th>
+        <th>Benchmark</th>
+        <th>Target</th>
+    </tr>
+    {% for result in results %}
+        <tr>
+            <td><a href="/result/?id={{ result.pk }}">{{ result.pk }}</a></td>
+            <td>{{ result.timestamp }}</td>
+            <td>{{ result.environment.name }}</td>
+            <td><a href="/benchmark_conf/?id={{ result.benchmark.pk }}">{{ result.benchmark.name }}</a></td>
+            <td><a href="/target_conf/?id={{ result.target.pk }}">{{ result.target.name }}</a></td>
+        </tr>
+    {% endfor %}
+</table>
+
+</body>
+</html>
