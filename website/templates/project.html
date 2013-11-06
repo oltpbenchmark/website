@@ -1,11 +1,6 @@
-<!DOCTYPE html>
-<html>
-<script type="text/javascript" src="{{ STATIC_URL }} /static/jquery-1.10.2.min.js"></script>
-<head>
-    <title></title>
-</head>
-<body>
+{% extends "base.html" %}
 
+{% block body %}
 <div id="update_proj_form">
 <form action="/update_project/" method="POST"> {% csrf_token %}
     <table border="0">
@@ -122,5 +117,4 @@ updateConf = function() {
     {% endfor %}
 </table>
 
-</body>
-</html>
+{% endblock body %}

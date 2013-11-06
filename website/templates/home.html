@@ -1,13 +1,7 @@
-<!DOCTYPE html>
-<html>
-<script type="text/javascript" src="{{ STATIC_URL }} /static/jquery-1.10.2.min.js"></script>
-<head>
-    <title>Home</title>
-</head>
-<body>
+{% extends "base.html" %}
 
+{% block body %}
 <div id="account_info">
-<p>Hi, {{ username }} (<a href="/logout">logout</a>)</p>
 <p>Your upload code is: {{ upload_code }}</p>
 <form action="/get_new_upload_code/" method="POST"
       onsubmit="return confirm('This operation will revoke the current code, are you sure to continue?')"> {% csrf_token %}
@@ -34,7 +28,7 @@
         <tr>
             <td><input type="checkbox" name="projects" value="{{ project.pk }}" /></td>
             <td><a href="/project/?id={{project.pk}}">{{ project.name }}</a></td>
-            <td><pre>{{ project.description }}</pre></td>
+            <td>{{ project.description|linebreaks }}</td>
             <td>{{ project.creation_time }}</td>
             <td>{{ project.last_update }}</td>
         </tr>
@@ -80,7 +74,7 @@
         <tr>
             <td><input type="checkbox" name="environments" value="{{ env.pk }}" /></td>
             <td><a href="/environment?id={{env.pk}}">{{ env.name }}</a></td>
-            <td><pre>{{ env.description }}</pre></td>
+            <td>{{ env.description|linebreaks }}</td>
             <td>{{ env.creation_time }}</td>
         </tr>
     {% endfor %}
@@ -116,5 +110,4 @@ function toggle(source, name) {
 }
 </script>
 
-</body>
-</html>
+{% endblock body %}

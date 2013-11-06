@@ -1,9 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title></title>
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block body %}
 <table id="para_table" border="1">
     <tr><td>Parameter</td><td>Value</td></tr>
     {% for pair in parameters %}
@@ -14,5 +11,4 @@
     {% endfor %}
 </table>
 
-</body>
-</html>
+{% endblock body %}

@@ -1,9 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title></title>
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block body %}
 
 <div id="update_env_form">
 <form action="/update_env/" method="POST"> {% csrf_token %}
@@ -22,5 +19,4 @@
 </form>
 </div>
 
-</body>
-</html>
+{% endblock body %}

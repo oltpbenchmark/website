@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+
+<script type="text/javascript" src="{{ STATIC_URL }} /static/jquery-1.10.2.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }} /static/js/bootstrap.min.js"></script>
+<link rel="stylesheet" href="{{ STATIC_URL }} /static/css/bootstrap.min.css">
+
+<head>
+    <title>{% block title %}OLTPBench Result Repository{% endblock %}</title>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+<div id="banner" class="row">
+    <div id="logo" class="span1">
+        <a href="/">
+        {% block logo %}
+            <img src="{{ STATIC_URL }} /static/img/logo.png" height="48" alt="logo"/>
+        {% endblock logo %}
+        </a>
+    </div>
+    <div class="span4">
+        <h2>{% block page_title %}Bench Repo{% endblock page_title %}</h2>
+    </div>
+    <div class="span10">
+        <div>
+            {{ user.username }}(<a href="/logout/">logout</a>)
+        </div>
+        <div>
+            {% block top_nav %}
+            <ul id="links" class="inline">
+                <li><a href="/">&#187;Home</a></li>
+            </ul>
+            {% endblock top_nav %}
+        </div>
+    </div>
+</div>
+
+<hr>
+
+{% block body %}
+{% endblock body %}
+
+</body>
+</html>

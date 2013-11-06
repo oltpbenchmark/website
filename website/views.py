@@ -77,7 +77,7 @@ def get_new_upload_code(request):
 def home(request):
     context = {"projects": Project.objects.filter(user=request.user),
                "environments": Environment.objects.filter(user=request.user),
-               "username": request.user.username,
+               "user": request.user,
                "upload_code": request.user.profile.upload_code}
     context.update(csrf(request))
     return render_to_response('home.html', context)

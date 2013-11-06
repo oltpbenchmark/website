@@ -1,15 +1,10 @@
-<!DOCTYPE html>
-<html>
-<script type="text/javascript" src="{{ STATIC_URL }} /static/jquery-1.10.2.min.js"></script>
+{% extends "base.html" %}
+
+{% block body %}
 <!-- nvd3 stuff -->
 <script type="text/javascript" src="{{ STATIC_URL }} /static/d3.v3.min.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }} /static/nv.d3.min.js"></script>
 <link href="{{ STATIC_URL }} /static/nv.d3.min.css" rel="stylesheet" type="text/css">
-
-<head>
-    <title></title>
-</head>
-<body>
 
 <p>Result ID: {{ result.pk }} </p>
 <p>Target: {{ result.target.name }} </p>
@@ -52,5 +47,4 @@ $(function() {
 })
 </script>
 
-</body>
-</html>
+{% endblock body %}
