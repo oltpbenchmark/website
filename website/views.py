@@ -1,10 +1,9 @@
 from django.core.context_processors import csrf
-from django.shortcuts import render_to_response, redirect
+from django.shortcuts import render_to_response, redirect, render
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http import HttpResponse
-import math
 import json
 import random
 import string
@@ -37,8 +36,6 @@ def create_user(username, email, password):
     user.set_password(password)
     user.save()
     user.profile = UserProfile()
-    user.profile.upload_code = upload_code_generator(size=20)
-    print user.profile.upload_code
     user.profile.save()
     return user
 
@@ -67,32 +64,43 @@ def logout_view(request):
 
 @login_required(login_url='/login/')
 def get_new_upload_code(request):
-    user = User.objects.get(username=request.user.username)
-    user.profile.upload_code = upload_code_generator(size=20)
-    user.profile.save()
-    return redirect("/")
+    proj = Project.objects.get(pk=request.POST['id'])
+    proj.upload_code = upload_code_generator(size=20)
+    proj.fallback_target_name = request.POST['fallback_target_name']
+    proj.fallback_bench_name = request.POST['fallback_bench_name']
+    proj.save()
+    return redirect("/project/?id=" + str(proj.pk))
 
 
 @login_required(login_url='/login/')
 def home(request):
     context = {"projects": Project.objects.filter(user=request.user),
-               "environments": Environment.objects.filter(user=request.user),
-               "user": request.user,
-               "upload_code": request.user.profile.upload_code}
+               "environments": Environment.objects.filter(user=request.user)}
     context.update(csrf(request))
-    return render_to_response('home.html', context)
+    return render(request, 'home.html', context)
 
 
 @login_required(login_url='/login/')
-def environment(request):
-    context = {'environment': Environment.objects.get(pk=request.GET['id'])}
+def edit_env(request):
+    context = {}
     context.update(csrf(request))
-    return render_to_response('environment.html', context)
+    try:
+        if request.GET['id'] != '':
+            context['environment'] = Environment.objects.get(pk=request.GET['id'])
+    except Environment.DoesNotExist:
+        pass
+    return render(request, 'edit_env.html', context)
 
 
 @login_required(login_url='/login/')
 def update_env(request):
-    env = Environment.objects.get(pk=request.POST['id'])
+    env_id = request.POST.get('id', '')
+    if env_id != '':
+        env = Environment.objects.get(pk=request.POST['id'])
+    else:
+        env = Environment()
+        env.creation_time = now()
+        env.user = request.user
     env.name = request.POST['name']
     env.description = request.POST['description']
     env.save()
@@ -100,19 +108,8 @@ def update_env(request):
 
 
 @login_required(login_url='/login/')
-def new_env(request):
-    e = Environment()
-    e.user = request.user
-    e.name = request.POST['name']
-    e.description = request.POST['description']
-    e.creation_time = now()
-    e.save()
-    return redirect('/')
-
-
-@login_required(login_url='/login/')
 def delete_env(request):
-    map(lambda x: Environment.objects.get(pk=x).delete(), request.POST.get('environments', []))
+    map(lambda x: Environment.objects.get(pk=x).delete(), request.POST.getlist('environments', []))
     return redirect('/')
 
 
@@ -125,38 +122,53 @@ def project(request):
     p = ps[0]
     context = {'project': p,
                'results': Result.objects.filter(project=p),
-               'upload_code': request.user.profile.upload_code,
                'environments': Environment.objects.filter(user=request.user)}
     context.update(csrf(request))
-    return render_to_response('project.html', context)
+    return render(request, 'project.html', context)
 
 
 @login_required(login_url='/login/')
-def new_project(request):
-    p = Project()
-    p.user = request.user
-    p.name = request.POST['name']
-    p.description = request.POST['description']
-    p.creation_time = now()
-    p.last_update = now()
-    p.save()
-    return redirect('/')
+def edit_project(request):
+    context = {'environments': Environment.objects.filter(user=request.user)}
+    try:
+        if request.GET['id'] != '':
+            context['project'] = Project.objects.get(pk=request.GET['id'])
+    except Project.DoesNotExist:
+        pass
+    return render(request, 'edit_project.html', context)
 
 
 @login_required(login_url='/login/')
 def delete_project(request):
-    map(lambda x: Project.objects.get(pk=x).delete(), request.POST.get('projects', []))
+    print request.POST.get('projects', [])
+    map(lambda x: Project.objects.get(pk=x).delete(), request.POST.getlist('projects', []))
     return redirect('/')
 
 
 @login_required(login_url='/login/')
 def update_project(request):
-    p = Project.objects.get(pk=request.POST['id'])
+    if 'id_new_code' in request.POST:
+        proj_id = request.POST['id_new_code']
+    else:
+        proj_id = request.POST['id']
+
+    if proj_id == '':
+        p = Project()
+        p.creation_time = now()
+        p.user = request.user
+        p.upload_code = upload_code_generator(size=20)
+    else:
+        p = Project.objects.get(pk=proj_id)
+
+    if 'id_new_code' in request.POST:
+        p.upload_code = upload_code_generator(size=20)
+
     p.name = request.POST['name']
     p.description = request.POST['description']
+    p.environment = Environment.objects.get(pk=request.POST['environment'])
     p.last_update = now()
     p.save()
-    return redirect('/project/?id=' + request.POST['id'])
+    return redirect('/project/?id=' + str(p.pk))
 
 
 @csrf_exempt
@@ -165,21 +177,23 @@ def new_result(request):
         form = NewResultForm(request.POST, request.FILES)
         if not form.is_valid():
             return HttpResponse(str(form))
-        users = UserProfile.objects.filter(upload_code=form.cleaned_data['upload_code'])
-        if len(users) != 1:
+        try:
+            project = Project.objects.get(upload_code=form.cleaned_data['upload_code'])
+        except Project.DoesNotExist:
             return HttpResponse(str(form))
-        handle_result_file(users[0].user, form, request.FILES['data'])
+
+        handle_result_file(project, form, request.FILES['data'])
         return HttpResponse("Succeed\n")
     return HttpResponse("POST please\n")
 
 
-def handle_result_file(user, form, file_data):
+def handle_result_file(proj, form, file_data):
+    user = proj.user
+
     data = "".join(map(lambda x: str(x), file_data.chunks()))
     lines = data.split("\n")
     conf_cnt = int(lines[0])
     bench_cnt = int(lines[1])
-
-    proj = Project.objects.get(pk=form.cleaned_data['project_id'])
 
     conf_lines = lines[3:3 + conf_cnt]
     conf = []
@@ -191,27 +205,38 @@ def handle_result_file(user, form, file_data):
             value = ele[1]
         conf.append([key, value])
     conf_str = json.dumps(conf)
-    if form.cleaned_data['create_target']:
+
+    try:
+        targets = Target.objects.filter(configuration=conf_str)
+        if len(targets) < 1:
+            raise Target.DoesNotExist
+        target = targets[0]
+    except Target.DoesNotExist:
         target = Target()
-        target.name = form.cleaned_data['target_name']
+        target.name = 'new target'
         target.configuration = conf_str
         target.project = proj
         target.save()
-    else:
-        target = Target.objects.filter(configuration=conf_str)[0]
+        target.name = 'Target#' + str(target.pk)
+        target.save()
 
     bench_lines = lines[3 + conf_cnt: 3 + conf_cnt + bench_cnt]
     bench_str = "".join(bench_lines)
-    if form.cleaned_data['create_benchmark']:
+    try:
+        benchs = Benchmark.objects.filter(configuration=bench_str)
+        if len(benchs) < 1:
+            raise Benchmark.DoesNotExist
+        bench = benchs[0]
+    except Benchmark.DoesNotExist:
         bench = Benchmark()
-        bench.name = form.cleaned_data['benchmark_name']
+        bench.name = 'new bench conf'
         bench.user = user
         bench.configuration = bench_str
         bench.save()
-    else:
-        bench = Benchmark.objects.filter(configuration=bench_str)[0]
+        bench.name = 'BenchConf#' + str(bench.pk)
+        bench.save()
 
-    env = Environment.objects.get(pk=form.cleaned_data['environment_id'])
+    env = proj.environment
 
     result = Result()
     result.target = target
@@ -247,7 +272,7 @@ def target_configuration(request):
     conf_str = Target.objects.get(pk=request.GET['id']).configuration
     conf = json.loads(conf_str, encoding="UTF-8")
     context = {'parameters': conf}
-    return render_to_response('target_conf.html', context)
+    return render(request, 'target_conf.html', context)
 
 
 @login_required(login_url='/login/')
@@ -263,7 +288,7 @@ def result(request):
         fields.append(member)
     context = {'result': Result.objects.get(id=request.GET['id']),
                'fields': fields}
-    return render_to_response('result.html', context)
+    return render(request, 'result.html', context)
 
 
 @login_required(login_url='/login/')

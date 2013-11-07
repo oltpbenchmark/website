@@ -1,4 +1,3 @@
-UPLOAD_CONF="upload.conf"
 TARGET_CONF="mysql.conf"
 BENCH_CONF="tpcc_config_mysql_ysu1.xml"
 SAMPLE_RESULT="bench_result.res"
@@ -14,7 +13,7 @@ cat $TARGET_CONF >> $TEMP_FILE
 cat $BENCH_CONF >> $TEMP_FILE
 cat $SAMPLE_RESULT >> $TEMP_FILE
 
-FORM_OPT=`cat $UPLOAD_CONF | sed s/"^\(.*\)"/"--form \1"/`
+FORM_OPT="--form upload_code=`cat code`"
 
 curl $FORM_OPT --form "data=@"$TEMP_FILE http://127.0.0.1:8000/new_result/
 

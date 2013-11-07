@@ -2,21 +2,22 @@
 
 {% block body %}
 <!-- nvd3 stuff -->
-<script type="text/javascript" src="{{ STATIC_URL }} /static/d3.v3.min.js"></script>
-<script type="text/javascript" src="{{ STATIC_URL }} /static/nv.d3.min.js"></script>
-<link href="{{ STATIC_URL }} /static/nv.d3.min.css" rel="stylesheet" type="text/css">
-
+<script type="text/javascript" src="{{ STATIC_URL }}/d3.v3.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}/nv.d3.min.js"></script>
 <p>Result ID: {{ result.pk }} </p>
 <p>Target: {{ result.target.name }} </p>
 <p>Environment: {{ result.environment.name }} </p>
 
-<div>
+<div class="btn-group" data-toggle="buttons">
     {% for field in fields %}
-        <input type="radio" name="field" value="{{field}}" onclick="updateChart()">{{field}}<br>
+    <label class="btn btn-primary">
+        <input type="radio" name="field" value="{{field}}" onclick="updateChart()"/> {{field}}
+    </label>
     {% endfor %}
 </div>
 
 <div id="chart">
+    <link href="{{ STATIC_URL }}/nv.d3.min.css" rel="stylesheet" type="text/css">
     <svg></svg>
 </div>
 

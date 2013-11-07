@@ -16,13 +16,12 @@ urlpatterns = patterns('',
     url(r'^result/', 'website.views.result'),
     url(r'^get_result_data/', 'website.views.get_result_data'),
 
+    url(r'^edit_project/', 'website.views.edit_project'),
     url(r'^project/', 'website.views.project'),
-    url(r'^new_project/', 'website.views.new_project'),
     url(r'^delete_project/', 'website.views.delete_project'),
     url(r'^update_project/', 'website.views.update_project'),
 
-    url(r'^environment/', 'website.views.environment'),
-    url(r'^new_env/', 'website.views.new_env'),
+    url(r'^edit_env/', 'website.views.edit_env'),
     url(r'^delete_env/', 'website.views.delete_env'),
     url(r'^update_env/', 'website.views.update_env'),
 

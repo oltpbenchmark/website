@@ -1,22 +1,12 @@
 {% extends "base.html" %}
 
 {% block body %}
-<div id="account_info">
-<p>Your upload code is: {{ upload_code }}</p>
-<form action="/get_new_upload_code/" method="POST"
-      onsubmit="return confirm('This operation will revoke the current code, are you sure to continue?')"> {% csrf_token %}
-    <button type="submit">Get a new upload code</button>
-</form>
-</div>
-
-<hr>
-
 <div id="project_list">
 <form action="/delete_project/" method="POST"
       onsubmit="return confirm('Are you sure you want to delete these projects and all targets/results under this project?')">
       {% csrf_token %}
-<p>Your projects:</p>
-<table id="project_table" border="1">
+<table id="project_table" class="table table-bordered table-striped table-hover table-nonfluid">
+    <caption><h4>Your projects</h4></caption>
     <tr>
         <th><input type="checkbox" onClick="toggle(this, 'projects')" /></th>
         <th>Project Name</th>
@@ -26,33 +16,16 @@
     </tr>
     {% for project in projects %}
         <tr>
-            <td><input type="checkbox" name="projects" value="{{ project.pk }}" /></td>
-            <td><a href="/project/?id={{project.pk}}">{{ project.name }}</a></td>
-            <td>{{ project.description|linebreaks }}</td>
-            <td>{{ project.creation_time }}</td>
-            <td>{{ project.last_update }}</td>
+            <td style="vertical-align:middle"><input type="checkbox" name="projects" value="{{ project.pk }}" /></td>
+            <td style="vertical-align:middle"><a href="/project/?id={{project.pk}}">{{ project.name }}</a></td>
+            <td style="vertical-align:middle">{{ project.description|linebreaks }}</td>
+            <td style="vertical-align:middle">{{ project.creation_time }}</td>
+            <td style="vertical-align:middle">{{ project.last_update }}</td>
         </tr>
     {% endfor %}
 </table>
-<button type="submit">Delete selected projects</button>
-</form>
-</div>
-
-<div id="new_project_form">
-<form action="/new_project/" method="POST"> {% csrf_token %}
-    <p>Create a new project:</p>
-    <table border="0">
-        <tr>
-            <td><label>Name:</label></td>
-            <td><input type="text" name="name" value="" maxlength="50" required/></td>
-        </tr>
-        <tr>
-            <td><label>Description:</label></td>
-            <td><textarea cols="40" rows="5" name="description" maxlength="500" required></textarea></td>
-        </tr>
-    </table>
-
-    <button type="submit">Add new project</button>
+<button class="btn" type="submit">Delete selected projects</button>
+<a class="btn" href="/edit_project/?id=">Create a new project</a>
 </form>
 </div>
 
@@ -62,8 +35,8 @@
 <form action="/delete_env/" method="POST"
       onsubmit="return confirm('Are you sure you want to delete these environments and all results generated from them?')">
       {% csrf_token %}
-<p>Your environments:</p>
-<table id="env_table" border="1">
+<table id="env_table" class="table table-bordered table-striped table-hover table-nonfluid">
+    <caption><h4>Your environments</h4></caption>
     <tr>
         <th><input type="checkbox" onClick="toggle(this, 'environments')" /></th>
         <th>Environment Name</th>
@@ -72,32 +45,15 @@
     </tr>
     {% for env in environments %}
         <tr>
-            <td><input type="checkbox" name="environments" value="{{ env.pk }}" /></td>
-            <td><a href="/environment?id={{env.pk}}">{{ env.name }}</a></td>
-            <td>{{ env.description|linebreaks }}</td>
-            <td>{{ env.creation_time }}</td>
+            <td style="vertical-align:middle"><input type="checkbox" name="environments" value="{{ env.pk }}" /></td>
+            <td style="vertical-align:middle"><a href="/edit_env/?id={{env.pk}}">{{ env.name }}</a></td>
+            <td style="vertical-align:middle">{{ env.description|linebreaks }}</td>
+            <td style="vertical-align:middle">{{ env.creation_time }}</td>
         </tr>
     {% endfor %}
 </table>
-<button type="submit">Delete selected environments</button>
-</form>
-</div>
-
-<div id="new_env_form">
-<form action="/new_env/" method="POST"> {% csrf_token %}
-    <p>Create a new environment:</p>
-    <table border="0">
-        <tr>
-            <td><label>Name:</label></td>
-            <td><input type="text" name="name" value="" maxlength="50" required/></td>
-        </tr>
-        <tr>
-            <td><label>Description:</label></td>
-            <td><textarea cols="40" rows="5" name="description" maxlength="500" required></textarea></td>
-        </tr>
-    </table>
-
-    <button type="submit">Add new environment</button>
+<button class="btn" type="submit">Delete selected environments</button>
+<a class="btn" href="/edit_env/?id=">Create a new environment</a>
 </form>
 </div>
 

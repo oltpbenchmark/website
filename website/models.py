@@ -7,7 +7,7 @@ from django import forms
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, related_name='profile')
-    upload_code = models.CharField(max_length=100)
+    #upload_code = models.CharField(max_length=100)
 
     def save(self, *args, **kwargs):
         try:
@@ -28,30 +28,7 @@ signals.post_save.connect(create_user_profile, sender=User)
 
 class NewResultForm(forms.Form):
     upload_code = forms.CharField(max_length=30)
-    project_id = forms.IntegerField()
-    environment_id = forms.IntegerField()
-    create_target = forms.BooleanField(required=False)
-    target_name = forms.CharField(max_length=50, required=False)
-    create_benchmark = forms.BooleanField(required=False)
-    benchmark_name = forms.CharField(max_length=50, required=False)
     data = forms.FileField()
-
-
-class Project(models.Model):
-    user = models.ForeignKey(User)
-    name = models.CharField(max_length=50)
-    description = models.CharField(max_length=500)
-    creation_time = models.DateTimeField()
-    last_update = models.DateTimeField()
-
-    def delete(self, using=None):
-        targets = Target.objects.filter(project=self)
-        results = Result.objects.filter(project=self)
-        for t in targets:
-            t.delete()
-        for r in results:
-            r.delete()
-        super(Project, self).delete(using)
 
 
 class Environment(models.Model):
@@ -65,6 +42,28 @@ class Environment(models.Model):
         for r in results:
             r.delete()
         super(Environment, self).delete(using)
+
+
+class Project(models.Model):
+    user = models.ForeignKey(User)
+    environment = models.ForeignKey(Environment)
+    name = models.CharField(max_length=50)
+    description = models.CharField(max_length=500)
+    creation_time = models.DateTimeField()
+    last_update = models.DateTimeField()
+
+    upload_code = models.CharField(max_length=30)
+    fallback_target_name = models.CharField(max_length=50)
+    fallback_bench_name = models.CharField(max_length=50)
+
+    def delete(self, using=None):
+        targets = Target.objects.filter(project=self)
+        results = Result.objects.filter(project=self)
+        for t in targets:
+            t.delete()
+        for r in results:
+            r.delete()
+        super(Project, self).delete(using)
 
 
 class Benchmark(models.Model):
