@@ -7,9 +7,56 @@ from django.http import HttpResponse
 import json
 import random
 import string
+from django.template import RequestContext
 from django.views.decorators.csrf import csrf_exempt
-from models import UserProfile, Result, Project, Target, Benchmark, Environment, Statistics, NewResultForm
+from models import Result, Project, DBConf, ExperimentConf, Environment, Statistics, NewResultForm, PLOTTABLE_FIELDS
 from django.utils.timezone import now
+from website import settings
+
+
+def no_environment_error(request):
+    return render_to_response('codespeed/nodata.html', {
+        'message': 'You need to configure at least one Environment.'
+    }, context_instance=RequestContext(request))
+
+
+def get_default_environment(enviros, data, multi=False):
+    """Returns the default environment. Preference level is:
+        * Present in URL parameters (permalinks)
+        * Value in settings.py
+        * First Environment ID
+
+    """
+    defaultenviros = []
+    # Use permalink values
+    if 'env' in data:
+        for env_value in data['env'].split(","):
+            for env in enviros:
+                try:
+                    env_id = int(env_value)
+                except ValueError:
+                    # Not an int
+                    continue
+                for env in enviros:
+                    if env_id == env.id:
+                        defaultenviros.append(env)
+            if not multi:
+                break
+    # Use settings.py value
+    if not defaultenviros and not multi:
+        if (hasattr(settings, 'DEF_ENVIRONMENT') and
+                settings.DEF_ENVIRONMENT is not None):
+            for env in enviros:
+                if settings.DEF_ENVIRONMENT == env.name:
+                    defaultenviros.append(env)
+                    break
+    # Last fallback
+    if not defaultenviros:
+        defaultenviros = enviros
+    if multi:
+        return defaultenviros
+    else:
+        return defaultenviros[0]
 
 
 def login_view(request):
@@ -35,8 +82,6 @@ def create_user(username, email, password):
     user = User(username=username, email=email)
     user.set_password(password)
     user.save()
-    user.profile = UserProfile()
-    user.profile.save()
     return user
 
 
@@ -176,77 +221,106 @@ def new_result(request):
     if request.method == 'POST':
         form = NewResultForm(request.POST, request.FILES)
         if not form.is_valid():
-            return HttpResponse(str(form))
+            return HttpResponse("Wrong")
         try:
             project = Project.objects.get(upload_code=form.cleaned_data['upload_code'])
         except Project.DoesNotExist:
-            return HttpResponse(str(form))
+            return HttpResponse("Wrong")
 
-        handle_result_file(project, form, request.FILES['data'])
-        return HttpResponse("Succeed\n")
+        return handle_result_file(project, request.FILES['data'])
     return HttpResponse("POST please\n")
 
 
-def handle_result_file(proj, form, file_data):
-    user = proj.user
-
+def handle_result_file(proj, file_data):
     data = "".join(map(lambda x: str(x), file_data.chunks()))
     lines = data.split("\n")
-    conf_cnt = int(lines[0])
-    bench_cnt = int(lines[1])
 
-    conf_lines = lines[3:3 + conf_cnt]
-    conf = []
-    for line in conf_lines:
+    db_conf_cnt = int(lines[0])
+    bench_conf_cnt = int(lines[1])
+    sample_cnt = int(lines[2])
+    summary_cnt = int(lines[3])
+
+    header_cnt = 4
+
+    db_conf_lines = lines[header_cnt:header_cnt + db_conf_cnt]
+    bench_conf_lines = lines[header_cnt + db_conf_cnt: header_cnt + db_conf_cnt + bench_conf_cnt]
+    sample_lines = lines[1 + header_cnt + db_conf_cnt + bench_conf_cnt: header_cnt + db_conf_cnt + bench_conf_cnt + sample_cnt]
+    summary_lines = lines[header_cnt + db_conf_cnt + bench_conf_cnt + sample_cnt:
+                          header_cnt + db_conf_cnt + bench_conf_cnt + sample_cnt + summary_cnt]
+
+    db_type = summary_lines[0].strip().upper()
+    bench_type = summary_lines[1].strip().upper()
+
+    if not db_type in DBConf.DB_TYPES:
+        return HttpResponse("Wrong")
+    if not bench_type in ExperimentConf.BENCHMARK_TYPES:
+        return HttpResponse("Wrong")
+
+    db_conf_list = []
+    for line in db_conf_lines:
         ele = line.split(":")
         key = ele[0]
         value = ""
         if len(ele) > 1:
             value = ele[1]
-        conf.append([key, value])
-    conf_str = json.dumps(conf)
+        db_conf_list.append([key, value])
+    db_conf_str = json.dumps(db_conf_list)
 
     try:
-        targets = Target.objects.filter(configuration=conf_str)
-        if len(targets) < 1:
-            raise Target.DoesNotExist
-        target = targets[0]
-    except Target.DoesNotExist:
-        target = Target()
-        target.name = 'new target'
-        target.configuration = conf_str
-        target.project = proj
-        target.save()
-        target.name = 'Target#' + str(target.pk)
-        target.save()
+        db_confs = DBConf.objects.filter(configuration=db_conf_str)
+        if len(db_confs) < 1:
+            raise DBConf.DoesNotExist
+        db_conf = db_confs[0]
+    except DBConf.DoesNotExist:
+        db_conf = DBConf()
+        db_conf.name = ''
+        db_conf.configuration = db_conf_str
+        db_conf.project = proj
+        db_conf.db_type = db_type
+        db_conf.save()
+        db_conf.name = db_type + '#' + str(db_conf.pk)
+        db_conf.save()
 
-    bench_lines = lines[3 + conf_cnt: 3 + conf_cnt + bench_cnt]
-    bench_str = "".join(bench_lines)
+    bench_conf_str = "".join(bench_conf_lines)
     try:
-        benchs = Benchmark.objects.filter(configuration=bench_str)
-        if len(benchs) < 1:
-            raise Benchmark.DoesNotExist
-        bench = benchs[0]
-    except Benchmark.DoesNotExist:
-        bench = Benchmark()
-        bench.name = 'new bench conf'
-        bench.user = user
-        bench.configuration = bench_str
-        bench.save()
-        bench.name = 'BenchConf#' + str(bench.pk)
-        bench.save()
-
-    env = proj.environment
+        bench_confs = ExperimentConf.objects.filter(configuration=bench_conf_str)
+        if len(bench_confs) < 1:
+            raise ExperimentConf.DoesNotExist
+        bench_conf = bench_confs[0]
+    except ExperimentConf.DoesNotExist:
+        bench_conf = ExperimentConf()
+        bench_conf.name = ''
+        bench_conf.project = proj
+        bench_conf.configuration = bench_conf_str
+        bench_conf.benchmark_type = bench_type
+        bench_conf.save()
+        bench_conf.name = bench_type + '#' + str(bench_conf.pk)
+        bench_conf.save()
 
     result = Result()
-    result.target = target
-    result.benchmark = bench
-    result.environment = env
+    result.db_conf = db_conf
+    result.benchmark_conf = bench_conf
+    result.environment = proj.environment
     result.project = proj
     result.timestamp = now()
+    latency_dict = {}
+    line = summary_lines[2][1:-1]
+    for field in line.split(','):
+        data = field.split('=')
+        latency_dict[data[0].strip()] = data[1].strip()
+    result.avg_latency = float(latency_dict['avg'])
+    result.min_latency = float(latency_dict['min'])
+    result.p25_latency = float(latency_dict['25th'])
+    result.p50_latency = float(latency_dict['median'])
+    result.p75_latency = float(latency_dict['75th'])
+    result.p90_latency = float(latency_dict['90th'])
+    result.p95_latency = float(latency_dict['95th'])
+    result.p99_latency = float(latency_dict['99th'])
+    result.max_latency = float(latency_dict['max'])
+    result.throughput = float(summary_lines[3])
     result.save()
 
-    for line in lines[3 + conf_cnt + bench_cnt + 1:-1]:
+    for line in sample_lines:
         sta = Statistics()
         nums = line.split(",")
         sta.result = result
@@ -266,25 +340,26 @@ def handle_result_file(proj, form, file_data):
     proj.last_update = now()
     proj.save()
 
+    return HttpResponse("Success")
 
 @login_required(login_url='/login/')
 def target_configuration(request):
-    conf_str = Target.objects.get(pk=request.GET['id']).configuration
+    conf_str = DBConf.objects.get(pk=request.GET['id']).configuration
     conf = json.loads(conf_str, encoding="UTF-8")
     context = {'parameters': conf}
-    return render(request, 'target_conf.html', context)
+    return render(request, 'db_conf.html', context)
 
 
 @login_required(login_url='/login/')
 def benchmark_configuration(request):
-    conf_str = Benchmark.objects.get(pk=request.GET['id']).configuration
+    conf_str = ExperimentConf.objects.get(pk=request.GET['id']).configuration
     return HttpResponse(conf_str, content_type="application/xml")
 
 
 @login_required(login_url='/login/')
 def result(request):
     fields = []
-    for member in Statistics.PLOTTABLE_FIELDS:
+    for member in PLOTTABLE_FIELDS:
         fields.append(member)
     context = {'result': Result.objects.get(id=request.GET['id']),
                'fields': fields}
@@ -302,3 +377,83 @@ def get_result_data(request):
     final_results = [{'key': field, 'values': result, 'color': '#ff7f0e'}]
     res = json.dumps(final_results, encoding="UTF-8")
     return HttpResponse(res, mimetype='application/json')
+
+
+@login_required(login_url='/login/')
+def timeline(request):
+    data = request.GET
+
+    project = Project.objects.get(pk=data['id'])
+
+    enviros = Environment.objects.all()
+    if not enviros:
+        return no_environment_error(request)
+    defaultenviro = get_default_environment(enviros, data)
+
+    lastrevisions = [10, 50, 200, 1000]
+    context = {'project': project,
+               'db_types': DBConf.DB_TYPES,
+               'benchmarks': ExperimentConf.BENCHMARK_TYPES,
+               'lastrevisions': lastrevisions,
+               'defaultlast': 10,
+               'defaultequid': False,
+               'environments': enviros,
+               'defaultenvironment': defaultenviro,
+               'defaultbenchmark': 'TPCC'
+               }
+    return render(request, 'timeline.html', context)
+
+
+@login_required(login_url='/login/')
+def get_data(request):
+    revs = int(request.GET['revs'])
+    timeline_list = {'error': 'None', 'timelines': []}
+    results = Result.objects.filter(project=request.GET['proj']).filter(environment=request.GET['env'])
+
+    dbs = request.GET['db'].split(',')
+    results = filter(lambda x: x.db_conf.db_type in dbs, results)
+
+    benchmarks = []
+    if request.GET['ben'] == 'grid':
+        benchmarks = ExperimentConf.BENCHMARK_TYPES
+        revs = 10
+    elif request.GET['ben'] == 'show_none':
+        benchmarks = []
+    else:
+        benchmarks = [request.GET['ben']]
+
+    results = filter(lambda x: x.benchmark_conf.benchmark_type in benchmarks, results)
+
+    for bench in benchmarks:
+        b_r = filter(lambda x: x.benchmark_conf.benchmark_type == bench, results)
+        if len(b_r) == 0:
+            continue
+
+        timeline = {
+            'benchmark':             bench,
+            'units':                 's',
+            'lessisbetter':          '(less is better)',
+            'branches':              {},
+            'baseline':              "None",
+        }
+
+        timeline['branches']['branch'] = {}
+
+        for db in dbs:
+            out = []
+            d_r = filter(lambda x: x.db_conf.db_type == db, b_r)
+            d_r = d_r[-revs:]
+            for res in d_r:
+                out.append(
+                    [
+                        res.timestamp.strftime("%Y-%m-%d %H:%M:%S"), res.throughput, "",
+                        str(res.pk)
+                    ]
+                )
+
+            if len(out) > 0:
+                timeline['branches']['branch'][db] = out
+
+        timeline_list['timelines'].append(timeline)
+
+    return HttpResponse(json.dumps(timeline_list), mimetype='application/json')

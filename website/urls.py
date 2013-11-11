@@ -27,6 +27,9 @@ urlpatterns = patterns('',
 
     url(r'^benchmark_conf/', 'website.views.benchmark_configuration'),
     url(r'^target_conf/', 'website.views.target_configuration'),
+
+    url(r'^timeline/', 'website.views.timeline'),
+    url(r'^get_data/', 'website.views.get_data'),
     # Examples:
     # url(r'^$', 'website.views.home', name='home'),
     # url(r'^website/', include('website.foo.urls')),

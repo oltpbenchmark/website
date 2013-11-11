@@ -32,19 +32,19 @@
 <hr>
 
 <table class="table table-striped table-bordered table-condensed table-hover table-nonfluid">
-    <caption><h4>Results</h4></caption>
+    <caption><h4>Results | <a href="/timeline/?id={{ project.pk }}">Timeline</a></h4></caption>
     <tr>
         <th>Result ID</th>
         <th>Creation Time</th>
-        <th>Benchmark</th>
-        <th>Target</th>
+        <th>Benchmark Conf</th>
+        <th>DB Conf</th>
     </tr>
     {% for result in results %}
         <tr>
             <td><a href="/result/?id={{ result.pk }}">{{ result.pk }}</a></td>
             <td>{{ result.timestamp }}</td>
-            <td><a href="/benchmark_conf/?id={{ result.benchmark.pk }}">{{ result.benchmark.name }}</a></td>
-            <td><a href="/target_conf/?id={{ result.target.pk }}">{{ result.target.name }}</a></td>
+            <td><a href="/benchmark_conf/?id={{ result.benchmark_conf.pk }}">{{ result.benchmark_conf.name }}</a></td>
+            <td><a href="/target_conf/?id={{ result.db_conf.pk }}">{{ result.db_conf.name }}</a></td>
         </tr>
     {% endfor %}
 </table>

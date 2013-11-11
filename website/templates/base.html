@@ -1,9 +1,15 @@
 <!DOCTYPE html>
 <html>
 
-<script type="text/javascript" src="{{ STATIC_URL }}/jquery-1.10.2.min.js"></script>
-<script type="text/javascript" src="{{ STATIC_URL }}/js/bootstrap.min.js"></script>
-<link rel="stylesheet" href="{{ STATIC_URL }}/css/base.css">
+<script type="text/javascript" src="{{ STATIC_URL }}jquery-1.10.2.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/bootstrap.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/common.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/jquery.address.js"></script>
+<script type='text/javascript'>
+var STATIC_URL = '{{ STATIC_URL }}';
+</script>
+
+<link rel="stylesheet" href="{{ STATIC_URL }}css/base.css">
 
 <head>
     <title>{% block title %}OLTPBench Result Repository{% endblock %}</title>
@@ -14,7 +20,7 @@
     <div id="logo" class="span1">
         <a href="/">
         {% block logo %}
-            <img src="{{ STATIC_URL }}/img/logo.png" height="48" alt="logo"/>
+            <img src="{{ STATIC_URL }}img/logo.png" height="48" alt="logo"/>
         {% endblock logo %}
         </a>
     </div>
