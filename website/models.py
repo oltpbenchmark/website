@@ -9,27 +9,10 @@ class NewResultForm(forms.Form):
     data = forms.FileField()
 
 
-class Environment(models.Model):
-    user = models.ForeignKey(User)
-    name = models.CharField(max_length=50)
-    description = models.CharField(max_length=500)
-    creation_time = models.DateTimeField()
-
-    def delete(self, using=None):
-        results = Result.objects.filter(environment=self)
-        for r in results:
-            r.delete()
-        super(Environment, self).delete(using)
-
-    def __unicode__(self):
-        return u'%s: %s' % (self.user, self.name)
-
-
 class Project(models.Model):
     user = models.ForeignKey(User)
-    environment = models.ForeignKey(Environment)
-    name = models.CharField(max_length=50)
-    description = models.CharField(max_length=500)
+    name = models.CharField(max_length=64)
+    description = models.TextField()
     creation_time = models.DateTimeField()
     last_update = models.DateTimeField()
 
@@ -68,6 +51,11 @@ class ExperimentConf(models.Model):
     description = models.CharField(max_length=512)
     configuration = models.TextField()
     benchmark_type = models.CharField(max_length=sum(map(lambda x: len(x) + 1, BENCHMARK_TYPES)))
+    isolation = models.TextField()
+    scalefactor = models.TextField()
+    terminals = models.TextField()
+
+    FILTER_FIELDS = ['isolation', 'scalefactor', 'terminals']
 
 
 class DBConf(models.Model):
@@ -98,10 +86,13 @@ PLOTTABLE_FIELDS = ['throughput', 'avg_latency', 'min_latency', 'p25_latency',
                     'p50_latency', 'p75_latency', 'p90_latency', 'p95_latency',
                     'p99_latency', 'max_latency']
 
+METRIC_META = {
+    'throughput': {'unit': 'transactions/second', 'lessisbetter': False, 'scale': 1},
+    'p99_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 1000},
+}
 
 class Result(models.Model):
     project = models.ForeignKey(Project)
-    environment = models.ForeignKey(Environment)
     benchmark_conf = models.ForeignKey(ExperimentConf)
     db_conf = models.ForeignKey(DBConf)
     timestamp = models.DateTimeField()
@@ -115,7 +106,6 @@ class Result(models.Model):
     p95_latency = models.FloatField()
     p99_latency = models.FloatField()
     max_latency = models.FloatField()
-    throughput = models.FloatField()
 
 
 class Statistics(models.Model):

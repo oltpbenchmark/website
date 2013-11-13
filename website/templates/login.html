@@ -1,25 +1,26 @@
+{% extends "base.html" %}
+
+{% block body %}
+<div class="jumbotron">
+    <div class="container">
+        <h1>What's this?</h1>
+        <ul>
+            <li>A repository for all your OLTP experiment results.</li>
+            <li>A tool eliminates the tedious burden of visualizing your experiments.</li>
+            <li>A smart adviser unveils potential improvements for your database.</li>
+        </ul>
+        <p><a class="btn btn-primary btn-lg" role="button" href="/signup/">Sign up now!</a>
+        <a class="btn btn-primary btn-lg" role="button">Learn more &raquo;</a></p>
+    </div>
+</div>
+{% endblock body %}
+
+
 <!DOCTYPE html>
 <html>
 <head></head>
 <body>
-<form action="/auth/" method="POST"> {% csrf_token %}
-    <div data-role="fieldcontain">
-        <label for="email">Email:</label><input type="email" name="email" id="email" value="" />
-    </div>
-    <div data-role="fieldcontain">
-        <label for="password">Password:</label><input type="password" name="password" id="password" value="" />
-    </div>    
-    <button type="submit" name="submit" value="submit-value">Sign in</button>
-</form>
-<body>
-<form action="/signup/" method="POST"> {% csrf_token %}
-    <div data-role="fieldcontain">
-        <label for="email">Email:</label><input type="email" name="email" id="email" value="" />
-    </div>
-    <div data-role="fieldcontain">
-        <label for="password">Password:</label><input type="password" name="password" id="password" value="" />
-    </div>    
-    <button type="submit" name="submit" value="submit-value">Sign up</button>
-</form>
+
+
 </body>
 </html>

@@ -5,9 +5,10 @@ from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('',
+    url(r'^signup/', 'website.views.signup_view'),
     url(r'^login/', 'website.views.login_view'),
     url(r'^auth/', 'website.views.auth_and_login'),
-    url(r'^signup/', 'website.views.sign_up_in'),
+    url(r'^signupin/', 'website.views.sign_up_in'),
     url(r'^$', 'website.views.home'),
     url(r'^logout/', 'website.views.logout_view'),
     url(r'^get_new_upload_code/', 'website.views.get_new_upload_code'),
@@ -20,10 +21,6 @@ urlpatterns = patterns('',
     url(r'^project/', 'website.views.project'),
     url(r'^delete_project/', 'website.views.delete_project'),
     url(r'^update_project/', 'website.views.update_project'),
-
-    url(r'^edit_env/', 'website.views.edit_env'),
-    url(r'^delete_env/', 'website.views.delete_env'),
-    url(r'^update_env/', 'website.views.update_env'),
 
     url(r'^benchmark_conf/', 'website.views.benchmark_configuration'),
     url(r'^target_conf/', 'website.views.target_configuration'),

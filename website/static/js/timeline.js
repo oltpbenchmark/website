@@ -8,35 +8,8 @@ var seriesindex = [],
     seriesColors = ["#4bb2c5", "#EAA228", "#579575", "#953579", "#839557", "#ff5800", "#958c12", "#4b5de4", "#0085cc"],
     defaults;
 
-function setExeColors() {
-  // Set color data attribute for all executables
-  $("#executable > div.boxbody > ul > ul > li > input").each(function(index) {
-    var color_id = index;
-    while (color_id > seriesColors.length) { color_id -= seriesColors.length; }
-    $(this).data('color', seriesColors[color_id]);
-  });
-}
-
-function getColor(exe_id) {
-  return $("#executable > div.boxbody")
-                          .find("input[value='"+exe_id+"']")
-                          .data('color');
-}
-
 function shouldPlotEquidistant() {
   return $("#equidistant").is(':checked');
-}
-
-function getConfiguration() {
-  var config = {
-    proj: defaults.proj,
-    db: readCheckbox("input[name='db']:checked"),
-    ben: $("input[name='benchmark']:checked").val(),
-    env: $("input[name='environment']:checked").val(),
-    revs: $("#revisions option:selected").val(),
-    equid: $("#equidistant").is(':checked') ? "on" : "off"
-  };
-  return config;
 }
 
 function OnMarkerClickHandler(ev, gridpos, datapos, neighbor, plot) {
@@ -47,7 +20,7 @@ function OnMarkerClickHandler(ev, gridpos, datapos, neighbor, plot) {
     }
 }
 
-function renderPlot(data) {
+function renderPlot(data, div_id) {
   var plotdata = [],
       series = [],
       lastvalues = [];//hopefully the smallest values for determining significant digits.
@@ -55,7 +28,7 @@ function renderPlot(data) {
   for (var branch in data.branches) {
     // NOTE: Currently, only the "default" branch is shown in the timeline
     for (var exe_id in data.branches[branch]) {
-      series.push({"label":  exe_id, "color": getColor(exe_id)});
+      series.push({"label":  exe_id});
       seriesindex.push(exe_id);
       plotdata.push(data.branches[branch][exe_id]);
       lastvalues.push(data.branches[branch][exe_id][0][1]);
@@ -69,25 +42,25 @@ function renderPlot(data) {
         digits++;
       }
     }
-    $("#plotgrid").html('<div id="plot"></div><div id="plotdescription"></div>');
+    $("#" + div_id).html('<div id="' + div_id + '_plot"></div><div id="plotdescription"></div>');
 
     if (data.benchmark_description) {
       $("#plotdescription").html('<p class="note"><i>' + data.benchmark + '</i>: ' + data.benchmark_description + '</p>');
     }
   }
   var plotoptions = {
-    title: {text: data.benchmark, fontSize: '1.1em'},
+    title: {text: data.benchmark + ": " + data.metric, fontSize: '1.1em'},
     series: series,
     axes:{
       yaxis:{
-        label: data.units + data.lessisbetter,
+        label: data.units + " " + data.lessisbetter,
         labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
         min: 0, autoscale:true,
         tickOptions:{formatString:'%.' + digits + 'f'}
       },
       xaxis:{
         renderer: (shouldPlotEquidistant()) ? $.jqplot.CategoryAxisRenderer : $.jqplot.DateAxisRenderer,
-        label: 'Commit date',
+        label: 'Date',
         labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
         tickOptions:{formatString:'%b %d'},
         pad: 1.01,
@@ -111,7 +84,6 @@ function renderPlot(data) {
       for (var l in series) {
           labels.push(series[l].label.length);
       }
-
       var offset = 55 + Math.max.apply( Math, labels ) * 5.4;
       plotoptions.legend.location = 'ne';
       plotoptions.legend.xoffset = -offset;
@@ -119,19 +91,8 @@ function renderPlot(data) {
       var w = $("#plot").width();
       $("#plot").css('width', w - offset);
   }
-  $('#plot').bind('jqplotDataClick',
-        function (ev, seriesIndex, pointIndex, data) {
-            alert('series: '+seriesIndex+', point: '+pointIndex+', data: '+data+ ', pageX: '+ev.pageX+', pageY: '+ev.pageY);
-        }
-    );
   //Render plot
-  $.jqplot('plot',  plotdata, plotoptions);
-  $('#plot').bind('jqplotDataClick',
-        function (ev, seriesIndex, pointIndex, data) {
-            alert('series: '+seriesIndex+', point: '+pointIndex+', data: '+data+ ', pageX: '+ev.pageX+', pageY: '+ev.pageY);
-        }
-    );
-
+  $.jqplot(div_id + '_plot',  plotdata, plotoptions);
 }
 
 function renderMiniplot(plotid, data) {
@@ -141,8 +102,7 @@ function renderMiniplot(plotid, data) {
   for (var branch in data.branches) {
     for (var id in data.branches[branch]) {
       series.push({
-        "label": $("label[for*='executable" + id + "']").html(),
-        "color": getColor(id)
+        "label": $("label[for*='executable" + id + "']").html()
       });
       plotdata.push(data.branches[branch][id]);
     }
@@ -157,7 +117,7 @@ function renderMiniplot(plotid, data) {
   }
 
   var plotoptions = {
-    title: {text: data.benchmark, fontSize: '1.1em'},
+    title: {text: data.benchmark + ": " + data.metric, fontSize: '1.1em'},
     seriesDefaults: {lineWidth: 2, markerOptions:{style:'circle', size: 6}},
     series: series,
     axes: {
@@ -176,6 +136,8 @@ function renderMiniplot(plotid, data) {
   };
   $.jqplot(plotid, plotdata, plotoptions);
 }
+
+var fixed_header = null;
 
 function render(data) {
   $("#revisions").attr("disabled", false);
@@ -200,16 +162,40 @@ function render(data) {
       $("#plotgrid").append('<div id="' + plotid + '" class="miniplot"></div>');
       $("#" + plotid).click(function() {
         var bench = $(this).attr("id").slice(5);
-        $("#benchmark_" + bench).prop('checked', true);
+        $("#benchmark_" + bench).trigger("click");//.prop("checked", true);
         updateUrl();
       });
       renderMiniplot(plotid, data.timelines[bench]);
     }
   } else {
     // render single plot when one benchmark is selected
-    renderPlot(data.timelines[0]);
-    return 1;
+    for (var metric in data.timelines) {
+        var plotid = "plot_" + data.timelines[metric].metric;
+        $("#plotgrid").append('<div id="' + plotid + '" class="plotcontainer"></div>');
+        renderPlot(data.timelines[metric], plotid);
+    }
+
   }
+    var dt = $("#dataTable").dataTable( {
+        "aaData": data.results,
+        "aoColumns": [
+            { "sTitle": "ID", "sClass": "center" },
+            { "sTitle": "Creation Time", "sClass": "center" },
+            { "sTitle": "DB Conf", "sClass": "center" },
+            { "sTitle": "Benchmark Conf", "sClass": "center" },
+            { "sTitle": "Throughput", "sClass": "center", "mRender": function (data, type, full) {return data.toFixed(2);}},
+            { "sTitle": "p99 Latency", "sClass": "center", "mRender": function (data, type, full) {return data.toFixed(2);}},
+        ],
+        "bFilter": false,
+        "bAutoWidth": false,
+        "sPaginationType": "full_numbers",
+        "bDestroy": true
+    });
+    if (fixed_header != null) {
+        fixed_header.fnUpdate();
+    } else {
+        fixed_header = new FixedHeader(dt);
+    }
 }
 
 function refreshContent() {
@@ -222,6 +208,7 @@ function refreshContent() {
 
 function updateUrl() {
   var cfg = getConfiguration();
+  $.address.autoUpdate(false);
   for (var param in cfg) {
     $.address.parameter(param, cfg[param]);
   }
@@ -232,13 +219,42 @@ function valueOrDefault(obj, defaultObj) {
   return (obj) ? obj : defaultObj;
 }
 
+function getConfiguration() {
+  var config = {
+    proj: defaults.proj,
+    db: readCheckbox("input[name='db']:checked"),
+    ben: $("input[name='benchmark']:checked").val(),
+    spe: readCheckbox("input[name^='specific']:checked"),
+    met: readCheckbox("input[name='metric']:checked"),
+    revs: $("#revisions option:selected").val(),
+    equid: $("#equidistant").is(':checked') ? "on" : "off"
+  };
+  config["add"] = [];
+  $.each(defaults.additional, function(i, add) {
+    config["add"].push(add + ":" + $("select[name^='additional_" + add + "']").val());
+  });
+
+  return config;
+}
+
+function updateSub(event) {
+    $("[id^=div_specific]").hide();
+    $("input[name^='specific']").removeAttr('checked');
+    if ($("input[name='benchmark']:checked").val() != "grid" && $("input[name='benchmark']:checked").val() != "show_none") {
+        $("[id=div_specific_" + $("input[name='benchmark']:checked").val() + "]").show();
+        $("[id^=specific_" + $("input[name='benchmark']:checked").val() + "_]").prop('checked', true);
+    }
+}
+
 function initializeSite(event) {
-  setValuesOfInputFields(event);
-  $("#revisions"                ).change(updateUrl);
-  $("input[name='db']"          ).click(updateUrl);
-  $("input[name='benchmark']"   ).click(updateUrl);
-  $("input[name='environment']" ).click(updateUrl);
-  $("#equidistant"              ).click(updateUrl);
+    setValuesOfInputFields(event);
+    $("#revisions"                ).bind('change', updateUrl);
+    $("input[name='db']"          ).bind('click', updateUrl);
+    $("input[name='benchmark']"   ).on('change', updateSub);
+    $("input[name='benchmark']"   ).on('click', updateUrl);
+    $("input[name^='specific']"   ).on('change', updateUrl);
+    $("select[name^='additional']").bind('change', updateUrl);
+    $("#equidistant"              ).bind('change', updateUrl);
 }
 
 function refreshSite(event) {
@@ -250,11 +266,20 @@ function setValuesOfInputFields(event) {
   // Either set the default value, or the one parsed from the url
 
   // Reset all checkboxes
-  $("input:checkbox").removeAttr('checked');
+  // $("input:checkbox[name='db']").removeAttr('checked');
 
   $("#revisions").val(valueOrDefault(event.parameters.revs, defaults.revisions));
 
+    // $("input:checkbox[name='metric']").prop('checked', false);
+    // var metrics = event.parameters.met ? event.parameters.met.split(',') : defaults.metrics;
+    // $("input:checkbox[name='metric']").each(function() {
+    //    if ($.inArray($(this).val(), metrics) >= 0) {
+    //        $(this).prop('checked', true);
+    //    }
+    //});
+
   // Set default selected db
+  $("input:checkbox[name='db']").removeAttr('checked');
   var dbs = event.parameters.db ? event.parameters.db.split(',') : defaults.dbs;
   var sel = $("input[name='db']");
 
@@ -262,11 +287,20 @@ function setValuesOfInputFields(event) {
     sel.filter("[value='" + db + "']").prop('checked', true);
   });
 
-  // Set default selected benchmark
-  var benchmark = valueOrDefault(event.parameters.ben, defaults.benchmark);
-  $("input:radio[name='benchmark']")
-      .filter("[value='" + benchmark + "']")
-      .attr('checked', true);
+    // Set default selected benchmark
+    var benchmark = valueOrDefault(event.parameters.ben, defaults.benchmark);
+    $("input:radio[name='benchmark']").filter("[value='" + benchmark + "']").attr('checked', true);
+
+    $("[id^=div_specific]").hide();
+    $("input[name^='specific']").removeAttr('checked');
+    if ($("input[name='benchmark']:checked").val() != "grid" && $("input[name='benchmark']:checked").val() != "show_none") {
+        $("[id=div_specific_" + $("input[name='benchmark']:checked").val() + "]").show();
+        sel = $("[id^=specific_" + $("input[name='benchmark']:checked").val() + "_");
+        var specs = event.parameters.spe? event.parameters.spe.split(','): defaults.benchmarks[benchmark];
+        $.each(specs, function(i, spec) {
+            sel.filter("[value='" + spec + "']").prop('checked', true);
+        });
+    }
 
   // Set default selected environment
   var environment = valueOrDefault(event.parameters.env, defaults.environment);
@@ -274,14 +308,6 @@ function setValuesOfInputFields(event) {
       .filter("[value='" + environment + "']")
       .attr('checked', true);
 
-  // Add color legend to executable list
-  $("#executable div.boxbody > ul > ul > li > input").each(function() {
-    $(this).parent()
-      .find("div.seriescolor")
-      .css("background-color", getColor($(this).attr("id").slice(10)));
-  });
-
-  $("#baselinecolor").css("background-color", baselineColor);
   $("#equidistant").prop('checked', valueOrDefault(event.parameters.equid, defaults.equidistant) === "on");
 }
 
@@ -292,15 +318,13 @@ function init(def) {
       cache: false
     });
 
-    // Even listener for clicks on plot markers
+    // Event listener for clicks on plot markers
     $.jqplot.eventListenerHooks.push(['jqplotClick', OnMarkerClickHandler]);
 
     // Init and change handlers are set to the refreshContent handler
     $.address.init(initializeSite).change(refreshSite);
 
     // $('.checkall, .uncheckall').click(refreshContent);
-
-    setExeColors();
 
     $("#permalink").click(function() {
         window.location = "?" + $.param(getConfiguration());

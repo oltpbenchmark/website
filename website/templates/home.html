@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block body %}
-<div id="project_list">
+<div id="project_list" class="container">
 <form action="/delete_project/" method="POST"
       onsubmit="return confirm('Are you sure you want to delete these projects and all targets/results under this project?')">
       {% csrf_token %}
@@ -24,36 +24,8 @@
         </tr>
     {% endfor %}
 </table>
-<button class="btn" type="submit">Delete selected projects</button>
-<a class="btn" href="/edit_project/?id=">Create a new project</a>
-</form>
-</div>
-
-<hr>
-
-<div id="env_list">
-<form action="/delete_env/" method="POST"
-      onsubmit="return confirm('Are you sure you want to delete these environments and all results generated from them?')">
-      {% csrf_token %}
-<table id="env_table" class="table table-bordered table-striped table-hover table-nonfluid">
-    <caption><h4>Your environments</h4></caption>
-    <tr>
-        <th><input type="checkbox" onClick="toggle(this, 'environments')" /></th>
-        <th>Environment Name</th>
-        <th>Description</th>
-        <th>Creation Time</th>
-    </tr>
-    {% for env in environments %}
-        <tr>
-            <td style="vertical-align:middle"><input type="checkbox" name="environments" value="{{ env.pk }}" /></td>
-            <td style="vertical-align:middle"><a href="/edit_env/?id={{env.pk}}">{{ env.name }}</a></td>
-            <td style="vertical-align:middle">{{ env.description|linebreaks }}</td>
-            <td style="vertical-align:middle">{{ env.creation_time }}</td>
-        </tr>
-    {% endfor %}
-</table>
-<button class="btn" type="submit">Delete selected environments</button>
-<a class="btn" href="/edit_env/?id=">Create a new environment</a>
+<button class="btn btn-default" type="submit">Delete selected projects</button>
+<a class="btn btn-default" href="/edit_project/?id=">Create a new project</a>
 </form>
 </div>
 

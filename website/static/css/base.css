@@ -1,5 +1,24 @@
 @import url("bootstrap.min.css");
+@import url("bootstrap-select.min.css");
 
 .table-nonfluid {
    width: auto;
+}
+
+.boxbody ul {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0.2em;
+  # margin-bottom: 0.5em;
+}
+.boxbody ul li { padding-left: 0.3em; }
+
+.plotcontainer {
+    margin-bottom: 2em;
+}
+
+.FixedHeader_Cloned th { background-color: white; }
+
+.container {
+  padding-left: 10px;
 }

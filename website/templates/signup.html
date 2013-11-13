@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+<div class="container">
+    <div class="col-md-4">
+    <form action="/signupin/" method="POST" class="form-signin"> {% csrf_token %}
+        <input type="email" class="form-control" placeholder="Email address" name="email" required autofocus>
+        <input type="password" class="form-control" placeholder="Password" name="password" required>
+        <button class="btn btn-primary" type="submit" name="submit" value="submit-value">Sign up</button>
+    </form>
+    </div>
+</div>
+{% endblock body %}

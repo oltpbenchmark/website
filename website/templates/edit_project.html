@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
 {% block body %}
-<div>
+<div class="container">
 <form action="/update_project/" method="POST"> {% csrf_token %}
-    <table class="table table-striped table-bordered table-nonfluid">
+    <table class="table table-striped table-bordered table-hover table-nonfluid">
         <tr>
             <td align="right"><label for="name">Name:</label></td>
             <td><input type="text" id="name" name="name" value="{{ project.name }}" maxlength="50" required></td>
@@ -11,16 +11,6 @@
         <tr>
             <td valign="top" align="right"><label for="description">Description:</label></td>
             <td><textarea id="description" name="description" maxlength="500" rows="5" required>{{ project.description }}</textarea></td>
-        </tr>
-        <tr>
-            <td align="right"><label for="environment">Environment:</label></td>
-            <td>
-                <select id="environment" name="environment" required>
-                    {% for env in environments %}
-                        <option value="{{ env.pk }}">{{ env.name }}</option>
-                    {% endfor %}
-                </select>
-            </td>
         </tr>
         {% if project %}
         <tr>
@@ -37,21 +27,13 @@
         </tr>
         {% endif %}
     </table>
-    <button class="btn" type="submit" name="id" value="{{ project.pk }}">Submit</button>
+    <button class="btn btn-default" type="submit" name="id" value="{{ project.pk }}">Submit</button>
     {% if project %}
-    <button class="btn" type="submit" name="id_new_code" value="{{ project.pk }}">Submit & Get a new upload code</button>
-    <a class="btn" href="/project/?id={{ project.pk }}">Cancel</a>
+    <button class="btn btn-default" type="submit" name="id_new_code" value="{{ project.pk }}">Submit & Get a new upload code</button>
+    <a class="btn btn-default" href="/project/?id={{ project.pk }}">Cancel</a>
     {% else %}
-    <a class="btn" href="/">Cancel</a>
+    <a class="btn btn-default" href="/">Cancel</a>
     {% endif %}
 </form>
-
-{% if project %}
-<script language="JavaScript">
-    $(document).ready(function() {
-        $("select#environment").val("{{ project.environment.pk }}");
-    });
-</script>
-{% endif %}
-
+</div>
 {% endblock body %}

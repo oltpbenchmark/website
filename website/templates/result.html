@@ -5,15 +5,20 @@
 <script type="text/javascript" src="{{ STATIC_URL }}/d3.v3.min.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}/nv.d3.min.js"></script>
 <p>Result ID: {{ result.pk }} </p>
-<p>Target: {{ result.target.name }} </p>
-<p>Environment: {{ result.environment.name }} </p>
+<p>DB Conf: {{ result.db_conf.name }} </p>
+<p>Benchmark Conf: {{ result.benchmark_conf.name }} </p>
 
-<div class="btn-group" data-toggle="buttons">
+<!--<div class="btn-group" data-toggle="buttons">-->
+<div class="container">
+    <div class="row">
     {% for field in fields %}
+    <div class="radio col-md-3">
     <label class="btn btn-primary">
         <input type="radio" name="field" value="{{field}}" onclick="updateChart()"/> {{field}}
     </label>
+    </div>
     {% endfor %}
+    </div>
 </div>
 
 <div id="chart">
@@ -44,6 +49,7 @@ updateChart = function() {
 
 $(function() {
     $("input[name='field']")[0].checked= true;
+    $("input[name='field']").bind('click', updateChart());
     updateChart();
 })
 </script>

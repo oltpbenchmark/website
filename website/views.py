@@ -9,60 +9,20 @@ import random
 import string
 from django.template import RequestContext
 from django.views.decorators.csrf import csrf_exempt
-from models import Result, Project, DBConf, ExperimentConf, Environment, Statistics, NewResultForm, PLOTTABLE_FIELDS
+from models import Result, Project, DBConf, ExperimentConf, Statistics, NewResultForm, PLOTTABLE_FIELDS, METRIC_META
 from django.utils.timezone import now
 from website import settings
 
 
-def no_environment_error(request):
-    return render_to_response('codespeed/nodata.html', {
-        'message': 'You need to configure at least one Environment.'
-    }, context_instance=RequestContext(request))
-
-
-def get_default_environment(enviros, data, multi=False):
-    """Returns the default environment. Preference level is:
-        * Present in URL parameters (permalinks)
-        * Value in settings.py
-        * First Environment ID
-
-    """
-    defaultenviros = []
-    # Use permalink values
-    if 'env' in data:
-        for env_value in data['env'].split(","):
-            for env in enviros:
-                try:
-                    env_id = int(env_value)
-                except ValueError:
-                    # Not an int
-                    continue
-                for env in enviros:
-                    if env_id == env.id:
-                        defaultenviros.append(env)
-            if not multi:
-                break
-    # Use settings.py value
-    if not defaultenviros and not multi:
-        if (hasattr(settings, 'DEF_ENVIRONMENT') and
-                settings.DEF_ENVIRONMENT is not None):
-            for env in enviros:
-                if settings.DEF_ENVIRONMENT == env.name:
-                    defaultenviros.append(env)
-                    break
-    # Last fallback
-    if not defaultenviros:
-        defaultenviros = enviros
-    if multi:
-        return defaultenviros
-    else:
-        return defaultenviros[0]
-
+def signup_view(request):
+    c = {}
+    c.update(csrf(request))
+    return render(request, 'signup.html', c)
 
 def login_view(request):
     c = {}
     c.update(csrf(request))
-    return render_to_response('login.html', c)
+    return render(request, 'login.html', c)
 
 
 def auth_and_login(request, onsuccess='/', onfail='/login/'):
@@ -119,43 +79,9 @@ def get_new_upload_code(request):
 
 @login_required(login_url='/login/')
 def home(request):
-    context = {"projects": Project.objects.filter(user=request.user),
-               "environments": Environment.objects.filter(user=request.user)}
+    context = {"projects": Project.objects.filter(user=request.user)}
     context.update(csrf(request))
     return render(request, 'home.html', context)
-
-
-@login_required(login_url='/login/')
-def edit_env(request):
-    context = {}
-    context.update(csrf(request))
-    try:
-        if request.GET['id'] != '':
-            context['environment'] = Environment.objects.get(pk=request.GET['id'])
-    except Environment.DoesNotExist:
-        pass
-    return render(request, 'edit_env.html', context)
-
-
-@login_required(login_url='/login/')
-def update_env(request):
-    env_id = request.POST.get('id', '')
-    if env_id != '':
-        env = Environment.objects.get(pk=request.POST['id'])
-    else:
-        env = Environment()
-        env.creation_time = now()
-        env.user = request.user
-    env.name = request.POST['name']
-    env.description = request.POST['description']
-    env.save()
-    return redirect('/')
-
-
-@login_required(login_url='/login/')
-def delete_env(request):
-    map(lambda x: Environment.objects.get(pk=x).delete(), request.POST.getlist('environments', []))
-    return redirect('/')
 
 
 @login_required(login_url='/login/')
@@ -165,16 +91,59 @@ def project(request):
     if len(ps) != 1:
         redirect('/')
     p = ps[0]
-    context = {'project': p,
-               'results': Result.objects.filter(project=p),
-               'environments': Environment.objects.filter(user=request.user)}
+
+
+
+    data = request.GET
+
+    project = Project.objects.get(pk=data['id'])
+
+    results = Result.objects.filter(project=project)
+
+    db_with_data = {}
+    benchmark_with_data = {}
+
+    for res in results:
+        db_with_data[res.db_conf.db_type] = True
+        benchmark_with_data[res.benchmark_conf.benchmark_type] = True
+    benchmark_confs = set([res.benchmark_conf for res in results])
+
+    dbs = [db for db in DBConf.DB_TYPES if db in db_with_data]
+    benchmark_types = [benchmark for benchmark in ExperimentConf.BENCHMARK_TYPES if benchmark in benchmark_with_data]
+    benchmarks = {}
+    for benchmark in benchmark_types:
+        specific_benchmark = [b for b in benchmark_confs if b.benchmark_type == benchmark]
+        benchmarks[benchmark] = specific_benchmark
+
+    lastrevisions = [10, 50, 200, 1000]
+
+    filters = []
+    for name in ExperimentConf.FILTER_FIELDS:
+        value_dict = {}
+        for res in results:
+            value_dict[getattr(res.benchmark_conf, name)] = True
+        f = {'values': [key for key in value_dict.iterkeys()], 'name': name}
+        filters.append(f)
+
+    context = {'project': project,
+               'db_types': dbs,
+               'benchmarks': benchmarks,
+               'lastrevisions': lastrevisions,
+               'defaultlast': 10,
+               'defaultequid': False,
+               'defaultbenchmark': 'show_none',
+               'metrics': PLOTTABLE_FIELDS,
+               'filters': filters,
+               'project': p,
+               'results': Result.objects.filter(project=p)}
+
     context.update(csrf(request))
     return render(request, 'project.html', context)
 
 
 @login_required(login_url='/login/')
 def edit_project(request):
-    context = {'environments': Environment.objects.filter(user=request.user)}
+    context = {}
     try:
         if request.GET['id'] != '':
             context['project'] = Project.objects.get(pk=request.GET['id'])
@@ -210,7 +179,6 @@ def update_project(request):
 
     p.name = request.POST['name']
     p.description = request.POST['description']
-    p.environment = Environment.objects.get(pk=request.POST['environment'])
     p.last_update = now()
     p.save()
     return redirect('/project/?id=' + str(p.pk))
@@ -293,6 +261,10 @@ def handle_result_file(proj, file_data):
         bench_conf.project = proj
         bench_conf.configuration = bench_conf_str
         bench_conf.benchmark_type = bench_type
+        id = 4
+        for conf in ExperimentConf.FILTER_FIELDS:
+            setattr(bench_conf, conf, summary_lines[id])
+            id += 1
         bench_conf.save()
         bench_conf.name = bench_type + '#' + str(bench_conf.pk)
         bench_conf.save()
@@ -300,7 +272,6 @@ def handle_result_file(proj, file_data):
     result = Result()
     result.db_conf = db_conf
     result.benchmark_conf = bench_conf
-    result.environment = proj.environment
     result.project = proj
     result.timestamp = now()
     latency_dict = {}
@@ -385,21 +356,42 @@ def timeline(request):
 
     project = Project.objects.get(pk=data['id'])
 
-    enviros = Environment.objects.all()
-    if not enviros:
-        return no_environment_error(request)
-    defaultenviro = get_default_environment(enviros, data)
+    results = Result.objects.filter(project=project)
+
+    db_with_data = {}
+    benchmark_with_data = {}
+
+    for res in results:
+        db_with_data[res.db_conf.db_type] = True
+        benchmark_with_data[res.benchmark_conf.benchmark_type] = True
+    benchmark_confs = set([res.benchmark_conf for res in results])
+
+    dbs = [db for db in DBConf.DB_TYPES if db in db_with_data]
+    benchmark_types = [benchmark for benchmark in ExperimentConf.BENCHMARK_TYPES if benchmark in benchmark_with_data]
+    benchmarks = {}
+    for benchmark in benchmark_types:
+        specific_benchmark = [b for b in benchmark_confs if b.benchmark_type == benchmark]
+        benchmarks[benchmark] = specific_benchmark
 
     lastrevisions = [10, 50, 200, 1000]
+
+    filters = []
+    for name in ExperimentConf.FILTER_FIELDS:
+        value_dict = {}
+        for res in results:
+            value_dict[getattr(res.benchmark_conf, name)] = True
+        f = {'values': [key for key in value_dict.iterkeys()], 'name': name}
+        filters.append(f)
+
     context = {'project': project,
-               'db_types': DBConf.DB_TYPES,
-               'benchmarks': ExperimentConf.BENCHMARK_TYPES,
+               'db_types': dbs,
+               'benchmarks': benchmarks,
                'lastrevisions': lastrevisions,
                'defaultlast': 10,
                'defaultequid': False,
-               'environments': enviros,
-               'defaultenvironment': defaultenviro,
-               'defaultbenchmark': 'TPCC'
+               'defaultbenchmark': 'show_none',
+               'metrics': PLOTTABLE_FIELDS,
+               'filters': filters
                }
     return render(request, 'timeline.html', context)
 
@@ -408,7 +400,7 @@ def timeline(request):
 def get_data(request):
     revs = int(request.GET['revs'])
     timeline_list = {'error': 'None', 'timelines': []}
-    results = Result.objects.filter(project=request.GET['proj']).filter(environment=request.GET['env'])
+    results = Result.objects.filter(project=request.GET['proj'])
 
     dbs = request.GET['db'].split(',')
     results = filter(lambda x: x.db_conf.db_type in dbs, results)
@@ -417,43 +409,69 @@ def get_data(request):
     if request.GET['ben'] == 'grid':
         benchmarks = ExperimentConf.BENCHMARK_TYPES
         revs = 10
+        results = filter(lambda x: x.benchmark_conf.benchmark_type in benchmarks, results)
+        table_results = []
     elif request.GET['ben'] == 'show_none':
         benchmarks = []
+        table_results = []
     else:
         benchmarks = [request.GET['ben']]
+        benchmark_confs = filter(lambda x: x != '', request.GET['spe'].strip().split(','))
+        results = filter(lambda x: str(x.benchmark_conf.pk) in benchmark_confs, results)
 
-    results = filter(lambda x: x.benchmark_conf.benchmark_type in benchmarks, results)
+        for f in filter(lambda x: x != '', request.GET.getlist('add[]', [])):
+            key, value = f.split(':')
+            if value == 'select_all':
+                continue
+            results = filter(lambda x: getattr(x.benchmark_conf, key) == value, results)
 
-    for bench in benchmarks:
-        b_r = filter(lambda x: x.benchmark_conf.benchmark_type == bench, results)
-        if len(b_r) == 0:
-            continue
+        table_results = results
 
-        timeline = {
-            'benchmark':             bench,
-            'units':                 's',
-            'lessisbetter':          '(less is better)',
-            'branches':              {},
-            'baseline':              "None",
-        }
+    if len(benchmarks) == 1:
+        metrics = ['throughput', 'p99_latency']
+    else:
+        metrics = ['throughput']
 
-        timeline['branches']['branch'] = {}
+    timeline_list['results'] = [[x.pk,
+                                 x.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+                                 x.db_conf.name,
+                                 x.benchmark_conf.name,
+                                 x.throughput * METRIC_META['throughput']['scale'],
+                                 x.p99_latency * METRIC_META['p99_latency']['scale']]
+                                for x in table_results]
 
-        for db in dbs:
-            out = []
-            d_r = filter(lambda x: x.db_conf.db_type == db, b_r)
-            d_r = d_r[-revs:]
-            for res in d_r:
-                out.append(
-                    [
-                        res.timestamp.strftime("%Y-%m-%d %H:%M:%S"), res.throughput, "",
-                        str(res.pk)
-                    ]
-                )
+    for metric in metrics:
+        for bench in benchmarks:
+            b_r = filter(lambda x: x.benchmark_conf.benchmark_type == bench, results)
+            if len(b_r) == 0:
+                continue
 
-            if len(out) > 0:
-                timeline['branches']['branch'][db] = out
+            timeline = {
+                'benchmark':             bench,
+                'units':                 METRIC_META[metric]['unit'],
+                'lessisbetter':          METRIC_META[metric]['lessisbetter'] and '(less is better)' or '(more is better)',
+                'branches':              {},
+                'baseline':              "None",
+                'metric':                metric
+            }
 
-        timeline_list['timelines'].append(timeline)
+            timeline['branches']['branch'] = {}
+
+            for db in dbs:
+                out = []
+                d_r = filter(lambda x: x.db_conf.db_type == db, b_r)
+                d_r = d_r[-revs:]
+                for res in d_r:
+                    out.append(
+                        [
+                            res.timestamp.strftime("%Y-%m-%d %H:%M:%S"), getattr(res, metric) * METRIC_META[metric]['scale'], "",
+                            str(res.pk)
+                        ]
+                    )
+
+                if len(out) > 0:
+                    timeline['branches']['branch'][db] = out
+
+            timeline_list['timelines'].append(timeline)
 
     return HttpResponse(json.dumps(timeline_list), mimetype='application/json')
