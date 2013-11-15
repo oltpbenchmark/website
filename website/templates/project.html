@@ -23,6 +23,10 @@
         <td>{{ project.upload_code }}</td>
     </tr>
     <tr>
+        <td><div class="text-right">Creation time:</div></td>
+        <td>{{ project.creation_time }}</td>
+    </tr>
+    <tr>
         <td><div class="text-right">Last update:</div></td>
         <td>{{ project.last_update }}</td>
     </tr>
@@ -69,25 +73,27 @@
         </ul>
     </div>
 </div>
-<!--<div id="metric">-->
-    <!--<div><h4>Metrics to plot</h4></div>-->
-    <!--<div>-->
-        <!--{% for metric in metrics %}-->
-        <!--<label><input type="checkbox" name="metric" value="{{ metric }}" /> {{ metric }}</label>-->
-        <!--{% endfor %}-->
-    <!--</div>-->
-<!--</div>-->
 <div id="additional_filter">
     <div><h4>Additional Filter</h4></div>
     <div class="boxbody">
         <ul>
         {% for filter in filters %}
-        <li><label>{{ filter.name }}<select class="selectpicker" name="additional_{{ filter.name }}">
+        <li><label>{{ filter.print }}<select class="selectpicker" name="additional_{{ filter.field }}">
             <option value="select_all">Select All</option>
             {% for value in filter.values %}
             <option value="{{ value }}">{{ value }}</option>
             {% endfor %}
         </select></label></li>
+        {% endfor %}
+        </ul>
+    </div>
+</div>
+<div id="metric">
+    <div><h4>Plot Metrics</h4></div>
+    <div class="checkbox boxbody">
+        <ul>
+        {% for metric in metrics %}
+        <li><label><input type="checkbox" name="metric" value="{{ metric.field }}" /> {{ metric.print }}</label></li>
         {% endfor %}
         </ul>
     </div>
@@ -110,7 +116,7 @@
 </div>
 
 <div id="content">
-    <div id="plotgrid" class="plotcontainer"></div>
+    <div id="plotgrid" class="plotcontainer row"></div>
     <div id="result_table">
         <h4>Filtered Results</h4>
         <table id="dataTable">
@@ -146,11 +152,27 @@
 <script type="text/javascript" src="{{ STATIC_URL }}js/jqplot/jqplot.categoryAxisRenderer.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/jqplot/jqplot.canvasTextRenderer.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/jqplot/jqplot.canvasAxisLabelRenderer.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/jqplot/jqplot.canvasAxisTickRenderer.js"></script>
 
 
 <script type="text/javascript" src="{{ STATIC_URL }}js/timeline.js"></script>
 <script language="javascript">
 $(function() {
+    jQuery.extend( jQuery.fn.dataTableExt.oSort, {
+        "num-html-pre": function ( a ) {
+            var x = String(a).replace( /<[\s\S]*?>/g, "" );
+            return parseFloat( x );
+        },
+
+        "num-html-asc": function ( a, b ) {
+            return ((a < b) ? -1 : ((a > b) ? 1 : 0));
+        },
+
+        "num-html-desc": function ( a, b ) {
+            return ((a < b) ? 1 : ((a > b) ? -1 : 0));
+        }
+    });
+
     $('.selectpicker').selectpicker();
 
     $("[id^=div_specific]").hide();
@@ -159,10 +181,11 @@ $(function() {
         proj: {{ project.pk }},
         dbs: [{% for db in db_types %}"{{ db }}", {% endfor %}],
         revisions: {{ defaultlast }},
-        benchmark: "show_none",
+        benchmark: "{{ defaultbenchmark }}",
         benchmarks: { {% for ben, conf in benchmarks.items %} "{{ ben }}": "{{ conf.pk }}", {% endfor %} },
         equidistant: "{{ defaultequid }}",
-        additional: [{% for filter in filters %} "{{ filter.name }}", {% endfor %}],
+        additional: [{% for filter in filters %} "{{ filter.field }}", {% endfor %}],
+        metrics: [{% for metric in defaultmetrics %}"{{ metric }}", {% endfor %}]
     });
 });
 </script>

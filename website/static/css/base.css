@@ -22,3 +22,16 @@
 .container {
   padding-left: 10px;
 }
+
+div.miniplot:hover { background-color: #F1F1F1; }
+
+div.miniplot {
+    cursor: pointer;
+    margin: 0.5em;
+    text-align: left;
+    float: left;
+    height: 200px;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+}

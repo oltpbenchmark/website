@@ -23,7 +23,9 @@ urlpatterns = patterns('',
     url(r'^update_project/', 'website.views.update_project'),
 
     url(r'^benchmark_conf/', 'website.views.benchmark_configuration'),
-    url(r'^target_conf/', 'website.views.target_configuration'),
+    url(r'^edit_benchmark_conf/', 'website.views.edit_benchmark_conf'),
+    url(r'^get_benchmark_data/', 'website.views.get_benchmark_data'),
+    url(r'^db_conf/', 'website.views.db_conf_view'),
 
     url(r'^timeline/', 'website.views.timeline'),
     url(r'^get_data/', 'website.views.get_data'),

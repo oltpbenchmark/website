@@ -1,57 +1,87 @@
 {% extends "base.html" %}
 
 {% block body %}
-<!-- nvd3 stuff -->
-<script type="text/javascript" src="{{ STATIC_URL }}/d3.v3.min.js"></script>
-<script type="text/javascript" src="{{ STATIC_URL }}/nv.d3.min.js"></script>
-<p>Result ID: {{ result.pk }} </p>
-<p>DB Conf: {{ result.db_conf.name }} </p>
-<p>Benchmark Conf: {{ result.benchmark_conf.name }} </p>
 
-<!--<div class="btn-group" data-toggle="buttons">-->
+<!--[if lt IE 9]><script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/jqplot/excanvas.js"></script><![endif]-->
+<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/jqplot/jquery.jqplot.js"></script>
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}js/jqplot/jquery.jqplot.css" />
+
 <div class="container">
-    <div class="row">
-    {% for field in fields %}
-    <div class="radio col-md-3">
-    <label class="btn btn-primary">
-        <input type="radio" name="field" value="{{field}}" onclick="updateChart()"/> {{field}}
-    </label>
-    </div>
-    {% endfor %}
-    </div>
+<table class="table table-striped table-bordered table-condensed table-hover">
+    <caption><h4>Result Info</h4></caption>
+    <tbody>
+    <tr>
+        <td><div class="text-right">ID</div></td>
+        <td>{{ result.pk }}</td>
+    </tr>
+    <tr>
+        <td><div class="text-top text-right">DB Conf</div></td>
+        <td><a href="/db_conf/?id={{ result.db_conf.pk }}">{{ result.db_conf.name }}</a></td>
+    </tr>
+    <tr>
+        <td><div class="text-right">Benchmark Conf</div></td>
+        <td><a href="/benchmark_conf/?id={{ result.benchmark_conf.pk }}">{{ result.benchmark_conf.name }}</a></td>
+    </tr>
+    <tr>
+        <td><div class="text-right">Experiment Time</div></td>
+        <td>{{ result.timestamp }}</td>
+    </tr>
+    <tr>
+        <td><div class="text-right">Overall Throughout</div></td>
+        <td>{{ result.throughput }}</td>
+    </tr>
+    <tr>
+        <td><div class="text-right">Overall 99% Latency</div></td>
+        <td>{{ result.p99_latency }}</td>
+    </tr>
+    </tbody>
+</table>
 </div>
 
-<div id="chart">
-    <link href="{{ STATIC_URL }}/nv.d3.min.css" rel="stylesheet" type="text/css">
-    <svg></svg>
+<hr>
+
+<div class="container">
+<div class="row">
+
+<div id="sidebar" class="col-md-3">
+<div id="metric">
+    <div><h4>Plot Metrics</h4></div>
+    <div class="checkbox boxbody">
+        <ul>
+        {% for metric in metrics %}
+        <li><label><input type="checkbox" name="metric" value="{{ metric.field }}" /> {{ metric.print }}</label></li>
+        {% endfor %}
+        </ul>
+    </div>
 </div>
+</div>
+
+<div class="col-md-9">
+    <div id="content">
+        <div id="plotgrid" class="plotcontainer"></div>
+    </div>
+</div>
+</div>
+</div>
+
+<script type="text/javascript" src="{{ STATIC_URL }}js/jqplot/jqplot.cursor.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/jqplot/jqplot.highlighter.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/jqplot/jqplot.dateAxisRenderer.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/jqplot/jqplot.categoryAxisRenderer.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/jqplot/jqplot.canvasTextRenderer.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/jqplot/jqplot.canvasAxisLabelRenderer.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/jqplot/jqplot.canvasAxisTickRenderer.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/jqplot/jqplot.barRenderer.js"></script>
+
+<script type="text/javascript" src="{{ STATIC_URL }}js/result.js"></script>
 
 <script type="text/javascript">
-updateChart = function() {
-    reqPar = "id=" + {{ result.pk }} + "&field=" + $('input[name="field"]:checked').val();
-    var request = $.ajax({
-        url: "/get_result_data/?" + reqPar,
-        type: "GET",
-        dataType: "json",
-        success: function(result) {
-            // start nvd3 code
-            nv.addGraph(function() {
-                var chart = nv.models.lineChart();
-                chart.xAxis.tickFormat(d3.format(',.1f'));
-                chart.yAxis.tickFormat(d3.format(',.3f'));
-                d3.select('#chart svg').datum(result).call(chart);
-                nv.utils.windowResize(chart.update);
-                return chart;
-            });
-        }
-      });
-    };
-
 $(function() {
-    $("input[name='field']")[0].checked= true;
-    $("input[name='field']").bind('click', updateChart());
-    updateChart();
-})
+    ResultTimeline.init({
+        data: {{ data|safe }},
+        metrics: [{% for metric in default_metrics %}"{{ metric }}", {% endfor %}],
+    });
+});
 </script>
 
 {% endblock body %}

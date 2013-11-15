@@ -19,6 +19,7 @@ def signup_view(request):
     c.update(csrf(request))
     return render(request, 'signup.html', c)
 
+
 def login_view(request):
     c = {}
     c.update(csrf(request))
@@ -92,8 +93,6 @@ def project(request):
         redirect('/')
     p = ps[0]
 
-
-
     data = request.GET
 
     project = Project.objects.get(pk=data['id'])
@@ -118,11 +117,11 @@ def project(request):
     lastrevisions = [10, 50, 200, 1000]
 
     filters = []
-    for name in ExperimentConf.FILTER_FIELDS:
+    for field in ExperimentConf.FILTER_FIELDS:
         value_dict = {}
         for res in results:
-            value_dict[getattr(res.benchmark_conf, name)] = True
-        f = {'values': [key for key in value_dict.iterkeys()], 'name': name}
+            value_dict[getattr(res.benchmark_conf, field['field'])] = True
+        f = {'values': [key for key in value_dict.iterkeys()], 'print': field['print'], 'field': field['field']}
         filters.append(f)
 
     context = {'project': project,
@@ -131,8 +130,9 @@ def project(request):
                'lastrevisions': lastrevisions,
                'defaultlast': 10,
                'defaultequid': False,
-               'defaultbenchmark': 'show_none',
+               'defaultbenchmark': 'grid',
                'metrics': PLOTTABLE_FIELDS,
+               'defaultmetrics': ['throughput', 'p99_latency'],
                'filters': filters,
                'project': p,
                'results': Result.objects.filter(project=p)}
@@ -212,9 +212,10 @@ def handle_result_file(proj, file_data):
 
     db_conf_lines = lines[header_cnt:header_cnt + db_conf_cnt]
     bench_conf_lines = lines[header_cnt + db_conf_cnt: header_cnt + db_conf_cnt + bench_conf_cnt]
-    sample_lines = lines[1 + header_cnt + db_conf_cnt + bench_conf_cnt: header_cnt + db_conf_cnt + bench_conf_cnt + sample_cnt]
+    sample_lines = lines[
+                   1 + header_cnt + db_conf_cnt + bench_conf_cnt: header_cnt + db_conf_cnt + bench_conf_cnt + sample_cnt]
     summary_lines = lines[header_cnt + db_conf_cnt + bench_conf_cnt + sample_cnt:
-                          header_cnt + db_conf_cnt + bench_conf_cnt + sample_cnt + summary_cnt]
+    header_cnt + db_conf_cnt + bench_conf_cnt + sample_cnt + summary_cnt]
 
     db_type = summary_lines[0].strip().upper()
     bench_type = summary_lines[1].strip().upper()
@@ -241,12 +242,13 @@ def handle_result_file(proj, file_data):
         db_conf = db_confs[0]
     except DBConf.DoesNotExist:
         db_conf = DBConf()
+        db_conf.creation_time = now()
         db_conf.name = ''
         db_conf.configuration = db_conf_str
         db_conf.project = proj
         db_conf.db_type = db_type
         db_conf.save()
-        db_conf.name = db_type + '#' + str(db_conf.pk)
+        db_conf.name = db_type + '@' + db_conf.creation_time.strftime("%Y-%m-%d:%H") + '#' + str(db_conf.pk)
         db_conf.save()
 
     bench_conf_str = "".join(bench_conf_lines)
@@ -261,12 +263,13 @@ def handle_result_file(proj, file_data):
         bench_conf.project = proj
         bench_conf.configuration = bench_conf_str
         bench_conf.benchmark_type = bench_type
+        bench_conf.creation_time = now()
         id = 4
         for conf in ExperimentConf.FILTER_FIELDS:
-            setattr(bench_conf, conf, summary_lines[id])
+            setattr(bench_conf, conf['field'], summary_lines[id])
             id += 1
         bench_conf.save()
-        bench_conf.name = bench_type + '#' + str(bench_conf.pk)
+        bench_conf.name = bench_type + '@' + bench_conf.creation_time.strftime("%Y-%m-%d:%H") + '#' + str(bench_conf.pk)
         bench_conf.save()
 
     result = Result()
@@ -313,8 +316,9 @@ def handle_result_file(proj, file_data):
 
     return HttpResponse("Success")
 
+
 @login_required(login_url='/login/')
-def target_configuration(request):
+def db_conf_view(request):
     conf_str = DBConf.objects.get(pk=request.GET['id']).configuration
     conf = json.loads(conf_str, encoding="UTF-8")
     context = {'parameters': conf}
@@ -323,28 +327,105 @@ def target_configuration(request):
 
 @login_required(login_url='/login/')
 def benchmark_configuration(request):
-    conf_str = ExperimentConf.objects.get(pk=request.GET['id']).configuration
-    return HttpResponse(conf_str, content_type="application/xml")
+    benchmark_conf = ExperimentConf.objects.get(pk=request.GET['id'])
+
+    avai_db_confs = []
+    dbs = {}
+    for db_type in DBConf.DB_TYPES:
+        dbs[db_type] = {}
+
+        db_confs = DBConf.objects.filter(project=benchmark_conf.project, db_type=db_type)
+        for db_conf in db_confs:
+            rs = Result.objects.filter(db_conf=db_conf, benchmark_conf=benchmark_conf)
+            if len(rs) < 1:
+                continue
+            r = rs.latest('timestamp')
+            avai_db_confs.append(db_conf.pk)
+            dbs[db_type][db_conf.name] = [db_conf, r]
+
+        if len(dbs[db_type]) < 1:
+            dbs.pop(db_type)
+
+    context = {'benchmark': benchmark_conf,
+               'dbs': dbs,
+               'metrics': PLOTTABLE_FIELDS,
+               'default_dbconf': avai_db_confs,
+               'default_metrics': ['throughput', 'p99_latency']}
+    return render(request, 'benchmark_conf.html', context)
+
+
+@login_required(login_url='/login/')
+def get_benchmark_data(request):
+    data = request.GET
+
+    benchmark_conf = ExperimentConf.objects.get(pk=data['id'])
+
+    results = Result.objects.filter(benchmark_conf=benchmark_conf)
+
+    bar_data = {'results': [], 'error': 'None', 'metrics': data.get('met', 'throughput,p99_latency').split(',')}
+
+    index = {}
+    for met in data.get('met', 'throughput,p99_latency').split(','):
+        bar_data['results'].append({'data': [], 'tick': [],
+                                    'unit': METRIC_META[met]['unit'],
+                                    'lessisbetter': METRIC_META[met][
+                                                        'lessisbetter'] and '(less is better)' or '(more is better)',
+                                    'metric': met})
+        index[met] = {'data': bar_data['results'][-1]['data'],
+                      'tick': bar_data['results'][-1]['tick']}
+
+    for db_conf in data.get('db', '').split(','):
+        rs = filter(lambda x: str(x.db_conf.pk) == db_conf, results)
+        if len(rs) == 0:
+            continue
+        r = rs[-1]
+        for met in data.get('met', 'throughput,p99_latency').split(','):
+            index[met]['data'].append(getattr(r, met) * METRIC_META[met]['scale'])
+            index[met]['tick'].append(r.db_conf.pk)
+
+    return HttpResponse(json.dumps(bar_data), mimetype='application/json')
+
+
+@login_required(login_url='/login/')
+def edit_benchmark_conf(request):
+    context = {}
+    try:
+        if request.GET['id'] != '':
+            context['benchmark'] = ExperimentConf.objects.get(pk=request.GET['id'])
+    except ExperimentConf.DoesNotExist:
+        return HttpResponse("Wrong")
+    return render(request, 'edit_benchmark.html', context)
 
 
 @login_required(login_url='/login/')
 def result(request):
-    fields = []
-    for member in PLOTTABLE_FIELDS:
-        fields.append(member)
+    ts = Statistics.objects.filter(result=request.GET['id'])
+    offset = ts[0].time - (ts[1].time - ts[0].time)
+
+    timelines = {}
+    for field in PLOTTABLE_FIELDS:
+        metric = field['field']
+        timelines[metric] = {'data': [],
+                             'units': METRIC_META[metric]['unit'],
+                             'lessisbetter': METRIC_META[metric]['lessisbetter'] and '(less is better)' or '(more is better)',
+                             'metric': field['print']
+        }
+
+        for t in ts:
+            timelines[metric]['data'].append([t.time - offset, getattr(t, metric)])
+
+    print timelines
     context = {'result': Result.objects.get(id=request.GET['id']),
-               'fields': fields}
+               'metrics': PLOTTABLE_FIELDS,
+               'default_metrics': ['throughput', 'p99_latency'],
+               'data': json.dumps(timelines)}
     return render(request, 'result.html', context)
 
 
 @login_required(login_url='/login/')
 def get_result_data(request):
-    ts = Statistics.objects.filter(result=request.GET['id'])
-    result = []
-    offset = ts[0].time
     field = request.GET['field']
-    for t in ts:
-        result.append({'x': t.time - offset, 'y': getattr(t, field)})
+
     final_results = [{'key': field, 'values': result, 'color': '#ff7f0e'}]
     res = json.dumps(final_results, encoding="UTF-8")
     return HttpResponse(res, mimetype='application/json')
@@ -392,7 +473,7 @@ def timeline(request):
                'defaultbenchmark': 'show_none',
                'metrics': PLOTTABLE_FIELDS,
                'filters': filters
-               }
+    }
     return render(request, 'timeline.html', context)
 
 
@@ -428,7 +509,7 @@ def get_data(request):
         table_results = results
 
     if len(benchmarks) == 1:
-        metrics = ['throughput', 'p99_latency']
+        metrics = request.GET.get('met', 'throughput,p99_latency').split(',')
     else:
         metrics = ['throughput']
 
@@ -437,7 +518,9 @@ def get_data(request):
                                  x.db_conf.name,
                                  x.benchmark_conf.name,
                                  x.throughput * METRIC_META['throughput']['scale'],
-                                 x.p99_latency * METRIC_META['p99_latency']['scale']]
+                                 x.p99_latency * METRIC_META['p99_latency']['scale'],
+                                 x.db_conf.pk,
+                                 x.benchmark_conf.pk]
                                 for x in table_results]
 
     for metric in metrics:
@@ -447,12 +530,12 @@ def get_data(request):
                 continue
 
             timeline = {
-                'benchmark':             bench,
-                'units':                 METRIC_META[metric]['unit'],
-                'lessisbetter':          METRIC_META[metric]['lessisbetter'] and '(less is better)' or '(more is better)',
-                'branches':              {},
-                'baseline':              "None",
-                'metric':                metric
+                'benchmark': bench,
+                'units': METRIC_META[metric]['unit'],
+                'lessisbetter': METRIC_META[metric]['lessisbetter'] and '(less is better)' or '(more is better)',
+                'branches': {},
+                'baseline': "None",
+                'metric': metric
             }
 
             timeline['branches']['branch'] = {}
@@ -464,7 +547,8 @@ def get_data(request):
                 for res in d_r:
                     out.append(
                         [
-                            res.timestamp.strftime("%Y-%m-%d %H:%M:%S"), getattr(res, metric) * METRIC_META[metric]['scale'], "",
+                            res.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+                            getattr(res, metric) * METRIC_META[metric]['scale'], "",
                             str(res.pk)
                         ]
                     )

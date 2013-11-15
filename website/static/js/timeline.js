@@ -1,7 +1,7 @@
 var Timeline = (function(window){
 
 // Localize globals
-var readCheckbox = window.readCheckbox, getLoadText = window.getLoadText;
+var readCheckbox = window.readCheckbox, getLoadText = window.getLoadText, valueOrDefault = window.valueOrDefault;
 
 var seriesindex = [],
     baselineColor = "#d8b83f",
@@ -62,7 +62,8 @@ function renderPlot(data, div_id) {
         renderer: (shouldPlotEquidistant()) ? $.jqplot.CategoryAxisRenderer : $.jqplot.DateAxisRenderer,
         label: 'Date',
         labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
-        tickOptions:{formatString:'%b %d'},
+        tickRenderer: $.jqplot.CanvasAxisTickRenderer,
+        tickOptions:{formatString:'%b %d', angle:-40},
         pad: 1.01,
         autoscale:true,
         rendererOptions:{sortMergedLabels:true} /* only relevant when
@@ -141,6 +142,7 @@ var fixed_header = null;
 
 function render(data) {
   $("#revisions").attr("disabled", false);
+  $('#revisions').selectpicker('refresh');
   $("#equidistant").attr("disabled", false);
   $("#plotgrid").html("");
   if(data.error !== "None") {
@@ -156,6 +158,7 @@ function render(data) {
   } else if ($("input[name='benchmark']:checked").val() === "grid"){
     //Render Grid of plots
     $("#revisions").attr("disabled",true);
+    $('#revisions').selectpicker('refresh');
     $("#equidistant").attr("disabled", true);
     for (var bench in data.timelines) {
       var plotid = "plot_" + data.timelines[bench].benchmark;
@@ -179,10 +182,16 @@ function render(data) {
     var dt = $("#dataTable").dataTable( {
         "aaData": data.results,
         "aoColumns": [
-            { "sTitle": "ID", "sClass": "center" },
-            { "sTitle": "Creation Time", "sClass": "center" },
-            { "sTitle": "DB Conf", "sClass": "center" },
-            { "sTitle": "Benchmark Conf", "sClass": "center" },
+            { "sTitle": "ID", "sClass": "center", "sType": "num-html", "mRender": function (data, type, full) {
+                return '<a href="/result/?id=' + data + '">' + data + '</a>';
+            }},
+            { "sTitle": "Creation Time", "sClass": "center"},
+            { "sTitle": "DB Conf", "sClass": "center", "mRender": function (data, type, full) {
+                return '<a href="/db_conf/?id=' + full[6] + '">' + data + '</a>';
+            }},
+            { "sTitle": "Benchmark Conf", "sClass": "center", "mRender": function (data, type, full) {
+                return '<a href="/benchmark_conf/?id=' + full[7] + '">' + data + '</a>';
+            }},
             { "sTitle": "Throughput", "sClass": "center", "mRender": function (data, type, full) {return data.toFixed(2);}},
             { "sTitle": "p99 Latency", "sClass": "center", "mRender": function (data, type, full) {return data.toFixed(2);}},
         ],
@@ -213,10 +222,6 @@ function updateUrl() {
     $.address.parameter(param, cfg[param]);
   }
   $.address.update();
-}
-
-function valueOrDefault(obj, defaultObj) {
-  return (obj) ? obj : defaultObj;
 }
 
 function getConfiguration() {
@@ -254,6 +259,7 @@ function initializeSite(event) {
     $("input[name='benchmark']"   ).on('click', updateUrl);
     $("input[name^='specific']"   ).on('change', updateUrl);
     $("select[name^='additional']").bind('change', updateUrl);
+    $("input[name='metric']"   ).on('click', updateUrl);
     $("#equidistant"              ).bind('change', updateUrl);
 }
 
@@ -263,34 +269,32 @@ function refreshSite(event) {
 }
 
 function setValuesOfInputFields(event) {
-  // Either set the default value, or the one parsed from the url
+    // Either set the default value, or the one parsed from the url
 
-  // Reset all checkboxes
-  // $("input:checkbox[name='db']").removeAttr('checked');
+    // Set default selected recent results
+    $("#revisions").val(valueOrDefault(event.parameters.revs, defaults.revisions));
+    $('#revisions').selectpicker('refresh');
 
-  $("#revisions").val(valueOrDefault(event.parameters.revs, defaults.revisions));
+    // Set default selected metrics
+    $("input:checkbox[name='metric']").prop('checked', false);
+    var metrics = event.parameters.met ? event.parameters.met.split(',') : defaults.metrics;
+    $("input:checkbox[name='metric']").each(function() {
+        if ($.inArray($(this).val(), metrics) >= 0) {
+            $(this).prop('checked', true);
+        }
+    });
 
-    // $("input:checkbox[name='metric']").prop('checked', false);
-    // var metrics = event.parameters.met ? event.parameters.met.split(',') : defaults.metrics;
-    // $("input:checkbox[name='metric']").each(function() {
-    //    if ($.inArray($(this).val(), metrics) >= 0) {
-    //        $(this).prop('checked', true);
-    //    }
-    //});
-
-  // Set default selected db
-  $("input:checkbox[name='db']").removeAttr('checked');
-  var dbs = event.parameters.db ? event.parameters.db.split(',') : defaults.dbs;
-  var sel = $("input[name='db']");
-
-  $.each(dbs, function(i, db) {
-    sel.filter("[value='" + db + "']").prop('checked', true);
-  });
+    // Set default selected db
+    $("input:checkbox[name='db']").removeAttr('checked');
+    var dbs = event.parameters.db ? event.parameters.db.split(',') : defaults.dbs;
+    var sel = $("input[name='db']");
+    $.each(dbs, function(i, db) {
+        sel.filter("[value='" + db + "']").prop('checked', true);
+    });
 
     // Set default selected benchmark
     var benchmark = valueOrDefault(event.parameters.ben, defaults.benchmark);
     $("input:radio[name='benchmark']").filter("[value='" + benchmark + "']").attr('checked', true);
-
     $("[id^=div_specific]").hide();
     $("input[name^='specific']").removeAttr('checked');
     if ($("input[name='benchmark']:checked").val() != "grid" && $("input[name='benchmark']:checked").val() != "show_none") {
@@ -302,13 +306,25 @@ function setValuesOfInputFields(event) {
         });
     }
 
-  // Set default selected environment
-  var environment = valueOrDefault(event.parameters.env, defaults.environment);
-  $("input:radio[name='environment']")
-      .filter("[value='" + environment + "']")
-      .attr('checked', true);
+    // Set default selected additional filter
+    if (event.parameters.add) {
+        var filters = event.parameters.add.split(',');
+        $.each(filters, function(i, filter) {
+            var kv = filter.split(':');
+            var name = kv[0];
+            var value = kv[1];
+            $("select[name^='additional_" + name + "']").val(value);
+            $("select[name^='additional_" + name + "']").selectpicker('refresh');
+        });
+    } else {
+        $.each(defaults.additional, function(i, add) {
+            $("select[name^='additional_" + add + "']").val("select_all");
+            $("select[name^='additional_" + add + "']").selectpicker('refresh');
+        });
+    }
 
-  $("#equidistant").prop('checked', valueOrDefault(event.parameters.equid, defaults.equidistant) === "on");
+    // Set equidistant status
+    $("#equidistant").prop('checked', valueOrDefault(event.parameters.equid, defaults.equidistant) === "on");
 }
 
 function init(def) {
@@ -323,12 +339,6 @@ function init(def) {
 
     // Init and change handlers are set to the refreshContent handler
     $.address.init(initializeSite).change(refreshSite);
-
-    // $('.checkall, .uncheckall').click(refreshContent);
-
-    $("#permalink").click(function() {
-        window.location = "?" + $.param(getConfiguration());
-    });
 }
 
 return {

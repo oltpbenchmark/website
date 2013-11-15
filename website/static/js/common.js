@@ -26,6 +26,10 @@ function getLoadText(text, h, showloader) {
     return loadtext;
 }
 
+function valueOrDefault(obj, defaultObj) {
+  return (obj) ? obj : defaultObj;
+}
+
 $(function() {
     // Check all and none links
     $('.checkall').each(function() {
