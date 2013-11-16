@@ -27,7 +27,6 @@ urlpatterns = patterns('',
     url(r'^get_benchmark_data/', 'website.views.get_benchmark_data'),
     url(r'^db_conf/', 'website.views.db_conf_view'),
 
-    url(r'^timeline/', 'website.views.timeline'),
     url(r'^get_data/', 'website.views.get_data'),
     # Examples:
     # url(r'^$', 'website.views.home', name='home'),

@@ -432,52 +432,6 @@ def get_result_data(request):
 
 
 @login_required(login_url='/login/')
-def timeline(request):
-    data = request.GET
-
-    project = Project.objects.get(pk=data['id'])
-
-    results = Result.objects.filter(project=project)
-
-    db_with_data = {}
-    benchmark_with_data = {}
-
-    for res in results:
-        db_with_data[res.db_conf.db_type] = True
-        benchmark_with_data[res.benchmark_conf.benchmark_type] = True
-    benchmark_confs = set([res.benchmark_conf for res in results])
-
-    dbs = [db for db in DBConf.DB_TYPES if db in db_with_data]
-    benchmark_types = [benchmark for benchmark in ExperimentConf.BENCHMARK_TYPES if benchmark in benchmark_with_data]
-    benchmarks = {}
-    for benchmark in benchmark_types:
-        specific_benchmark = [b for b in benchmark_confs if b.benchmark_type == benchmark]
-        benchmarks[benchmark] = specific_benchmark
-
-    lastrevisions = [10, 50, 200, 1000]
-
-    filters = []
-    for name in ExperimentConf.FILTER_FIELDS:
-        value_dict = {}
-        for res in results:
-            value_dict[getattr(res.benchmark_conf, name)] = True
-        f = {'values': [key for key in value_dict.iterkeys()], 'name': name}
-        filters.append(f)
-
-    context = {'project': project,
-               'db_types': dbs,
-               'benchmarks': benchmarks,
-               'lastrevisions': lastrevisions,
-               'defaultlast': 10,
-               'defaultequid': False,
-               'defaultbenchmark': 'show_none',
-               'metrics': PLOTTABLE_FIELDS,
-               'filters': filters
-    }
-    return render(request, 'timeline.html', context)
-
-
-@login_required(login_url='/login/')
 def get_data(request):
     revs = int(request.GET['revs'])
     timeline_list = {'error': 'None', 'timelines': []}
