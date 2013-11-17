@@ -1,17 +1,20 @@
+import json
+import os
+import random
+from rexec import FileWrapper
+import string
+
 from django.core.context_processors import csrf
-from django.shortcuts import render_to_response, redirect, render
+from django.shortcuts import redirect, render
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http import HttpResponse
-import json
-import random
-import string
-from django.template import RequestContext
 from django.views.decorators.csrf import csrf_exempt
-from models import Result, Project, DBConf, ExperimentConf, Statistics, NewResultForm, PLOTTABLE_FIELDS, METRIC_META
 from django.utils.timezone import now
-from website import settings
+
+from models import Result, Project, DBConf, ExperimentConf, Statistics, NewResultForm, PLOTTABLE_FIELDS, METRIC_META
+from website.settings import UPLOAD_DIR
 
 
 def signup_view(request):
@@ -189,33 +192,41 @@ def new_result(request):
     if request.method == 'POST':
         form = NewResultForm(request.POST, request.FILES)
         if not form.is_valid():
+            print "invalid"
             return HttpResponse("Wrong")
         try:
             project = Project.objects.get(upload_code=form.cleaned_data['upload_code'])
         except Project.DoesNotExist:
+            print "not exist"
             return HttpResponse("Wrong")
 
-        return handle_result_file(project, request.FILES['data'])
+        return handle_result_file(project, request.FILES)
+
     return HttpResponse("POST please\n")
 
 
-def handle_result_file(proj, file_data):
+def get_result_data_dir(result_id):
+    try:
+        os.makedirs(UPLOAD_DIR + '/' + str(result_id % 100))
+    except OSError:
+        pass
+    return UPLOAD_DIR + '/' + str(result_id % 100) + '/' + str(int(result_id) / 100l)
+
+def handle_result_file(proj, files):
+    file_data = files['data']
     data = "".join(map(lambda x: str(x), file_data.chunks()))
     lines = data.split("\n")
 
     db_conf_cnt = int(lines[0])
     bench_conf_cnt = int(lines[1])
-    sample_cnt = int(lines[2])
-    summary_cnt = int(lines[3])
+    summary_cnt = int(lines[2])
 
-    header_cnt = 4
+    header_cnt = 3
 
     db_conf_lines = lines[header_cnt:header_cnt + db_conf_cnt]
     bench_conf_lines = lines[header_cnt + db_conf_cnt: header_cnt + db_conf_cnt + bench_conf_cnt]
-    sample_lines = lines[
-                   1 + header_cnt + db_conf_cnt + bench_conf_cnt: header_cnt + db_conf_cnt + bench_conf_cnt + sample_cnt]
-    summary_lines = lines[header_cnt + db_conf_cnt + bench_conf_cnt + sample_cnt:
-    header_cnt + db_conf_cnt + bench_conf_cnt + sample_cnt + summary_cnt]
+    summary_lines = lines[header_cnt + db_conf_cnt + bench_conf_cnt:
+    header_cnt + db_conf_cnt + bench_conf_cnt + summary_cnt]
 
     db_type = summary_lines[0].strip().upper()
     bench_type = summary_lines[1].strip().upper()
@@ -269,7 +280,7 @@ def handle_result_file(proj, file_data):
             setattr(bench_conf, conf['field'], summary_lines[id])
             id += 1
         bench_conf.save()
-        bench_conf.name = bench_type + '@' + bench_conf.creation_time.strftime("%Y-%m-%d:%H") + '#' + str(bench_conf.pk)
+        bench_conf.name = bench_type + '@' + bench_conf.creation_time.strftime("%Y-%m-%d|%H") + '#' + str(bench_conf.pk)
         bench_conf.save()
 
     result = Result()
@@ -294,7 +305,21 @@ def handle_result_file(proj, file_data):
     result.throughput = float(summary_lines[3])
     result.save()
 
+    path_prefix = get_result_data_dir(result.pk)
+    with open(path_prefix + '_sample', 'wb') as dest:
+        for chunk in files['sample_data'].chunks():
+            dest.write(chunk)
+        dest.close()
+    with open(path_prefix + '_raw', 'wb') as dest:
+        for chunk in files['raw_data'].chunks():
+            dest.write(chunk)
+        dest.close()
+
+    sample_file = "".join(map(lambda x: str(x), files['sample_data'].chunks()))
+    sample_lines = sample_file.split("\n")[1:]
     for line in sample_lines:
+        if line.strip() == '':
+            continue
         sta = Statistics()
         nums = line.split(",")
         sta.result = result
@@ -429,6 +454,17 @@ def get_result_data(request):
     final_results = [{'key': field, 'values': result, 'color': '#ff7f0e'}]
     res = json.dumps(final_results, encoding="UTF-8")
     return HttpResponse(res, mimetype='application/json')
+
+
+@login_required(login_url='/login/')
+def get_result_data_file(request):
+    id = int(request.GET['id'])
+    type = request.GET['type']
+
+    prefix = get_result_data_dir(id)
+
+    return HttpResponse(FileWrapper(file(prefix + '_' + type)), mimetype='text/plain')
+
 
 
 @login_required(login_url='/login/')

@@ -16,6 +16,7 @@ urlpatterns = patterns('',
     url(r'^new_result/', 'website.views.new_result'),
     url(r'^result/', 'website.views.result'),
     url(r'^get_result_data/', 'website.views.get_result_data'),
+    url(r'^get_result_data_file/', 'website.views.get_result_data_file'),
 
     url(r'^edit_project/', 'website.views.edit_project'),
     url(r'^project/', 'website.views.project'),

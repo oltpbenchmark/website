@@ -34,6 +34,14 @@
         <td><div class="text-right">Overall 99% Latency</div></td>
         <td>{{ result.p99_latency }}</td>
     </tr>
+    <tr>
+        <td><div class="text-right">Sampled data</div></td>
+        <td><a href="/get_result_data_file/?id={{ result.pk }}&type=sample">Download</a></td>
+    </tr>
+    <tr>
+        <td><div class="text-right">Raw data</div></td>
+        <td><a href="/get_result_data_file/?id={{ result.pk }}&type=raw">Download</a></td>
+    </tr>
     </tbody>
 </table>
 </div>

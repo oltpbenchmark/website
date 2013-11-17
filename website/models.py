@@ -7,7 +7,8 @@ from django import forms
 class NewResultForm(forms.Form):
     upload_code = forms.CharField(max_length=30)
     data = forms.FileField()
-
+    sample_data = forms.FileField()
+    raw_data = forms.FileField()
 
 class Project(models.Model):
     user = models.ForeignKey(User)

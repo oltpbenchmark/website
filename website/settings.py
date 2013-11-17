@@ -85,6 +85,8 @@ STATICFILES_FINDERS = (
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = '(q*(cs7i8+zmekvaqspk20isa*7u6++9^gg9#62p+ku5tmhriu'
 
+UPLOAD_DIR = '/usr/local/oltpwebsite'
+
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
