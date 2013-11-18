@@ -13,6 +13,10 @@ var STATIC_URL = '{{ STATIC_URL }}';
 
 <link rel="stylesheet" href="{{ STATIC_URL }}css/base.css">
 
+<!--[if lt IE 9]><script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/jqplot/excanvas.js"></script><![endif]-->
+<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/jqplot/jquery.jqplot.min.js"></script>
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}js/jqplot/jquery.jqplot.min.css" />
+
 <head>
     <title>{% block title %}OLTPBench Result Repository{% endblock %}</title>
     {% block extra_head %}{% endblock %}

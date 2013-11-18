@@ -72,16 +72,6 @@ def logout_view(request):
 
 
 @login_required(login_url='/login/')
-def get_new_upload_code(request):
-    proj = Project.objects.get(pk=request.POST['id'])
-    proj.upload_code = upload_code_generator(size=20)
-    proj.fallback_target_name = request.POST['fallback_target_name']
-    proj.fallback_bench_name = request.POST['fallback_bench_name']
-    proj.save()
-    return redirect("/project/?id=" + str(proj.pk))
-
-
-@login_required(login_url='/login/')
 def home(request):
     context = {"projects": Project.objects.filter(user=request.user)}
     context.update(csrf(request))
@@ -91,10 +81,9 @@ def home(request):
 @login_required(login_url='/login/')
 def project(request):
     id = request.GET['id']
-    ps = Project.objects.filter(pk=id)
-    if len(ps) != 1:
-        redirect('/')
-    p = ps[0]
+    p = Project.objects.get(pk=id)
+    if p.user != request.user:
+        return render(request, '404.html')
 
     data = request.GET
 
@@ -149,7 +138,10 @@ def edit_project(request):
     context = {}
     try:
         if request.GET['id'] != '':
-            context['project'] = Project.objects.get(pk=request.GET['id'])
+            project = Project.objects.get(pk=request.GET['id'])
+            if project.user != request.user:
+                return render(request, '404.html')
+            context['project'] = project
     except Project.DoesNotExist:
         pass
     return render(request, 'edit_project.html', context)
@@ -158,7 +150,10 @@ def edit_project(request):
 @login_required(login_url='/login/')
 def delete_project(request):
     print request.POST.get('projects', [])
-    map(lambda x: Project.objects.get(pk=x).delete(), request.POST.getlist('projects', []))
+    for pk in request.POST.getlist('projects', []):
+        project = Project.objects.get(pk=pk)
+        if project.user == request.user:
+            project.delete()
     return redirect('/')
 
 
@@ -176,6 +171,8 @@ def update_project(request):
         p.upload_code = upload_code_generator(size=20)
     else:
         p = Project.objects.get(pk=proj_id)
+        if p.user != request.user:
+            return render(request, '404.html')
 
     if 'id_new_code' in request.POST:
         p.upload_code = upload_code_generator(size=20)
@@ -211,6 +208,7 @@ def get_result_data_dir(result_id):
     except OSError:
         pass
     return UPLOAD_DIR + '/' + str(result_id % 100) + '/' + str(int(result_id) / 100l)
+
 
 def handle_result_file(proj, files):
     file_data = files['data']
@@ -344,7 +342,10 @@ def handle_result_file(proj, files):
 
 @login_required(login_url='/login/')
 def db_conf_view(request):
-    conf_str = DBConf.objects.get(pk=request.GET['id']).configuration
+    db_conf = DBConf.objects.get(pk=request.GET['id'])
+    if db_conf.project.user != request.user:
+        return render(request, '404.html')
+    conf_str = db_conf.configuration
     conf = json.loads(conf_str, encoding="UTF-8")
     context = {'parameters': conf}
     return render(request, 'db_conf.html', context)
@@ -353,6 +354,9 @@ def db_conf_view(request):
 @login_required(login_url='/login/')
 def benchmark_configuration(request):
     benchmark_conf = ExperimentConf.objects.get(pk=request.GET['id'])
+
+    if benchmark_conf.project.user != request.user:
+        return render(request, '404.html')
 
     avai_db_confs = []
     dbs = {}
@@ -385,6 +389,9 @@ def get_benchmark_data(request):
 
     benchmark_conf = ExperimentConf.objects.get(pk=data['id'])
 
+    if benchmark_conf.project.user != request.user:
+        return render(request, '404.html')
+
     results = Result.objects.filter(benchmark_conf=benchmark_conf)
 
     bar_data = {'results': [], 'error': 'None', 'metrics': data.get('met', 'throughput,p99_latency').split(',')}
@@ -416,14 +423,30 @@ def edit_benchmark_conf(request):
     context = {}
     try:
         if request.GET['id'] != '':
-            context['benchmark'] = ExperimentConf.objects.get(pk=request.GET['id'])
+            benchmark_configuration = ExperimentConf.objects.get(pk=request.GET['id'])
+            if benchmark_configuration.project.user != request.user:
+                return render(request, '404.html')
+            context['benchmark'] = benchmark_configuration
     except ExperimentConf.DoesNotExist:
         return HttpResponse("Wrong")
     return render(request, 'edit_benchmark.html', context)
 
 
 @login_required(login_url='/login/')
+def update_benchmark_conf(request):
+    benchmark_configuration = ExperimentConf.objects.get(pk=request.POST['id'])
+    benchmark_configuration.name = request.POST['name']
+    benchmark_configuration.description = request.POST['description']
+    benchmark_configuration.save()
+    return redirect('/benchmark_conf/?id=' + str(benchmark_configuration.pk))
+
+
+@login_required(login_url='/login/')
 def result(request):
+    result = Result.objects.get(pk=request.GET['id'])
+    if result.project.user != request.user:
+        return render(request, '404.html')
+
     ts = Statistics.objects.filter(result=request.GET['id'])
     offset = ts[0].time - (ts[1].time - ts[0].time)
 
@@ -448,29 +471,34 @@ def result(request):
 
 
 @login_required(login_url='/login/')
-def get_result_data(request):
-    field = request.GET['field']
-
-    final_results = [{'key': field, 'values': result, 'color': '#ff7f0e'}]
-    res = json.dumps(final_results, encoding="UTF-8")
-    return HttpResponse(res, mimetype='application/json')
-
-
-@login_required(login_url='/login/')
 def get_result_data_file(request):
+    result = Result.objects.get(pk=request.GET['id'])
+    if result.project.user != request.user:
+        return render(request, '404.html')
+
     id = int(request.GET['id'])
     type = request.GET['type']
 
     prefix = get_result_data_dir(id)
 
-    return HttpResponse(FileWrapper(file(prefix + '_' + type)), mimetype='text/plain')
-
+    if type == 'sample':
+        return HttpResponse(FileWrapper(file(prefix + '_' + type)), mimetype='text/plain')
+    elif type == 'raw':
+        response = HttpResponse(FileWrapper(file(prefix + '_' + type)), mimetype='application/gzip')
+        response['Content-Disposition'] = 'attachment; filename=result_' + str(id) + '.raw.gz'
+        return response
 
 
 @login_required(login_url='/login/')
 def get_data(request):
-    revs = int(request.GET['revs'])
     timeline_list = {'error': 'None', 'timelines': []}
+
+    project = Project.objects.get(pk=request.GET['proj'])
+    if project.user != request.user:
+        return HttpResponse(json.dumps(timeline_list), mimetype='application/json')
+
+    revs = int(request.GET['revs'])
+
     results = Result.objects.filter(project=request.GET['proj'])
 
     dbs = request.GET['db'].split(',')

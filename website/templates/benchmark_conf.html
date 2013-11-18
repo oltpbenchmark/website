@@ -16,7 +16,7 @@
     </tr>
     <tr>
         <td><div class="text-top text-right">Description:</div></td>
-        <td>{{ benchmark.description|linebreaks }}</td>
+        <td>{{ benchmark.description|safe|linebreaks }}</td>
     </tr>
     <tr>
         <td><div class="text-right">Type:</div></td>

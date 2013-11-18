@@ -11,11 +11,9 @@ urlpatterns = patterns('',
     url(r'^signupin/', 'website.views.sign_up_in'),
     url(r'^$', 'website.views.home'),
     url(r'^logout/', 'website.views.logout_view'),
-    url(r'^get_new_upload_code/', 'website.views.get_new_upload_code'),
 
     url(r'^new_result/', 'website.views.new_result'),
     url(r'^result/', 'website.views.result'),
-    url(r'^get_result_data/', 'website.views.get_result_data'),
     url(r'^get_result_data_file/', 'website.views.get_result_data_file'),
 
     url(r'^edit_project/', 'website.views.edit_project'),
@@ -26,6 +24,8 @@ urlpatterns = patterns('',
     url(r'^benchmark_conf/', 'website.views.benchmark_configuration'),
     url(r'^edit_benchmark_conf/', 'website.views.edit_benchmark_conf'),
     url(r'^get_benchmark_data/', 'website.views.get_benchmark_data'),
+    url(r'^update_benchmark/', 'website.views.update_benchmark_conf'),
+
     url(r'^db_conf/', 'website.views.db_conf_view'),
 
     url(r'^get_data/', 'website.views.get_data'),
