@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import re
 from django.db import models
 from django.contrib.auth.models import User
 from django import forms
@@ -9,6 +10,7 @@ class NewResultForm(forms.Form):
     data = forms.FileField()
     sample_data = forms.FileField()
     raw_data = forms.FileField()
+
 
 class Project(models.Model):
     user = models.ForeignKey(User)
@@ -62,6 +64,21 @@ class ExperimentConf(models.Model):
         {'field': 'scalefactor', 'print': 'Scale Factor'},
         {'field': 'terminals', 'print': '# of Terminals'},
     ]
+
+FEATURED_VARS = {
+    'MYSQL': [
+        re.compile(ur'innodb_buffer_pool_size', re.UNICODE | re.IGNORECASE),
+        re.compile(ur'innodb_log_file_size', re.UNICODE | re.IGNORECASE),
+        re.compile(ur'innodb_log_buffer_size', re.UNICODE | re.IGNORECASE),
+        re.compile(ur'innodb_flush_log_at_trx_commit', re.UNICODE | re.IGNORECASE),
+        re.compile(ur'innodb_thread_concurrency', re.UNICODE | re.IGNORECASE),
+        re.compile(ur'innodb_file_per_table', re.UNICODE | re.IGNORECASE),
+        re.compile(ur'key_buffer_size', re.UNICODE | re.IGNORECASE),
+        re.compile(ur'table_cache', re.UNICODE | re.IGNORECASE),
+        re.compile(ur'thread_cache', re.UNICODE | re.IGNORECASE),
+        re.compile(ur'query_cache_size', re.UNICODE | re.IGNORECASE),
+    ],
+}
 
 
 class DBConf(models.Model):

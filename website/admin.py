@@ -1,5 +1,5 @@
 from django.contrib import admin
-from website.models import Project, Result, ExperimentConf
+from website.models import Project, Result, ExperimentConf, DBConf
 
 
 class ProjectAdmin(admin.ModelAdmin):
@@ -13,3 +13,4 @@ admin.site.register(Project, ProjectAdmin)
 
 admin.site.register(Result)
 admin.site.register(ExperimentConf)
+admin.site.register(DBConf)

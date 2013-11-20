@@ -13,7 +13,7 @@ from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.timezone import now
 
-from models import Result, Project, DBConf, ExperimentConf, Statistics, NewResultForm, PLOTTABLE_FIELDS, METRIC_META
+from models import Result, Project, DBConf, ExperimentConf, Statistics, NewResultForm, PLOTTABLE_FIELDS, METRIC_META, FEATURED_VARS
 from website.settings import UPLOAD_DIR
 
 
@@ -149,7 +149,6 @@ def edit_project(request):
 
 @login_required(login_url='/login/')
 def delete_project(request):
-    print request.POST.get('projects', [])
     for pk in request.POST.getlist('projects', []):
         project = Project.objects.get(pk=pk)
         if project.user == request.user:
@@ -189,12 +188,10 @@ def new_result(request):
     if request.method == 'POST':
         form = NewResultForm(request.POST, request.FILES)
         if not form.is_valid():
-            print "invalid"
             return HttpResponse("Wrong")
         try:
             project = Project.objects.get(upload_code=form.cleaned_data['upload_code'])
         except Project.DoesNotExist:
-            print "not exist"
             return HttpResponse("Wrong")
 
         return handle_result_file(project, request.FILES)
@@ -257,7 +254,7 @@ def handle_result_file(proj, files):
         db_conf.project = proj
         db_conf.db_type = db_type
         db_conf.save()
-        db_conf.name = db_type + '@' + db_conf.creation_time.strftime("%Y-%m-%d:%H") + '#' + str(db_conf.pk)
+        db_conf.name = db_type + '@' + db_conf.creation_time.strftime("%Y-%m-%d,%H") + '#' + str(db_conf.pk)
         db_conf.save()
 
     bench_conf_str = "".join(bench_conf_lines)
@@ -278,7 +275,7 @@ def handle_result_file(proj, files):
             setattr(bench_conf, conf['field'], summary_lines[id])
             id += 1
         bench_conf.save()
-        bench_conf.name = bench_type + '@' + bench_conf.creation_time.strftime("%Y-%m-%d|%H") + '#' + str(bench_conf.pk)
+        bench_conf.name = bench_type + '@' + bench_conf.creation_time.strftime("%Y-%m-%d,%H") + '#' + str(bench_conf.pk)
         bench_conf.save()
 
     result = Result()
@@ -340,6 +337,13 @@ def handle_result_file(proj, files):
     return HttpResponse("Success")
 
 
+def filter_db_var(kv_pair, key_filters):
+    for f in key_filters:
+        if f.match(kv_pair[0]):
+            return True
+    return False
+
+
 @login_required(login_url='/login/')
 def db_conf_view(request):
     db_conf = DBConf.objects.get(pk=request.GET['id'])
@@ -347,7 +351,24 @@ def db_conf_view(request):
         return render(request, '404.html')
     conf_str = db_conf.configuration
     conf = json.loads(conf_str, encoding="UTF-8")
-    context = {'parameters': conf}
+    featured = filter(lambda x: filter_db_var(x, FEATURED_VARS[db_conf.db_type]), conf)
+
+    if 'compare' in request.GET and request.GET['compare'] != 'none':
+        compare_conf = DBConf.objects.get(pk=request.GET['compare'])
+        compare_conf_list = json.loads(compare_conf.configuration, encoding='UTF-8')
+        for a, b in zip(conf, compare_conf_list):
+            a.extend(b[1:])
+        for a, b in zip(featured, filter(lambda x: filter_db_var(x, FEATURED_VARS[db_conf.db_type]), json.loads(compare_conf.configuration, encoding='UTF-8'))):
+            a.extend(b[1:])
+
+    peer = DBConf.objects.filter(db_type=db_conf.db_type, project=db_conf.project)
+    peer_db_conf = [[c.name, c.pk] for c in peer if c.pk != db_conf.pk]
+
+    context = {'parameters': conf,
+               'featured_par': featured,
+               'db_conf': db_conf,
+               'compare': request.GET.get('compare', 'none'),
+               'peer_db_conf': peer_db_conf}
     return render(request, 'db_conf.html', context)
 
 
@@ -462,7 +483,6 @@ def result(request):
         for t in ts:
             timelines[metric]['data'].append([t.time - offset, getattr(t, metric)])
 
-    print timelines
     context = {'result': Result.objects.get(id=request.GET['id']),
                'metrics': PLOTTABLE_FIELDS,
                'default_metrics': ['throughput', 'p99_latency'],

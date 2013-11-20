@@ -141,9 +141,8 @@ function renderMiniplot(plotid, data) {
 var fixed_header = null;
 
 function render(data) {
-  $("#revisions").attr("disabled", false);
-  $('#revisions').selectpicker('refresh');
-  $("#equidistant").attr("disabled", false);
+    options_switch(false);
+
   $("#plotgrid").html("");
   if(data.error !== "None") {
     var h = $("#content").height();//get height for error message
@@ -157,9 +156,7 @@ function render(data) {
     $("#plotgrid").html(getLoadText("No data available", h, false));
   } else if ($("input[name='benchmark']:checked").val() === "grid"){
     //Render Grid of plots
-    $("#revisions").attr("disabled",true);
-    $('#revisions').selectpicker('refresh');
-    $("#equidistant").attr("disabled", true);
+    options_switch(true);
     for (var bench in data.timelines) {
       var plotid = "plot_" + data.timelines[bench].benchmark;
       $("#plotgrid").append('<div id="' + plotid + '" class="miniplot"></div>');
@@ -222,6 +219,19 @@ function updateUrl() {
     $.address.parameter(param, cfg[param]);
   }
   $.address.update();
+}
+
+function options_switch(value) {
+    $("#revisions").attr("disabled", value);
+    $('#revisions').selectpicker('refresh');
+    $("#equidistant").attr("disabled", value);
+    $("input:checkbox[name='metric']").each(function() {
+        $(this).attr('disabled', value);
+    });
+    $.each(defaults.additional, function(i, add) {
+        $("select[name^='additional_" + add + "']").attr('disabled', value);
+        $("select[name^='additional_" + add + "']").selectpicker('refresh');
+    });
 }
 
 function getConfiguration() {
