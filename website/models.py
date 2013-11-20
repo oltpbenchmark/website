@@ -65,7 +65,9 @@ class ExperimentConf(models.Model):
         {'field': 'terminals', 'print': '# of Terminals'},
     ]
 
+
 FEATURED_VARS = {
+    'DB2': [],
     'MYSQL': [
         re.compile(ur'innodb_buffer_pool_size', re.UNICODE | re.IGNORECASE),
         re.compile(ur'innodb_log_file_size', re.UNICODE | re.IGNORECASE),
@@ -78,6 +80,17 @@ FEATURED_VARS = {
         re.compile(ur'thread_cache', re.UNICODE | re.IGNORECASE),
         re.compile(ur'query_cache_size', re.UNICODE | re.IGNORECASE),
     ],
+    'POSTGRES': [],
+    'ORACLE': [],
+    'SQLSERVER': [],
+    'SQLITE': [],
+    'AMAZONRDS': [],
+    'HSTORE': [],
+    'SQLAZURE': [],
+    'ASSCLOWN': [],
+    'HSQLDB': [],
+    'H2': [],
+    'NUODB': []
 }
 
 
