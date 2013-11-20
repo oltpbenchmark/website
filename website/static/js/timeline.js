@@ -245,9 +245,10 @@ function getConfiguration() {
 function updateSub(event) {
     $("[id^=div_specific]").hide();
     $("input[name^='specific']").removeAttr('checked');
-    if ($("input[name='benchmark']:checked").val() != "grid" && $("input[name='benchmark']:checked").val() != "show_none") {
-        $("[id=div_specific_" + $("input[name='benchmark']:checked").val() + "]").show();
-        $("[id^=specific_" + $("input[name='benchmark']:checked").val() + "_]").prop('checked', true);
+    var benchmark = $("input[name='benchmark']:checked").val();
+    if (benchmark != "grid" && benchmark != "show_none") {
+        $("div[id='div_specific_" + benchmark + "']").show();
+        $("input[id^='specific_" + benchmark + "_']").prop('checked', true);
     }
 }
 
@@ -299,7 +300,7 @@ function setValuesOfInputFields(event) {
     $("input[name^='specific']").removeAttr('checked');
     if ($("input[name='benchmark']:checked").val() != "grid" && $("input[name='benchmark']:checked").val() != "show_none") {
         $("[id=div_specific_" + $("input[name='benchmark']:checked").val() + "]").show();
-        sel = $("[id^=specific_" + $("input[name='benchmark']:checked").val() + "_");
+        sel = $("[id^=specific_" + $("input[name='benchmark']:checked").val() + "_]");
         var specs = event.parameters.spe? event.parameters.spe.split(','): defaults.benchmarks[benchmark];
         $.each(specs, function(i, spec) {
             sel.filter("[value='" + spec + "']").prop('checked', true);

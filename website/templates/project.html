@@ -60,7 +60,7 @@
         <div id="div_specific_{{ bench }}">
         <ul>
         {% for conf in confs %}
-        <li><label><input id="specific_{{ bench }}_{{ conf }}" type="checkbox" name="specific" value="{{ conf.pk }}"/> {{ conf.name }}</label></li>
+        <li><label><input id="specific_{{ bench }}_{{ conf.pk }}" type="checkbox" name="specific" value="{{ conf.pk }}"/> {{ conf.name }}</label></li>
         {% endfor %}
         </ul>
         </div>
