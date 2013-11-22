@@ -423,7 +423,7 @@ def get_benchmark_data(request):
                                     'unit': METRIC_META[met]['unit'],
                                     'lessisbetter': METRIC_META[met][
                                                         'lessisbetter'] and '(less is better)' or '(more is better)',
-                                    'metric': met})
+                                    'metric': METRIC_META[met]['print']})
         index[met] = {'data': bar_data['results'][-1]['data'],
                       'tick': bar_data['results'][-1]['tick']}
 

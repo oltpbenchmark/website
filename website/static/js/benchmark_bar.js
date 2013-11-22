@@ -1,89 +1,57 @@
 var BenchmarkBar = (function(window){
 
-// Localize globals
-var readCheckbox = window.readCheckbox, getLoadText = window.getLoadText, valueOrDefault = window.valueOrDefault;
-
 function renderPlot(data, div_id) {
-  var plotdata = [],
-      series = [],
-      lastvalues = [];//hopefully the smallest values for determining significant digits.
-  seriesindex = [];
-  for (var branch in data.branches) {
-    // NOTE: Currently, only the "default" branch is shown in the timeline
-    for (var exe_id in data.branches[branch]) {
-      series.push({"label":  exe_id});
-      seriesindex.push(exe_id);
-      plotdata.push(data.branches[branch][exe_id]);
-      lastvalues.push(data.branches[branch][exe_id][0][1]);
-    }
-    //determine significant digits
-    var digits = 2;
-    var value = Math.min.apply( Math, lastvalues );
-    if (value !== 0) {
-      while( value < 1 ) {
-        value *= 10;
-        digits++;
-      }
-    }
-
-
-    if (data.benchmark_description) {
-      $("#plotdescription").html('<p class="note"><i>' + data.benchmark + '</i>: ' + data.benchmark_description + '</p>');
-    }
-  }
-
-  var plotoptions = {
-    title: {text: data.metric, fontSize: '1.1em'},
-    // series: series,
-    seriesDefaults:{
-        renderer:$.jqplot.BarRenderer,
-        rendererOptions: {
-            varyBarColor: true,
-            // barWidth: 10,
+    var plotoptions = {
+        title: {text: data.metric, fontSize: '1.1em'},
+        seriesDefaults:{
+            renderer:$.jqplot.BarRenderer,
+            rendererOptions: {
+                varyBarColor: true,
+            },
+            pointLabels: { show: true }
         },
-        pointLabels: { show: true }
-    },
-    axes:{
-        yaxis:{
-            label: data.unit + " " + data.lessisbetter,
-            labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
-            min: 0, autoscale:true,
+        axes:{
+            yaxis:{
+                label: data.unit + " " + data.lessisbetter,
+                labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
+                min: 0, autoscale:true,
+            },
+            xaxis:{
+                renderer: $.jqplot.CategoryAxisRenderer,
+                label: 'DB Conf ID',
+                labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
+                ticks: data.tick,
+                pad: 1.01,
+                autoscale:true,
+            }
         },
-      xaxis:{
-        renderer: $.jqplot.CategoryAxisRenderer,
-        label: 'DB Conf ID',
-        labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
-        ticks: data.tick,
-        pad: 1.01,
-        autoscale:true,
-      }
-    },
-    legend: {show: false, location: 'nw'},
-    highlighter: {
-        show: true,
-        tooltipLocation: 'n',
-        showMarker: false,
-        // yvalues: 2,
-        formatString:'<table class="jqplot-highlighter"><tr><td>DBConf ID:</td><td>%s</td></tr> <tr><td>' + data.metric + ':</td><td>%s</td></tr></table>'
-    },
-    cursor: {show: true, zoom:true, showTooltip:false, clickReset:true}
-  };
-  if (series.length > 4) {
-      // Move legend outside plot area to unclutter
-      var labels = [];
-      for (var l in series) {
-          labels.push(series[l].label.length);
-      }
-      var offset = 55 + Math.max.apply( Math, labels ) * 5.4;
-      plotoptions.legend.location = 'ne';
-      plotoptions.legend.xoffset = -offset;
-      $("#plot").css("margin-right", offset + 10);
-      var w = $("#plot").width();
-      $("#plot").css('width', w - offset);
-  }
-  $("#" + div_id).html('<div id="' + div_id + '_plot"></div><div id="plotdescription"></div>');
-  //Render plot
-  $.jqplot(div_id + '_plot', [data.data], plotoptions);
+        cursor: {show: true, zoom:true, showTooltip:false, clickReset:true},
+    };
+
+    $("#" + div_id).html('<div id="' + div_id + '_plot"></div><div id="plotdescription"></div>');
+    var plot = $.jqplot(div_id + '_plot', [data.data], plotoptions);
+
+    $('#' + div_id + '_plot').bind('jqplotDataHighlight',
+        function (ev, seriesIndex, pointIndex, pointed_data ) {
+            $('#chartpseudotooltip').html('<table class="jqplot-highlighter-tooltip"><tr><td>DBConf ID:</td><td>' + pointed_data[0] + '</td></tr> <tr><td>' + data.metric + ':</td><td>' + pointed_data[1].toFixed(2) + '</td></tr></table>');
+            x = plot.axes.xaxis.u2p(pointed_data[0]),  // convert x axis unita to pixels
+            y = plot.axes.yaxis.u2p(pointed_data[1]);  // convert y axis units to pixels
+            var mouseX = $('#' + div_id + '_plot').position().left + x;
+            var mouseY = $('#' + div_id + '_plot').position().top + y - $('#chartpseudotooltip').height();
+            var cssObj = {
+                'position' : 'absolute',
+                'left' : mouseX + 'px',
+                'top' : mouseY + 'px'
+            };
+            $('#chartpseudotooltip').css(cssObj);
+        }
+    );
+
+    $('#' + div_id + '_plot').bind('jqplotDataUnhighlight',
+        function (ev) {
+            $('#chartpseudotooltip').html('');
+        }
+    );
 }
 
 function render(data) {
