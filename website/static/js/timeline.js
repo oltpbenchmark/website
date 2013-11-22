@@ -3,8 +3,7 @@ var Timeline = (function(window){
 // Localize globals
 var readCheckbox = window.readCheckbox, getLoadText = window.getLoadText, valueOrDefault = window.valueOrDefault;
 
-var seriesindex = [],
-    baselineColor = "#d8b83f",
+var baselineColor = "#d8b83f",
     seriesColors = ["#4bb2c5", "#EAA228", "#579575", "#953579", "#839557", "#ff5800", "#958c12", "#4b5de4", "#0085cc"],
     defaults;
 
@@ -21,33 +20,18 @@ function OnMarkerClickHandler(ev, gridpos, datapos, neighbor, plot) {
 }
 
 function renderPlot(data, div_id) {
-  var plotdata = [],
-      series = [],
-      lastvalues = [];//hopefully the smallest values for determining significant digits.
-  seriesindex = [];
+    var plotdata = [], series = [];
+
   for (var branch in data.branches) {
     // NOTE: Currently, only the "default" branch is shown in the timeline
     for (var exe_id in data.branches[branch]) {
       series.push({"label":  exe_id});
-      seriesindex.push(exe_id);
       plotdata.push(data.branches[branch][exe_id]);
-      lastvalues.push(data.branches[branch][exe_id][0][1]);
     }
-    //determine significant digits
-    var digits = 2;
-    var value = Math.min.apply( Math, lastvalues );
-    if (value !== 0) {
-      while( value < 1 ) {
-        value *= 10;
-        digits++;
-      }
-    }
-    $("#" + div_id).html('<div id="' + div_id + '_plot"></div><div id="plotdescription"></div>');
 
-    if (data.benchmark_description) {
-      $("#plotdescription").html('<p class="note"><i>' + data.benchmark + '</i>: ' + data.benchmark_description + '</p>');
-    }
+    $("#" + div_id).html('<div id="' + div_id + '_plot"></div><div id="plotdescription"></div>');
   }
+
   var plotoptions = {
     title: {text: data.benchmark + ": " + data.metric, fontSize: '1.1em'},
     series: series,
@@ -55,8 +39,8 @@ function renderPlot(data, div_id) {
       yaxis:{
         label: data.units + " " + data.lessisbetter,
         labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
-        min: 0, autoscale:true,
-        tickOptions:{formatString:'%.' + digits + 'f'}
+        min: 0,
+        autoscale: true,
       },
       xaxis:{
         renderer: (shouldPlotEquidistant()) ? $.jqplot.CategoryAxisRenderer : $.jqplot.DateAxisRenderer,
@@ -64,8 +48,7 @@ function renderPlot(data, div_id) {
         labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
         tickRenderer: $.jqplot.CanvasAxisTickRenderer,
         tickOptions:{formatString:'%b %d', angle:-40},
-        pad: 1.01,
-        autoscale:true,
+        autoscale: true,
         rendererOptions:{sortMergedLabels:true} /* only relevant when
                                 $.jqplot.CategoryAxisRenderer is used */ 
       }
@@ -141,7 +124,7 @@ function renderMiniplot(plotid, data) {
 var fixed_header = null;
 
 function render(data) {
-    options_switch(false);
+    disable_options(false);
 
   $("#plotgrid").html("");
   if(data.error !== "None") {
@@ -156,7 +139,7 @@ function render(data) {
     $("#plotgrid").html(getLoadText("No data available", h, false));
   } else if ($("input[name='benchmark']:checked").val() === "grid"){
     //Render Grid of plots
-    options_switch(true);
+    disable_options(true);
     for (var bench in data.timelines) {
       var plotid = "plot_" + data.timelines[bench].benchmark;
       $("#plotgrid").append('<div id="' + plotid + '" class="miniplot"></div>');
@@ -174,7 +157,6 @@ function render(data) {
         $("#plotgrid").append('<div id="' + plotid + '" class="plotcontainer"></div>');
         renderPlot(data.timelines[metric], plotid);
     }
-
   }
     var dt = $("#dataTable").dataTable( {
         "aaData": data.results,
@@ -221,7 +203,7 @@ function updateUrl() {
   $.address.update();
 }
 
-function options_switch(value) {
+function disable_options(value) {
     $("#revisions").attr("disabled", value);
     $('#revisions').selectpicker('refresh');
     $("#equidistant").attr("disabled", value);
