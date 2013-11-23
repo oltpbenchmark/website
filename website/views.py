@@ -10,11 +10,19 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http import HttpResponse
+from django.template.defaultfilters import register
+from django.utils.datetime_safe import datetime
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.timezone import now
+from pytz import timezone
 
 from models import Result, Project, DBConf, ExperimentConf, Statistics, NewResultForm, PLOTTABLE_FIELDS, METRIC_META, FEATURED_VARS
 from website.settings import UPLOAD_DIR
+
+
+@register.filter
+def get_item(dictionary, key):
+    return dictionary.get(key)
 
 
 def signup_view(request):
@@ -124,6 +132,7 @@ def project(request):
                'defaultequid': False,
                'defaultbenchmark': 'grid',
                'metrics': PLOTTABLE_FIELDS,
+               'metric_meta': METRIC_META,
                'defaultmetrics': ['throughput', 'p99_latency'],
                'filters': filters,
                'project': p,
@@ -188,11 +197,11 @@ def new_result(request):
     if request.method == 'POST':
         form = NewResultForm(request.POST, request.FILES)
         if not form.is_valid():
-            return HttpResponse("Wrong")
+            return HttpResponse(str(form))
         try:
             project = Project.objects.get(upload_code=form.cleaned_data['upload_code'])
         except Project.DoesNotExist:
-            return HttpResponse("Wrong")
+            return HttpResponse("Wrong!")
 
         return handle_result_file(project, request.FILES)
 
@@ -208,23 +217,11 @@ def get_result_data_dir(result_id):
 
 
 def handle_result_file(proj, files):
-    file_data = files['data']
-    data = "".join(map(lambda x: str(x), file_data.chunks()))
-    lines = data.split("\n")
+    db_conf_lines = "".join(map(lambda x: str(x), files['db_conf_data'].chunks())).split("\n")
+    summary_lines = "".join(map(lambda x: str(x), files['summary_data'].chunks())).split("\n")
 
-    db_conf_cnt = int(lines[0])
-    bench_conf_cnt = int(lines[1])
-    summary_cnt = int(lines[2])
-
-    header_cnt = 3
-
-    db_conf_lines = lines[header_cnt:header_cnt + db_conf_cnt]
-    bench_conf_lines = lines[header_cnt + db_conf_cnt: header_cnt + db_conf_cnt + bench_conf_cnt]
-    summary_lines = lines[header_cnt + db_conf_cnt + bench_conf_cnt:
-    header_cnt + db_conf_cnt + bench_conf_cnt + summary_cnt]
-
-    db_type = summary_lines[0].strip().upper()
-    bench_type = summary_lines[1].strip().upper()
+    db_type = summary_lines[1].strip().upper()
+    bench_type = summary_lines[2].strip().upper()
 
     if not db_type in DBConf.DB_TYPES:
         return HttpResponse("Wrong")
@@ -233,7 +230,7 @@ def handle_result_file(proj, files):
 
     db_conf_list = []
     for line in db_conf_lines:
-        ele = line.split(":")
+        ele = line.split("=")
         key = ele[0]
         value = ""
         if len(ele) > 1:
@@ -257,7 +254,9 @@ def handle_result_file(proj, files):
         db_conf.name = db_type + '@' + db_conf.creation_time.strftime("%Y-%m-%d,%H") + '#' + str(db_conf.pk)
         db_conf.save()
 
+    bench_conf_lines = "".join(map(lambda x: str(x).strip(), files['benchmark_conf_data'].chunks())).split("\n")
     bench_conf_str = "".join(bench_conf_lines)
+
     try:
         bench_confs = ExperimentConf.objects.filter(configuration=bench_conf_str)
         if len(bench_confs) < 1:
@@ -270,10 +269,9 @@ def handle_result_file(proj, files):
         bench_conf.configuration = bench_conf_str
         bench_conf.benchmark_type = bench_type
         bench_conf.creation_time = now()
-        id = 4
-        for conf in ExperimentConf.FILTER_FIELDS:
-            setattr(bench_conf, conf['field'], summary_lines[id])
-            id += 1
+        for line in summary_lines[5:]:
+            kv = line.split('=')
+            setattr(bench_conf, kv[0], kv[1])
         bench_conf.save()
         bench_conf.name = bench_type + '@' + bench_conf.creation_time.strftime("%Y-%m-%d,%H") + '#' + str(bench_conf.pk)
         bench_conf.save()
@@ -282,9 +280,9 @@ def handle_result_file(proj, files):
     result.db_conf = db_conf
     result.benchmark_conf = bench_conf
     result.project = proj
-    result.timestamp = now()
+    result.timestamp = datetime.fromtimestamp(int(summary_lines[0]), timezone("UTC"))
     latency_dict = {}
-    line = summary_lines[2][1:-1]
+    line = summary_lines[3][1:-1]
     for field in line.split(','):
         data = field.split('=')
         latency_dict[data[0].strip()] = data[1].strip()
@@ -297,7 +295,7 @@ def handle_result_file(proj, files):
     result.p95_latency = float(latency_dict['95th'])
     result.p99_latency = float(latency_dict['99th'])
     result.max_latency = float(latency_dict['max'])
-    result.throughput = float(summary_lines[3])
+    result.throughput = float(summary_lines[4])
     result.save()
 
     path_prefix = get_result_data_dir(result.pk)
@@ -310,8 +308,8 @@ def handle_result_file(proj, files):
             dest.write(chunk)
         dest.close()
 
-    sample_file = "".join(map(lambda x: str(x), files['sample_data'].chunks()))
-    sample_lines = sample_file.split("\n")[1:]
+    sample_lines = "".join(map(lambda x: str(x), files['sample_data'].chunks())).split("\n")[1:]
+
     for line in sample_lines:
         if line.strip() == '':
             continue
@@ -358,7 +356,8 @@ def db_conf_view(request):
         compare_conf_list = json.loads(compare_conf.configuration, encoding='UTF-8')
         for a, b in zip(conf, compare_conf_list):
             a.extend(b[1:])
-        for a, b in zip(featured, filter(lambda x: filter_db_var(x, FEATURED_VARS[db_conf.db_type]), json.loads(compare_conf.configuration, encoding='UTF-8'))):
+        for a, b in zip(featured, filter(lambda x: filter_db_var(x, FEATURED_VARS[db_conf.db_type]),
+                                         json.loads(compare_conf.configuration, encoding='UTF-8'))):
             a.extend(b[1:])
 
     peer = DBConf.objects.filter(db_type=db_conf.db_type, project=db_conf.project)
@@ -399,6 +398,7 @@ def benchmark_configuration(request):
     context = {'benchmark': benchmark_conf,
                'dbs': dbs,
                'metrics': PLOTTABLE_FIELDS,
+               'metric_meta': METRIC_META,
                'default_dbconf': avai_db_confs,
                'default_metrics': ['throughput', 'p99_latency']}
     return render(request, 'benchmark_conf.html', context)
@@ -472,12 +472,11 @@ def result(request):
     offset = ts[0].time - (ts[1].time - ts[0].time)
 
     timelines = {}
-    for field in PLOTTABLE_FIELDS:
-        metric = field['field']
+    for metric in PLOTTABLE_FIELDS:
         timelines[metric] = {'data': [],
                              'units': METRIC_META[metric]['unit'],
                              'lessisbetter': METRIC_META[metric]['lessisbetter'] and '(less is better)' or '(more is better)',
-                             'metric': field['print']
+                             'metric': METRIC_META[metric]['print']
         }
 
         for t in ts:
@@ -485,6 +484,7 @@ def result(request):
 
     context = {'result': Result.objects.get(id=request.GET['id']),
                'metrics': PLOTTABLE_FIELDS,
+               'metric_meta': METRIC_META,
                'default_metrics': ['throughput', 'p99_latency'],
                'data': json.dumps(timelines)}
     return render(request, 'result.html', context)
@@ -523,6 +523,7 @@ def get_data(request):
 
     dbs = request.GET['db'].split(',')
     results = filter(lambda x: x.db_conf.db_type in dbs, results)
+    results = sorted(results, cmp=lambda x, y: int((x.timestamp - y.timestamp).total_seconds()))
 
     benchmarks = []
     if request.GET['ben'] == 'grid':

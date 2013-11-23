@@ -57,7 +57,7 @@
     <div class="checkbox boxbody">
         <ul>
         {% for metric in metrics %}
-        <li><label><input type="checkbox" name="metric" value="{{ metric.field }}" /> {{ metric.print }}</label></li>
+        <li><label><input type="checkbox" name="metric" value="{{ metric }}" /> {{ metric_meta|get_item:metric|get_item:"print" }}</label></li>
         {% endfor %}
         </ul>
     </div>

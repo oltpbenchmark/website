@@ -7,9 +7,11 @@ from django import forms
 
 class NewResultForm(forms.Form):
     upload_code = forms.CharField(max_length=30)
-    data = forms.FileField()
     sample_data = forms.FileField()
     raw_data = forms.FileField()
+    db_conf_data = forms.FileField()
+    benchmark_conf_data = forms.FileField()
+    summary_data = forms.FileField()
 
 
 class Project(models.Model):
@@ -120,16 +122,16 @@ class DBConf(models.Model):
 
 
 PLOTTABLE_FIELDS = [
-    {'field': 'throughput', 'print': 'Throughput'},
-    {'field': 'p99_latency', 'print': '99% Latency'},
-    {'field': 'p95_latency', 'print': '95% Latency'},
-    {'field': 'p90_latency', 'print': '90% Latency'},
-    {'field': 'avg_latency', 'print': 'Avg. Latency'},
-    {'field': 'p50_latency', 'print': 'Med. Latency'},
-    {'field': 'max_latency', 'print': 'Max Latency'},
-    {'field': 'p75_latency', 'print': '75% Latency'},
-    {'field': 'p25_latency', 'print': '25% Latency'},
-    {'field': 'min_latency', 'print': 'Min Latency'},
+    'throughput',
+    'p99_latency',
+    'p95_latency',
+    'p90_latency',
+    'avg_latency',
+    'p50_latency',
+    'max_latency',
+    'p75_latency',
+    'p25_latency',
+    'min_latency'
 ]
 
 METRIC_META = {
@@ -142,7 +144,7 @@ METRIC_META = {
     'p25_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 1000, 'print': '25% Latency'},
     'min_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 1000, 'print': 'Min Latency'},
     'avg_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 1000, 'print': 'Avg. Latency'},
-    'max_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 1000, 'print': 'Max Latency'},
+    'max_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 1000, 'print': 'Max Latency'}
 }
 
 
