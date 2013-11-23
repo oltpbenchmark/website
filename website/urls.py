@@ -2,6 +2,10 @@ from django.conf.urls import patterns, include, url
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
+from django.contrib.staticfiles.views import serve
+from django.views.decorators.cache import never_cache
+from website import settings
+
 admin.autodiscover()
 
 urlpatterns = patterns('',
@@ -24,6 +28,7 @@ urlpatterns = patterns('',
     url(r'^benchmark_conf/', 'website.views.benchmark_configuration'),
     url(r'^edit_benchmark_conf/', 'website.views.edit_benchmark_conf'),
     url(r'^get_benchmark_data/', 'website.views.get_benchmark_data'),
+    url(r'^get_benchmark_conf_file/', 'website.views.get_benchmark_conf_file'),
     url(r'^update_benchmark/', 'website.views.update_benchmark_conf'),
 
     url(r'^db_conf/', 'website.views.db_conf_view'),
@@ -39,3 +44,8 @@ urlpatterns = patterns('',
     # Uncomment the next line to enable the admin:
     url(r'^admin/', include(admin.site.urls)),
 )
+
+if settings.DEBUG:
+    urlpatterns += patterns('',
+        url(r'^static/(?P<path>.*)$', never_cache(serve)),
+    )

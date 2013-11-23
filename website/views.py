@@ -440,6 +440,16 @@ def get_benchmark_data(request):
 
 
 @login_required(login_url='/login/')
+def get_benchmark_conf_file(request):
+    data = request.GET
+    benchmark_conf = ExperimentConf.objects.get(pk=data['id'])
+    if benchmark_conf.project.user != request.user:
+        return render(request, '404.html')
+
+    return HttpResponse(benchmark_conf.configuration, mimetype='text/plain')
+
+
+@login_required(login_url='/login/')
 def edit_benchmark_conf(request):
     context = {}
     try:

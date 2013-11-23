@@ -56,11 +56,19 @@ function renderPlot(data, div_id) {
 
 function render(data) {
     $("#plotgrid").html("");
-    // render single plot when one benchmark is selected
-    for (var metric in data.results) {
-        var plotid = "plot_" + metric;
-        $("#plotgrid").append('<div id="' + plotid + '" class="plotcontainer"></div>');
-        renderPlot(data.results[metric], plotid);
+
+    if(data.error !== "None") {
+        var h = $("#content").height();
+        $("#plotgrid").html(getLoadText(data.error, h, false));
+    } else if (data.results[0].data.length === 0) {
+        var h = $("#content").height();
+        $("#plotgrid").html(getLoadText("No data available", h, false));
+    } else {
+        for (var metric in data.results) {
+            var plotid = "plot_" + metric;
+            $("#plotgrid").append('<div id="' + plotid + '" class="plotcontainer"></div>');
+            renderPlot(data.results[metric], plotid);
+        }
     }
 }
 
@@ -136,6 +144,12 @@ function setValuesOfInputFields(event) {
     var sel = $("input[name^='db_']");
     $.each(dbs, function(i, db) {
         sel.filter("[value='" + db + "']").prop('checked', true);
+    });
+
+    // Set selected db type
+    $("input:checkbox[name='db']").removeAttr('checked');
+    $("input[name='db']").each(function() {
+        $(this).prop('checked', allChecked("input[name='db_" + $(this).val() + "']"));
     });
 }
 

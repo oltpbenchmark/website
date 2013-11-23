@@ -6,6 +6,10 @@ function readCheckbox(el) {
     });
     // Remove last comma
     config = config.slice(0, -1);
+
+    if (config == "") {
+        return "none";
+    }
     return config;
 }
 
@@ -30,29 +34,12 @@ function valueOrDefault(obj, defaultObj) {
   return (obj) ? obj : defaultObj;
 }
 
-$(function() {
-    // Check all and none links
-    $('.checkall').each(function() {
-        var inputs = $(this).parent().children("li").children("input");
-        $(this).click(function() {
-            inputs.attr("checked", true);
-            return false;
-        });
+function allChecked(el) {
+    var ret = true;
+    $(el).each(function() {
+        if ($(this).prop('checked') != true) {
+            ret = false;
+        }
     });
-
-    $('.uncheckall').each(function() {
-        var inputs = $(this).parent().children("li").children("input");
-        $(this).click(function() {
-            inputs.attr("checked", false);
-            return false;
-        });
-    });
-
-    $('.togglefold').each(function() {
-        var lis = $(this).parent().children("li");
-        $(this).click(function() {
-            lis.slideToggle();
-            return false;
-        });
-    });
-});
+    return ret;
+}
