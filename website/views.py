@@ -270,6 +270,8 @@ def handle_result_file(proj, files):
         bench_conf.benchmark_type = bench_type
         bench_conf.creation_time = now()
         for line in summary_lines[5:]:
+            if line == '':
+                continue
             kv = line.split('=')
             setattr(bench_conf, kv[0], kv[1])
         bench_conf.save()
@@ -434,7 +436,7 @@ def get_benchmark_data(request):
         r = rs[-1]
         for met in data.get('met', 'throughput,p99_latency').split(','):
             index[met]['data'].append(getattr(r, met) * METRIC_META[met]['scale'])
-            index[met]['tick'].append(r.db_conf.pk)
+            index[met]['tick'].append(r.db_conf.name)
 
     return HttpResponse(json.dumps(bar_data), mimetype='application/json')
 
