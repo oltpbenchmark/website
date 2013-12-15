@@ -1,11 +1,8 @@
 import json
-import os
-import random
-from rexec import FileWrapper
 import string
 
 from django.core.context_processors import csrf
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -14,9 +11,13 @@ from django.template.defaultfilters import register
 from django.utils.datetime_safe import datetime
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.timezone import now
-from pytz import timezone
+from math import log
+from numpy import array, linalg
+from pytz import timezone, os
+from random import choice
+from rexec import FileWrapper
 
-from models import Result, Project, DBConf, ExperimentConf, Statistics, NewResultForm, PLOTTABLE_FIELDS, METRIC_META, FEATURED_VARS
+from models import Result, Project, DBConf, ExperimentConf, Statistics, NewResultForm, PLOTTABLE_FIELDS, METRIC_META, FEATURED_VARS, LEARNING_VARS
 from website.settings import UPLOAD_DIR
 
 
@@ -47,7 +48,7 @@ def auth_and_login(request, onsuccess='/', onfail='/login/'):
 
 
 def upload_code_generator(size=6, chars=string.ascii_uppercase + string.digits):
-    return ''.join(random.choice(chars) for x in range(size))
+    return ''.join(choice(chars) for x in range(size))
 
 
 def create_user(username, email, password):
@@ -375,12 +376,12 @@ def db_conf_view(request):
 
 @login_required(login_url='/login/')
 def benchmark_configuration(request):
-    benchmark_conf = ExperimentConf.objects.get(pk=request.GET['id'])
+    benchmark_conf = get_object_or_404(ExperimentConf, pk=request.GET['id'])
 
     if benchmark_conf.project.user != request.user:
         return render(request, '404.html')
 
-    avai_db_confs = []
+    all_db_confs = []
     dbs = {}
     for db_type in DBConf.DB_TYPES:
         dbs[db_type] = {}
@@ -391,7 +392,7 @@ def benchmark_configuration(request):
             if len(rs) < 1:
                 continue
             r = rs.latest('timestamp')
-            avai_db_confs.append(db_conf.pk)
+            all_db_confs.append(db_conf.pk)
             dbs[db_type][db_conf.name] = [db_conf, r]
 
         if len(dbs[db_type]) < 1:
@@ -401,7 +402,7 @@ def benchmark_configuration(request):
                'dbs': dbs,
                'metrics': PLOTTABLE_FIELDS,
                'metric_meta': METRIC_META,
-               'default_dbconf': avai_db_confs,
+               'default_dbconf': all_db_confs,
                'default_metrics': ['throughput', 'p99_latency']}
     return render(request, 'benchmark_conf.html', context)
 
@@ -410,41 +411,46 @@ def benchmark_configuration(request):
 def get_benchmark_data(request):
     data = request.GET
 
-    benchmark_conf = ExperimentConf.objects.get(pk=data['id'])
+    benchmark_conf = get_object_or_404(ExperimentConf, pk=data['id'])
 
     if benchmark_conf.project.user != request.user:
         return render(request, '404.html')
 
     results = Result.objects.filter(benchmark_conf=benchmark_conf)
+    results = sorted(results, cmp=lambda x, y: int(y.throughput - x.throughput))
 
-    bar_data = {'results': [], 'error': 'None', 'metrics': data.get('met', 'throughput,p99_latency').split(',')}
+    bar_data = {'results': [],
+                'error': 'None',
+                'metrics': data.get('met', 'throughput,p99_latency').split(',')}
 
-    index = {}
-    for met in data.get('met', 'throughput,p99_latency').split(','):
-        bar_data['results'].append({'data': [], 'tick': [],
-                                    'unit': METRIC_META[met]['unit'],
-                                    'lessisbetter': METRIC_META[met][
-                                                        'lessisbetter'] and '(less is better)' or '(more is better)',
-                                    'metric': METRIC_META[met]['print']})
-        index[met] = {'data': bar_data['results'][-1]['data'],
-                      'tick': bar_data['results'][-1]['tick']}
+    for met in bar_data['metrics']:
+        bar_data['results'].\
+            append({'data': [[]], 'tick': [],
+                    'unit': METRIC_META[met]['unit'],
+                    'lessisbetter': METRIC_META[met][
+                        'lessisbetter'] and '(less is better)' or '(more is better)',
+                    'metric': METRIC_META[met]['print']})
 
-    for db_conf in data.get('db', '').split(','):
-        rs = filter(lambda x: str(x.db_conf.pk) == db_conf, results)
-        if len(rs) == 0:
-            continue
-        r = rs[-1]
-        for met in data.get('met', 'throughput,p99_latency').split(','):
-            index[met]['data'].append(getattr(r, met) * METRIC_META[met]['scale'])
-            index[met]['tick'].append(r.db_conf.name)
+        added = {}
+        db_confs = data['db'].split(',')
+        i = len(db_confs)
+        for r in results:
+            if r.db_conf.pk in added or str(r.db_conf.pk) not in db_confs:
+                continue
+            added[r.db_conf.pk] = True
+            bar_data['results'][-1]['data'][0].append(
+                [i, getattr(r, met) * METRIC_META[met]['scale'], r.pk, getattr(r, met) * METRIC_META[met]['scale']])
+            bar_data['results'][-1]['tick'].append(r.db_conf.name)
+            i -= 1
+        bar_data['results'][-1]['data'].reverse()
+        bar_data['results'][-1]['tick'].reverse()
 
     return HttpResponse(json.dumps(bar_data), mimetype='application/json')
 
 
 @login_required(login_url='/login/')
 def get_benchmark_conf_file(request):
-    data = request.GET
-    benchmark_conf = ExperimentConf.objects.get(pk=data['id'])
+    benchmark_conf = get_object_or_404(ExperimentConf, pk=request.GET['id'])
     if benchmark_conf.project.user != request.user:
         return render(request, '404.html')
 
@@ -454,58 +460,150 @@ def get_benchmark_conf_file(request):
 @login_required(login_url='/login/')
 def edit_benchmark_conf(request):
     context = {}
-    try:
-        if request.GET['id'] != '':
-            benchmark_configuration = ExperimentConf.objects.get(pk=request.GET['id'])
-            if benchmark_configuration.project.user != request.user:
-                return render(request, '404.html')
-            context['benchmark'] = benchmark_configuration
-    except ExperimentConf.DoesNotExist:
-        return HttpResponse("Wrong")
+    if request.GET['id'] != '':
+        ben_conf = get_object_or_404(ExperimentConf, pk=request.GET['id'])
+        if ben_conf.project.user != request.user:
+            return render(request, '404.html')
+        context['benchmark'] = ben_conf
     return render(request, 'edit_benchmark.html', context)
 
 
 @login_required(login_url='/login/')
 def update_benchmark_conf(request):
-    benchmark_configuration = ExperimentConf.objects.get(pk=request.POST['id'])
-    benchmark_configuration.name = request.POST['name']
-    benchmark_configuration.description = request.POST['description']
-    benchmark_configuration.save()
-    return redirect('/benchmark_conf/?id=' + str(benchmark_configuration.pk))
+    ben_conf = ExperimentConf.objects.get(pk=request.POST['id'])
+    ben_conf.name = request.POST['name']
+    ben_conf.description = request.POST['description']
+    ben_conf.save()
+    return redirect('/benchmark_conf/?id=' + str(ben_conf.pk))
+
+
+def result_similar(a, b):
+    db_conf_a = json.loads(a.db_conf.configuration)
+    db_conf_b = json.loads(b.db_conf.configuration)
+    for kv in db_conf_a:
+        if filter_db_var(kv, FEATURED_VARS[a.db_conf.db_type]):
+            for bkv in db_conf_b:
+                if bkv[0] == kv[0] and bkv[1] != kv[1]:
+                    return False
+    return True
+
+
+def learn_model(results):
+    features = []
+    for f in LEARNING_VARS[results[0].db_conf.db_type]:
+        values = []
+        for r in results:
+            db_conf = json.loads(r.db_conf.configuration)
+            for kv in db_conf:
+                if f.match(kv[0]):
+                    try:
+                        values.append(log(int(kv[1])))
+                        break
+                    except Exception:
+                        values.append(0.0)
+                        break
+
+        features.append(values)
+
+    A = array(features)
+    y = [r.throughput for r in results]
+    w = linalg.lstsq(A.T, y)[0]
+
+    return w
+
+
+def apply_model(model, data, target):
+    values = []
+    db_conf = json.loads(data.db_conf.configuration)
+    db_conf_t = json.loads(target.db_conf.configuration)
+    for f in LEARNING_VARS[data.db_conf.db_type]:
+        v1 = 0
+        v2 = 0
+        for kv in db_conf:
+            if f.match(kv[0]):
+                if kv[1] == '0':
+                    kv[1] = '1'
+                v1 = log(int(kv[1]))
+        for kv in db_conf_t:
+            if f.match(kv[0]):
+                if kv[1] == '0':
+                    kv[1] = '1'
+                v2 = log(int(kv[1]))
+        values.append(v1 - v2)
+
+    score = 0
+    for i in range(0, len(model)):
+        score += abs(model[i] * float(values[i]))
+    return score
+
+
+@login_required(login_url='/login/')
+def update_similar(request):
+    target = get_object_or_404(Result, pk=request.GET['id'])
+    results = Result.objects.filter(project=target.project, benchmark_conf=target.benchmark_conf)
+    results = filter(lambda x: x.db_conf.db_type == target.db_conf.db_type, results)
+
+    linear_model = learn_model(results)
+    diff_results = filter(lambda x: x != target, results)
+    diff_results = filter(lambda x: not result_similar(x, target), diff_results)
+    scores = [apply_model(linear_model, x, target) for x in diff_results]
+    similars = sorted(zip(diff_results, scores), cmp=lambda x, y: x[1] > y[1] and 1 or (x[1] < y[1] and -1 or 0))
+    if len(similars) > 5:
+        similars = similars[:5]
+
+    target.most_similar = ','.join([str(r[0].pk) for r in similars])
+    target.save()
+
+    return redirect('/result/?id=' + str(request.GET['id']))
 
 
 @login_required(login_url='/login/')
 def result(request):
-    result = Result.objects.get(pk=request.GET['id'])
-    if result.project.user != request.user:
-        return render(request, '404.html')
+    target = get_object_or_404(Result, pk=request.GET['id'])
 
-    ts = Statistics.objects.filter(result=request.GET['id'])
-    offset = ts[0].time - (ts[1].time - ts[0].time)
+    data_package = {}
+    results = Result.objects.filter(project=target.project, benchmark_conf=target.benchmark_conf)
+    results = filter(lambda x: x.db_conf.db_type == target.db_conf.db_type, results)
+    sames = filter(lambda x: result_similar(x, target), results)
+    sames = filter(lambda x: x != target, sames)
+    similars = [Result.objects.get(pk=rid) for rid in filter(lambda x: len(x) > 0, target.most_similar.split(','))]
 
-    timelines = {}
+    results = []
+    results.extend(sames)
+    results.extend(similars)
+    results.append(target)
+
     for metric in PLOTTABLE_FIELDS:
-        timelines[metric] = {'data': [],
-                             'units': METRIC_META[metric]['unit'],
-                             'lessisbetter': METRIC_META[metric]['lessisbetter'] and '(less is better)' or '(more is better)',
-                             'metric': METRIC_META[metric]['print']
+        data_package[metric] = {
+            'data': {},
+            'units': METRIC_META[metric]['unit'],
+            'lessisbetter': METRIC_META[metric]['lessisbetter'] and '(less is better)' or '(more is better)',
+            'metric': METRIC_META[metric]['print']
         }
 
-        for t in ts:
-            timelines[metric]['data'].append([t.time - offset, getattr(t, metric)])
+        for r in results:
+            ts = Statistics.objects.filter(result=r.pk)
+            offset = ts[0].time - (ts[1].time - ts[0].time)
+            data_package[metric]['data'][r.pk] = []
+            for t in ts:
+                data_package[metric]['data'][r.pk].append([t.time - offset, getattr(t, metric) * METRIC_META[metric]['scale']])
 
     context = {'result': Result.objects.get(id=request.GET['id']),
                'metrics': PLOTTABLE_FIELDS,
                'metric_meta': METRIC_META,
                'default_metrics': ['throughput', 'p99_latency'],
-               'data': json.dumps(timelines)}
+               'data': json.dumps(data_package),
+               'same_runs': sames,
+               'similar_runs': similars
+               }
     return render(request, 'result.html', context)
 
 
 @login_required(login_url='/login/')
 def get_result_data_file(request):
-    result = Result.objects.get(pk=request.GET['id'])
-    if result.project.user != request.user:
+    target = get_object_or_404(Result, pk=request.GET['id'])
+
+    if target.project.user != request.user:
         return render(request, '404.html')
 
     id = int(request.GET['id'])
@@ -584,12 +682,10 @@ def get_data(request):
                 'benchmark': bench,
                 'units': METRIC_META[metric]['unit'],
                 'lessisbetter': METRIC_META[metric]['lessisbetter'] and '(less is better)' or '(more is better)',
-                'branches': {},
+                'data': {},
                 'baseline': "None",
                 'metric': metric
             }
-
-            timeline['branches']['branch'] = {}
 
             for db in dbs:
                 out = []
@@ -605,7 +701,7 @@ def get_data(request):
                     )
 
                 if len(out) > 0:
-                    timeline['branches']['branch'][db] = out
+                    timeline['data'][db] = out
 
             timeline_list['timelines'].append(timeline)
 

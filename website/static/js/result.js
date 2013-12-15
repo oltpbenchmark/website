@@ -4,40 +4,46 @@ var ResultTimeline = (function(window){
 var readCheckbox = window.readCheckbox, getLoadText = window.getLoadText, valueOrDefault = window.valueOrDefault;
 
 function renderPlot(data, div_id) {
-  var plotoptions = {
-    title: {text: data.metric, fontSize: '1.1em'},
-    axes:{
-      yaxis:{
-        label: data.units + " " + data.lessisbetter,
-        labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
-        min: 0, autoscale:true,
-      },
-      xaxis:{
-        // renderer: $.jqplot.DateAxisRenderer,
-        label: 'Time',
-        labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
-        //tickRenderer: $.jqplot.CanvasAxisTickRenderer,
-        //tickOptions:{formatString:'%b %d', angle:-40},
-        pad: 1.01,
-        autoscale:true,
-        min: 0,
-        //rendererOptions:{sortMergedLabels:true} /* only relevant when
-        //                        $.jqplot.CategoryAxisRenderer is used */
-      }
-    },
-    legend: {show: false},
-    highlighter: {
-        show: true,
-        tooltipLocation: 'nw',
-        yvalues: 2,
-        formatString:'<table class="jqplot-highlighter"><tr><td>time:</td><td>%s</td></tr> <tr><td>' + data.metric + ':</td><td>%s</td></tr></table>'
-    },
-    cursor: {show: true, zoom:true, showTooltip:false, clickReset:true}
-  };
+    var plotdata = [], series = [];
 
-  $("#" + div_id).html('<div id="' + div_id + '_plot"></div><div id="plotdescription"></div>');
-  //Render plot
-  $.jqplot(div_id + '_plot', [data.data], plotoptions);
+    plotdata.push(data.data[defaults.result]);
+    series.push({"label":  defaults.result});
+
+    $("input[name^='same_run']:checked").each(function() {
+        var pk = $(this).val();
+        series.push({"label":  pk});
+        plotdata.push(data.data[pk]);
+    });
+
+    var plotoptions = {
+        title: {text: data.metric, fontSize: '1.1em'},
+        series: series,
+        axes:{
+            yaxis:{
+                label: data.units + " " + data.lessisbetter,
+                labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
+                autoscale: true,
+                min: 0,
+                tickOptions: {formatString:'%.2f'},
+            },
+            xaxis:{
+                label: 'Time',
+                autoscale: true,
+                min: 0,
+            }
+        },
+        legend: {show: true},
+        highlighter: {
+            show: true,
+            tooltipLocation: 'nw',
+            yvalues: 2,
+            formatString:'<table class="jqplot-highlighter"><tr><td>time:</td><td>%s</td></tr> <tr><td>' + data.metric + ':</td><td>%s</td></tr></table>'
+        },
+        cursor: {show: true, zoom:true, showTooltip:false, clickReset:true}
+    };
+
+    $("#" + div_id).html('<div id="' + div_id + '_plot"></div><div id="plotdescription"></div>');
+    $.jqplot(div_id + '_plot', plotdata, plotoptions);
 }
 
 function render() {
@@ -52,29 +58,31 @@ function render() {
 }
 
 function getConfiguration() {
-  var config = {
-    id: defaults.result,
-    met: readCheckbox("input[name='metric']:checked"),
-  };
-  return config;
+    var config = {
+        id: defaults.result,
+        met: readCheckbox("input[name='metric']:checked"),
+        same: readCheckbox("input[name='same_run']:checked"),
+    };
+    return config;
+}
+
+function updateUrl() {
+    var cfg = getConfiguration();
+    $.address.autoUpdate(false);
+    for (var param in cfg) {
+        $.address.parameter(param, cfg[param]);
+    }
+    $.address.update();
 }
 
 function refreshContent() {
     render();
 }
 
-function updateUrl() {
-  var cfg = getConfiguration();
-  $.address.autoUpdate(false);
-  for (var param in cfg) {
-    $.address.parameter(param, cfg[param]);
-  }
-  $.address.update();
-}
-
 function initializeSite(event) {
     setValuesOfInputFields(event);
-    $("input[name='metric']"      ).on('click', updateUrl);
+    $("input[name='metric']"  ).on('click', updateUrl);
+    $("input[name='same_run']").on('click', updateUrl);
 }
 
 function refreshSite(event) {
@@ -93,17 +101,18 @@ function setValuesOfInputFields(event) {
             $(this).prop('checked', true);
         }
     });
+
+    $("input:checkbox[name='same_run']").prop('checked', false);
+    var others = event.parameters.same ? event.parameters.same.split(',') : ["none"];
+    $("input:checkbox[name='same_run']").each(function() {
+        if ($.inArray($(this).val(), others) >= 0) {
+            $(this).prop('checked', true);
+        }
+    });
 }
 
 function init(def) {
     defaults = def;
-
-    $.ajaxSetup ({
-      cache: false
-    });
-
-    // Event listener for clicks on plot markers
-    // $.jqplot.eventListenerHooks.push(['jqplotClick', OnMarkerClickHandler]);
 
     // Init and change handlers are set to the refreshContent handler
     $.address.init(initializeSite).change(refreshSite);

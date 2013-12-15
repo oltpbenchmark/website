@@ -29,11 +29,11 @@ function renderPlot(data, div_id) {
     };
 
     $("#" + div_id).html('<div id="' + div_id + '_plot"></div><div id="plotdescription"></div>');
-    var plot = $.jqplot(div_id + '_plot', [data.data], plotoptions);
+    var plot = $.jqplot(div_id + '_plot', data.data, plotoptions);
 
     $('#' + div_id + '_plot').bind('jqplotDataHighlight',
         function (ev, seriesIndex, pointIndex, pointed_data ) {
-            $('#chartpseudotooltip').html('<table class="jqplot-highlighter-tooltip"><tr><td>DBConf ID:</td><td>' + pointed_data[0] + '</td></tr> <tr><td>' + data.metric + ':</td><td>' + pointed_data[1].toFixed(2) + '</td></tr></table>');
+            $('#chartpseudotooltip').html('<table class="jqplot-highlighter-tooltip"><tr><td>Result ID:</td><td>' + pointed_data[2] + '</td></tr> <tr><td>' + data.metric + ':</td><td>' + pointed_data[1].toFixed(2) + '</td></tr></table>');
             x = plot.axes.xaxis.u2p(pointed_data[0]),  // convert x axis unita to pixels
             y = plot.axes.yaxis.u2p(pointed_data[1]);  // convert y axis units to pixels
             var mouseX = $('#' + div_id + '_plot').position().left + x;
@@ -72,34 +72,37 @@ function render(data) {
     }
 }
 
+function OnMarkerClickHandler(ev, gridpos, datapos, neighbor, plot) {
+    if (neighbor) {
+        result_id = neighbor.data[2];
+        window.location = "/result/?id=" + result_id;
+    }
+}
+
 function getConfiguration() {
-  var config = {
-    id: defaults.benchmark,
-    db: readCheckbox("input[name^='db_']:checked"),
-    ben: $("input[name='benchmark']:checked").val(),
-    spe: readCheckbox("input[name^='specific']:checked"),
-    met: readCheckbox("input[name='metric']:checked"),
-    revs: $("#revisions option:selected").val(),
-    equid: $("#equidistant").is(':checked') ? "on" : "off"
-  };
-  return config;
+    var config = {
+        id: defaults.benchmark,
+        db: readCheckbox("input[name^='db_']:checked"),
+        met: readCheckbox("input[name='metric']:checked"),
+    };
+    return config;
 }
 
 function refreshContent() {
-  var h = $("#content").height();//get height for loading text
-  $("#plotgrid").fadeOut("fast", function() {
-    $("#plotgrid").html(getLoadText("Loading...", h, true)).show();
-    $.getJSON("/get_benchmark_data/", getConfiguration(), render);
-  });
+    var h = $("#content").height();//get height for loading text
+    $("#plotgrid").fadeOut("fast", function() {
+        $("#plotgrid").html(getLoadText("Loading...", h, true)).show();
+        $.getJSON("/get_benchmark_data/", getConfiguration(), render);
+    });
 }
 
 function updateUrl() {
-  var cfg = getConfiguration();
-  $.address.autoUpdate(false);
-  for (var param in cfg) {
-    $.address.parameter(param, cfg[param]);
-  }
-  $.address.update();
+    var cfg = getConfiguration();
+    $.address.autoUpdate(false);
+    for (var param in cfg) {
+        $.address.parameter(param, cfg[param]);
+    }
+    $.address.update();
 }
 
 function updateSub(event) {
@@ -111,14 +114,10 @@ function updateSub(event) {
 
 function initializeSite(event) {
     setValuesOfInputFields(event);
-    $("#revisions"                ).bind('change', updateUrl);
     $("input[name='db']"          ).bind('click', updateUrl);
     $("input[name='db']"          ).on('change', updateSub);
     $("input[name^='db_']"        ).on('click', updateUrl);
-    $("input[name^='specific']"   ).on('change', updateUrl);
-    $("select[name^='additional']").bind('change', updateUrl);
     $("input[name='metric']"      ).on('click', updateUrl);
-    $("#equidistant"              ).bind('change', updateUrl);
 }
 
 function refreshSite(event) {
@@ -161,7 +160,7 @@ function init(def) {
     });
 
     // Event listener for clicks on plot markers
-    // $.jqplot.eventListenerHooks.push(['jqplotClick', OnMarkerClickHandler]);
+    $.jqplot.eventListenerHooks.push(['jqplotClick', OnMarkerClickHandler]);
 
     // Init and change handlers are set to the refreshContent handler
     $.address.init(initializeSite).change(refreshSite);

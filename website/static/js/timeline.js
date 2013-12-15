@@ -8,7 +8,7 @@ var baselineColor = "#d8b83f",
     defaults;
 
 function shouldPlotEquidistant() {
-  return $("#equidistant").is(':checked');
+    return $("#equidistant").is(':checked');
 }
 
 function OnMarkerClickHandler(ev, gridpos, datapos, neighbor, plot) {
@@ -22,103 +22,73 @@ function OnMarkerClickHandler(ev, gridpos, datapos, neighbor, plot) {
 function renderPlot(data, div_id) {
     var plotdata = [], series = [];
 
-  for (var branch in data.branches) {
-    // NOTE: Currently, only the "default" branch is shown in the timeline
-    for (var exe_id in data.branches[branch]) {
-      series.push({"label":  exe_id});
-      plotdata.push(data.branches[branch][exe_id]);
+    for (db in data.data) {
+        series.push({"label":  db});
+        plotdata.push(data.data[db]);
     }
 
     $("#" + div_id).html('<div id="' + div_id + '_plot"></div><div id="plotdescription"></div>');
-  }
 
-  var plotoptions = {
-    title: {text: data.benchmark + ": " + data.metric, fontSize: '1.1em'},
-    series: series,
-    axes:{
-      yaxis:{
-        label: data.units + " " + data.lessisbetter,
-        labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
-        min: 0,
-        autoscale: true,
-      },
-      xaxis:{
-        renderer: (shouldPlotEquidistant()) ? $.jqplot.CategoryAxisRenderer : $.jqplot.DateAxisRenderer,
-        label: 'Date',
-        labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
-        tickRenderer: $.jqplot.CanvasAxisTickRenderer,
-        tickOptions:{formatString:'%b %d', angle:-40},
-        autoscale: true,
-        rendererOptions:{sortMergedLabels:true} /* only relevant when
-                                $.jqplot.CategoryAxisRenderer is used */ 
-      }
-    },
-    legend: {show: true, location: 'nw'},
-    highlighter: {
-        show: true,
-        tooltipLocation: 'nw',
-        yvalues: 2,
-        formatString:'<table class="jqplot-highlighter"><tr><td>date:</td><td>%s</td></tr> <tr><td>result:</td><td>%s</td></tr></table>'
-    },
-    cursor: {show: true, zoom:true, showTooltip:false, clickReset:true}
-  };
-  if (series.length > 4) {
-      // Move legend outside plot area to unclutter
-      var labels = [];
-      for (var l in series) {
-          labels.push(series[l].label.length);
-      }
-      var offset = 55 + Math.max.apply( Math, labels ) * 5.4;
-      plotoptions.legend.location = 'ne';
-      plotoptions.legend.xoffset = -offset;
-      $("#plot").css("margin-right", offset + 10);
-      var w = $("#plot").width();
-      $("#plot").css('width', w - offset);
-  }
-  //Render plot
-  $.jqplot(div_id + '_plot',  plotdata, plotoptions);
+    var plotoptions = {
+        title: {text: data.benchmark + ": " + data.metric, fontSize: '1.1em'},
+        series: series,
+        axes:{
+        yaxis:{
+            label: data.units + " " + data.lessisbetter,
+            labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
+            min: 0,
+            autoscale: true,
+        },
+        xaxis:{
+            renderer: (shouldPlotEquidistant()) ? $.jqplot.CategoryAxisRenderer : $.jqplot.DateAxisRenderer,
+            label: 'Date',
+            labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
+            tickRenderer: $.jqplot.CanvasAxisTickRenderer,
+            tickOptions:{formatString:'%b %d', angle:-40},
+            autoscale: true,
+            rendererOptions:{sortMergedLabels:true}
+        }
+        },
+        legend: {show: true, location: 'nw'},
+        highlighter: {
+            show: true,
+            tooltipLocation: 'nw',
+            yvalues: 2,
+            formatString:'<table class="jqplot-highlighter"><tr><td>date:</td><td>%s</td></tr> <tr><td>result:</td><td>%s</td></tr></table>'
+        },
+        cursor: {show: true, zoom:true, showTooltip:false, clickReset:true}
+    };
+    //Render plot
+    $.jqplot(div_id + '_plot',  plotdata, plotoptions);
 }
 
 function renderMiniplot(plotid, data) {
-  var plotdata = [],
-      series = [];
+    var plotdata = [], series = [];
 
-  for (var branch in data.branches) {
-    for (var id in data.branches[branch]) {
-      series.push({
-        "label": $("label[for*='executable" + id + "']").html()
-      });
-      plotdata.push(data.branches[branch][id]);
+    for (db in data.data) {
+        series.push("");
+        plotdata.push(data.data[db]);
     }
-  }
-  if (data.baseline !== "None") {
-    series.push({
-      "color": baselineColor,
-      showMarker: false,
-      lineWidth: 1.5
-    });
-    plotdata.push(data.baseline);
-  }
 
-  var plotoptions = {
-    title: {text: data.benchmark + ": " + data.metric, fontSize: '1.1em'},
-    seriesDefaults: {lineWidth: 2, markerOptions:{style:'circle', size: 6}},
-    series: series,
-    axes: {
-      yaxis: {
-        min: 0, autoscale:true, showTicks: false
-      },
-      xaxis: {
-        renderer:$.jqplot.DateAxisRenderer,
-        pad: 1.01,
-        autoscale:true,
-        showTicks: false
-      }
-    },
-    highlighter: {show:false},
-    cursor:{showTooltip: false, style: 'pointer'}
-  };
-  $.jqplot(plotid, plotdata, plotoptions);
+    var plotoptions = {
+        title: {text: data.benchmark + ": " + data.metric, fontSize: '1.1em'},
+        seriesDefaults: {lineWidth: 2, markerOptions:{style:'circle', size: 6}},
+        series: series,
+        axes: {
+        yaxis: {
+            min: 0, autoscale:true, showTicks: false
+        },
+        xaxis: {
+            renderer:$.jqplot.DateAxisRenderer,
+            pad: 1.01,
+            autoscale:true,
+            showTicks: false
+        }
+        },
+        highlighter: {show:false},
+        cursor:{showTooltip: false, style: 'pointer'}
+    };
+    $.jqplot(plotid, plotdata, plotoptions);
 }
 
 var fixed_header = null;
@@ -126,38 +96,39 @@ var fixed_header = null;
 function render(data) {
     disable_options(false);
 
-  $("#plotgrid").html("");
-  if(data.error !== "None") {
-    var h = $("#content").height();//get height for error message
-    $("#plotgrid").html(getLoadText(data.error, h, false));
-    return 1;
-  } else if ($("input[name='benchmark']:checked").val() === "show_none") {
-    var h = $("#content").height();//get height for error message
-    $("#plotgrid").html(getLoadText("Please select a benchmark on the left", h, false));
-  } else if (data.timelines.length === 0) {
-    var h = $("#content").height();//get height for error message
-    $("#plotgrid").html(getLoadText("No data available", h, false));
-  } else if ($("input[name='benchmark']:checked").val() === "grid"){
-    //Render Grid of plots
-    disable_options(true);
-    for (var bench in data.timelines) {
-      var plotid = "plot_" + data.timelines[bench].benchmark;
-      $("#plotgrid").append('<div id="' + plotid + '" class="miniplot"></div>');
-      $("#" + plotid).click(function() {
-        var bench = $(this).attr("id").slice(5);
-        $("#benchmark_" + bench).trigger("click");//.prop("checked", true);
-        updateUrl();
-      });
-      renderMiniplot(plotid, data.timelines[bench]);
+    $("#plotgrid").html("");
+    if(data.error !== "None") {
+        var h = $("#content").height();//get height for error message
+        $("#plotgrid").html(getLoadText(data.error, h, false));
+        return 1;
+    } else if ($("input[name='benchmark']:checked").val() === "show_none") {
+        var h = $("#content").height();//get height for error message
+        $("#plotgrid").html(getLoadText("Please select a benchmark on the left", h, false));
+    } else if (data.timelines.length === 0) {
+        var h = $("#content").height();//get height for error message
+        $("#plotgrid").html(getLoadText("No data available", h, false));
+    } else if ($("input[name='benchmark']:checked").val() === "grid"){
+        //Render Grid of plots
+        disable_options(true);
+        for (var bench in data.timelines) {
+            var plotid = "plot_" + data.timelines[bench].benchmark;
+            $("#plotgrid").append('<div id="' + plotid + '" class="miniplot"></div>');
+            $("#" + plotid).click(function() {
+                var bench = $(this).attr("id").slice(5);
+                $("#benchmark_" + bench).trigger("click");//.prop("checked", true);
+                updateUrl();
+            });
+            renderMiniplot(plotid, data.timelines[bench]);
+        }
+    } else {
+        // render single plot when one benchmark is selected
+        for (var metric in data.timelines) {
+            var plotid = "plot_" + data.timelines[metric].metric;
+            $("#plotgrid").append('<div id="' + plotid + '" class="plotcontainer"></div>');
+            renderPlot(data.timelines[metric], plotid);
+        }
     }
-  } else {
-    // render single plot when one benchmark is selected
-    for (var metric in data.timelines) {
-        var plotid = "plot_" + data.timelines[metric].metric;
-        $("#plotgrid").append('<div id="' + plotid + '" class="plotcontainer"></div>');
-        renderPlot(data.timelines[metric], plotid);
-    }
-  }
+
     var dt = $("#dataTable").dataTable( {
         "aaData": data.results,
         "aoColumns": [
@@ -187,20 +158,20 @@ function render(data) {
 }
 
 function refreshContent() {
-  var h = $("#content").height();//get height for loading text
-  $("#plotgrid").fadeOut("fast", function() {
-    $("#plotgrid").html(getLoadText("Loading...", h, true)).show();
-    $.getJSON("/get_data/", getConfiguration(), render);
-  });
+    var h = $("#content").height();//get height for loading text
+    $("#plotgrid").fadeOut("fast", function() {
+        $("#plotgrid").html(getLoadText("Loading...", h, true)).show();
+        $.getJSON("/get_data/", getConfiguration(), render);
+    });
 }
 
 function updateUrl() {
-  var cfg = getConfiguration();
-  $.address.autoUpdate(false);
-  for (var param in cfg) {
-    $.address.parameter(param, cfg[param]);
-  }
-  $.address.update();
+    var cfg = getConfiguration();
+    $.address.autoUpdate(false);
+    for (var param in cfg) {
+        $.address.parameter(param, cfg[param]);
+    }
+    $.address.update();
 }
 
 function disable_options(value) {
@@ -217,21 +188,21 @@ function disable_options(value) {
 }
 
 function getConfiguration() {
-  var config = {
-    proj: defaults.proj,
-    db: readCheckbox("input[name='db']:checked"),
-    ben: $("input[name='benchmark']:checked").val(),
-    spe: readCheckbox("input[name^='specific']:checked"),
-    met: readCheckbox("input[name='metric']:checked"),
-    revs: $("#revisions option:selected").val(),
-    equid: $("#equidistant").is(':checked') ? "on" : "off"
-  };
-  config["add"] = [];
-  $.each(defaults.additional, function(i, add) {
-    config["add"].push(add + ":" + $("select[name^='additional_" + add + "']").val());
-  });
+    var config = {
+        proj: defaults.proj,
+        db: readCheckbox("input[name='db']:checked"),
+        ben: $("input[name='benchmark']:checked").val(),
+        spe: readCheckbox("input[name^='specific']:checked"),
+        met: readCheckbox("input[name='metric']:checked"),
+        revs: $("#revisions option:selected").val(),
+        equid: $("#equidistant").is(':checked') ? "on" : "off"
+    };
+    config["add"] = [];
+    $.each(defaults.additional, function(i, add) {
+        config["add"].push(add + ":" + $("select[name^='additional_" + add + "']").val());
+    });
 
-  return config;
+    return config;
 }
 
 function updateSub(event) {

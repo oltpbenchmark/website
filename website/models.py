@@ -72,6 +72,7 @@ FEATURED_VARS = {
     'DB2': [],
     'MYSQL': [
         re.compile(ur'innodb_buffer_pool_size', re.UNICODE | re.IGNORECASE),
+        re.compile(ur'innodb_buffer_pool_instances', re.UNICODE | re.IGNORECASE),
         re.compile(ur'innodb_log_file_size', re.UNICODE | re.IGNORECASE),
         re.compile(ur'innodb_log_buffer_size', re.UNICODE | re.IGNORECASE),
         re.compile(ur'innodb_flush_log_at_trx_commit', re.UNICODE | re.IGNORECASE),
@@ -95,6 +96,28 @@ FEATURED_VARS = {
     'NUODB': []
 }
 
+
+LEARNING_VARS = {
+    'DB2': [],
+    'MYSQL': [
+        re.compile(ur'innodb_buffer_pool_size', re.UNICODE | re.IGNORECASE),
+        re.compile(ur'innodb_buffer_pool_instances', re.UNICODE | re.IGNORECASE),
+        re.compile(ur'innodb_log_file_size', re.UNICODE | re.IGNORECASE),
+        re.compile(ur'innodb_log_buffer_size', re.UNICODE | re.IGNORECASE),
+        re.compile(ur'innodb_thread_concurrency', re.UNICODE | re.IGNORECASE),
+    ],
+    'POSTGRES': [],
+    'ORACLE': [],
+    'SQLSERVER': [],
+    'SQLITE': [],
+    'AMAZONRDS': [],
+    'HSTORE': [],
+    'SQLAZURE': [],
+    'ASSCLOWN': [],
+    'HSQLDB': [],
+    'H2': [],
+    'NUODB': []
+}
 
 class DBConf(models.Model):
     DB_TYPES = sorted([
@@ -136,15 +159,15 @@ PLOTTABLE_FIELDS = [
 
 METRIC_META = {
     'throughput': {'unit': 'transactions/second', 'lessisbetter': False, 'scale': 1, 'print': 'Throughput'},
-    'p99_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 1000, 'print': '99% Latency'},
-    'p95_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 1000, 'print': '95% Latency'},
-    'p90_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 1000, 'print': '90% Latency'},
-    'p75_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 1000, 'print': '75% Latency'},
-    'p50_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 1000, 'print': 'Med. Latency'},
-    'p25_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 1000, 'print': '25% Latency'},
-    'min_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 1000, 'print': 'Min Latency'},
-    'avg_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 1000, 'print': 'Avg. Latency'},
-    'max_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 1000, 'print': 'Max Latency'}
+    'p99_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 0.001, 'print': '99% Latency'},
+    'p95_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 0.001, 'print': '95% Latency'},
+    'p90_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 0.001, 'print': '90% Latency'},
+    'p75_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 0.001, 'print': '75% Latency'},
+    'p50_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 0.001, 'print': 'Med. Latency'},
+    'p25_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 0.001, 'print': '25% Latency'},
+    'min_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 0.001, 'print': 'Min Latency'},
+    'avg_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 0.001, 'print': 'Avg. Latency'},
+    'max_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 0.001, 'print': 'Max Latency'}
 }
 
 
@@ -163,6 +186,7 @@ class Result(models.Model):
     p95_latency = models.FloatField()
     p99_latency = models.FloatField()
     max_latency = models.FloatField()
+    most_similar = models.CommaSeparatedIntegerField(max_length=100)
 
     def __unicode__(self):
         return unicode(self.pk)

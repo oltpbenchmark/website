@@ -95,6 +95,8 @@
 <script type="text/javascript" src="{{ STATIC_URL }}js/jqplot/jqplot.canvasAxisLabelRenderer.min.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/jqplot/jqplot.canvasAxisTickRenderer.min.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/jqplot/jqplot.barRenderer.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/jqplot/jqplot.pointLabels.min.js"></script>
+
 
 <script type="text/javascript" src="{{ STATIC_URL }}js/benchmark_bar.js"></script>
 <script language="javascript">
@@ -102,12 +104,6 @@ $(function() {
     $('.selectpicker').selectpicker();
     BenchmarkBar.init({
         benchmark: {{ benchmark.pk }},
-        // proj: {{ project.pk }},
-        // dbs: [{% for db in db_types %}"{{ db }}", {% endfor %}],
-        // revisions: {{ defaultlast }},
-        // benchmark: "{{ defaultbenchmark }}",
-        // benchmarks: { {% for ben, conf in benchmarks.items %} "{{ ben }}": "{{ conf.pk }}", {% endfor %} },
-        // equidistant: "{{ defaultequid }}",
         db_confs: [{% for db in default_dbconf %}"{{ db }}", {% endfor %}],
         metrics: [{% for metric in default_metrics %}"{{ metric }}", {% endfor %}],
     });

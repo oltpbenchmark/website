@@ -19,6 +19,7 @@ urlpatterns = patterns('',
     url(r'^new_result/', 'website.views.new_result'),
     url(r'^result/', 'website.views.result'),
     url(r'^get_result_data_file/', 'website.views.get_result_data_file'),
+    url(r'^update_similar/', 'website.views.update_similar'),
 
     url(r'^edit_project/', 'website.views.edit_project'),
     url(r'^project/', 'website.views.project'),
@@ -32,11 +33,7 @@ urlpatterns = patterns('',
     url(r'^update_benchmark/', 'website.views.update_benchmark_conf'),
 
     url(r'^db_conf/', 'website.views.db_conf_view'),
-
     url(r'^get_data/', 'website.views.get_data'),
-    # Examples:
-    # url(r'^$', 'website.views.home', name='home'),
-    # url(r'^website/', include('website.foo.urls')),
 
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),

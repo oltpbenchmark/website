@@ -24,11 +24,11 @@
     </tr>
     <tr>
         <td><div class="text-right">Overall Throughout</div></td>
-        <td>{{ result.throughput }}</td>
+        <td>{{ result.throughput }} {{ metric_meta|get_item:"throughput"|get_item:"unit" }}</td>
     </tr>
     <tr>
         <td><div class="text-right">Overall 99% Latency</div></td>
-        <td>{{ result.p99_latency }}</td>
+        <td>{{ result.p99_latency }} {{ metric_meta|get_item:"p99_latency"|get_item:"unit" }}</td>
     </tr>
     <tr>
         <td><div class="text-right">Sampled data</div></td>
@@ -48,6 +48,26 @@
 <div class="row">
 
 <div id="sidebar" class="col-md-3">
+<div id="same">
+    <div><h4>Same-Configuration Runs</h4></div>
+    <div class="checkbox boxbody">
+        <ul>
+        {% for run in same_runs %}
+        <li><label><input type="checkbox" name="same_run" value="{{ run.pk }}" /> {{ run.pk }}@{{ run.timestamp }}<a href="/result/?id={{ run.pk }}">(view)</a></label></li>
+        {% endfor %}
+        </ul>
+    </div>
+</div>
+<div id="similar">
+    <div><h4>Similar-Configuration Runs (<a href="/update_similar/?id={{ result.pk }}">update</a>)</h4></div>
+    <div class="checkbox boxbody">
+        <ul>
+        {% for run in similar_runs %}
+        <li><label><input type="checkbox" name="same_run" value="{{ run.pk }}" /> {{ run.pk }}@{{ run.timestamp }}<a href="/result/?id={{ run.pk }}">(view)</a></label></li>
+        {% endfor %}
+        </ul>
+    </div>
+</div>
 <div id="metric">
     <div><h4>Plot Metrics</h4></div>
     <div class="checkbox boxbody">
@@ -82,6 +102,7 @@
 <script type="text/javascript">
 $(function() {
     ResultTimeline.init({
+        result: {{ result.pk }},
         data: {{ data|safe }},
         metrics: [{% for metric in default_metrics %}"{{ metric }}", {% endfor %}],
     });
