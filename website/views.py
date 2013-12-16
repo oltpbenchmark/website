@@ -20,7 +20,7 @@ from rexec import FileWrapper
 from models import Result, Project, DBConf, ExperimentConf, Statistics, NewResultForm, PLOTTABLE_FIELDS, METRIC_META, FEATURED_VARS, LEARNING_VARS
 from website.settings import UPLOAD_DIR
 
-
+# For the html template to access dict object
 @register.filter
 def get_item(dictionary, key):
     return dictionary.get(key)
@@ -45,10 +45,6 @@ def auth_and_login(request, onsuccess='/', onfail='/login/'):
         return redirect(onsuccess)
     else:
         return redirect(onfail)
-
-
-def upload_code_generator(size=6, chars=string.ascii_uppercase + string.digits):
-    return ''.join(choice(chars) for x in range(size))
 
 
 def create_user(username, email, password):
@@ -78,6 +74,10 @@ def sign_up_in(request):
 def logout_view(request):
     logout(request)
     return redirect("/login/")
+
+
+def upload_code_generator(size=6, chars=string.ascii_uppercase + string.digits):
+    return ''.join(choice(chars) for x in range(size))
 
 
 @login_required(login_url='/login/')
@@ -407,6 +407,13 @@ def benchmark_configuration(request):
     return render(request, 'benchmark_conf.html', context)
 
 
+#Data Format
+#    error
+#    metrics as a list of selected metrics
+#    results
+#        data for each selected metric
+#            meta data for the metric
+#            Result list for the metric in a folded list
 @login_required(login_url='/login/')
 def get_benchmark_data(request):
     data = request.GET
@@ -419,16 +426,16 @@ def get_benchmark_data(request):
     results = Result.objects.filter(benchmark_conf=benchmark_conf)
     results = sorted(results, cmp=lambda x, y: int(y.throughput - x.throughput))
 
-    bar_data = {'results': [],
-                'error': 'None',
-                'metrics': data.get('met', 'throughput,p99_latency').split(',')}
+    data_package = {'results': [],
+                    'error': 'None',
+                    'metrics': data.get('met', 'throughput,p99_latency').split(',')}
 
-    for met in bar_data['metrics']:
-        bar_data['results'].\
+    for met in data_package['metrics']:
+        data_package['results']. \
             append({'data': [[]], 'tick': [],
                     'unit': METRIC_META[met]['unit'],
                     'lessisbetter': METRIC_META[met][
-                        'lessisbetter'] and '(less is better)' or '(more is better)',
+                                        'lessisbetter'] and '(less is better)' or '(more is better)',
                     'metric': METRIC_META[met]['print']})
 
         added = {}
@@ -438,14 +445,14 @@ def get_benchmark_data(request):
             if r.db_conf.pk in added or str(r.db_conf.pk) not in db_confs:
                 continue
             added[r.db_conf.pk] = True
-            bar_data['results'][-1]['data'][0].append(
+            data_package['results'][-1]['data'][0].append(
                 [i, getattr(r, met) * METRIC_META[met]['scale'], r.pk, getattr(r, met) * METRIC_META[met]['scale']])
-            bar_data['results'][-1]['tick'].append(r.db_conf.name)
+            data_package['results'][-1]['tick'].append(r.db_conf.name)
             i -= 1
-        bar_data['results'][-1]['data'].reverse()
-        bar_data['results'][-1]['tick'].reverse()
+        data_package['results'][-1]['data'].reverse()
+        data_package['results'][-1]['tick'].reverse()
 
-    return HttpResponse(json.dumps(bar_data), mimetype='application/json')
+    return HttpResponse(json.dumps(data_package), mimetype='application/json')
 
 
 @login_required(login_url='/login/')
@@ -481,7 +488,7 @@ def result_similar(a, b):
     db_conf_a = json.loads(a.db_conf.configuration)
     db_conf_b = json.loads(b.db_conf.configuration)
     for kv in db_conf_a:
-        if filter_db_var(kv, FEATURED_VARS[a.db_conf.db_type]):
+        if filter_db_var(kv, LEARNING_VARS[a.db_conf.db_type]):
             for bkv in db_conf_b:
                 if bkv[0] == kv[0] and bkv[1] != kv[1]:
                     return False
@@ -557,6 +564,10 @@ def update_similar(request):
     return redirect('/result/?id=' + str(request.GET['id']))
 
 
+#Data Format
+#    data for each selected metric
+#        meta data for the metric
+#        data: time series data for this metric
 @login_required(login_url='/login/')
 def result(request):
     target = get_object_or_404(Result, pk=request.GET['id'])
@@ -583,10 +594,13 @@ def result(request):
 
         for r in results:
             ts = Statistics.objects.filter(result=r.pk)
-            offset = ts[0].time - (ts[1].time - ts[0].time)
+            offset = ts[0].time
+            if len(ts) > 1:
+                offset -= ts[1].time - ts[0].time
             data_package[metric]['data'][r.pk] = []
             for t in ts:
-                data_package[metric]['data'][r.pk].append([t.time - offset, getattr(t, metric) * METRIC_META[metric]['scale']])
+                data_package[metric]['data'][r.pk].append(
+                    [t.time - offset, getattr(t, metric) * METRIC_META[metric]['scale']])
 
     context = {'result': Result.objects.get(id=request.GET['id']),
                'metrics': PLOTTABLE_FIELDS,
@@ -595,7 +609,7 @@ def result(request):
                'data': json.dumps(data_package),
                'same_runs': sames,
                'similar_runs': similars
-               }
+    }
     return render(request, 'result.html', context)
 
 
@@ -619,22 +633,30 @@ def get_result_data_file(request):
         return response
 
 
+#Data Format:
+#    error
+#    results
+#        all result data after the filters for the table
+#    timelines
+#        data for each benchmark & metric pair
+#            meta data for the pair
+#            data as a map<DBMS name, result list>
 @login_required(login_url='/login/')
-def get_data(request):
-    timeline_list = {'error': 'None', 'timelines': []}
+def get_timeline_data(request):
+    data_package = {'error': 'None', 'timelines': []}
 
-    project = Project.objects.get(pk=request.GET['proj'])
+    project = get_object_or_404(Project, pk=request.GET['proj'])
     if project.user != request.user:
-        return HttpResponse(json.dumps(timeline_list), mimetype='application/json')
+        return HttpResponse(json.dumps(data_package), mimetype='application/json')
 
     revs = int(request.GET['revs'])
 
+    # Get all results related to the selected DBMS, sort by time
     results = Result.objects.filter(project=request.GET['proj'])
-
-    dbs = request.GET['db'].split(',')
-    results = filter(lambda x: x.db_conf.db_type in dbs, results)
+    results = filter(lambda x: x.db_conf.db_type in request.GET['db'].split(','), results)
     results = sorted(results, cmp=lambda x, y: int((x.timestamp - y.timestamp).total_seconds()))
 
+    # Determine which benchmark is selected
     benchmarks = []
     if request.GET['ben'] == 'grid':
         benchmarks = ExperimentConf.BENCHMARK_TYPES
@@ -662,23 +684,27 @@ def get_data(request):
     else:
         metrics = ['throughput']
 
-    timeline_list['results'] = [[x.pk,
-                                 x.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
-                                 x.db_conf.name,
-                                 x.benchmark_conf.name,
-                                 x.throughput * METRIC_META['throughput']['scale'],
-                                 x.p99_latency * METRIC_META['p99_latency']['scale'],
-                                 x.db_conf.pk,
-                                 x.benchmark_conf.pk]
-                                for x in table_results]
+    # For the data table
+    data_package['results'] = [
+        [x.pk,
+         x.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+         x.db_conf.name,
+         x.benchmark_conf.name,
+         x.throughput * METRIC_META['throughput']['scale'],
+         x.p99_latency * METRIC_META['p99_latency']['scale'],
+         x.db_conf.pk,
+         x.benchmark_conf.pk
+        ]
+        for x in table_results]
 
+    # For plotting charts
     for metric in metrics:
         for bench in benchmarks:
             b_r = filter(lambda x: x.benchmark_conf.benchmark_type == bench, results)
             if len(b_r) == 0:
                 continue
 
-            timeline = {
+            data = {
                 'benchmark': bench,
                 'units': METRIC_META[metric]['unit'],
                 'lessisbetter': METRIC_META[metric]['lessisbetter'] and '(less is better)' or '(more is better)',
@@ -687,22 +713,21 @@ def get_data(request):
                 'metric': metric
             }
 
-            for db in dbs:
-                out = []
+            for db in request.GET['db'].split(','):
                 d_r = filter(lambda x: x.db_conf.db_type == db, b_r)
                 d_r = d_r[-revs:]
-                for res in d_r:
-                    out.append(
-                        [
-                            res.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
-                            getattr(res, metric) * METRIC_META[metric]['scale'], "",
-                            str(res.pk)
-                        ]
-                    )
+                out = [
+                    [
+                        res.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+                        getattr(res, metric) * METRIC_META[metric]['scale'],
+                        "",
+                        str(res.pk)
+                    ]
+                    for res in d_r]
 
                 if len(out) > 0:
-                    timeline['data'][db] = out
+                    data['data'][db] = out
 
-            timeline_list['timelines'].append(timeline)
+            data_package['timelines'].append(data)
 
-    return HttpResponse(json.dumps(timeline_list), mimetype='application/json')
+    return HttpResponse(json.dumps(data_package), mimetype='application/json')

@@ -33,7 +33,7 @@ urlpatterns = patterns('',
     url(r'^update_benchmark/', 'website.views.update_benchmark_conf'),
 
     url(r'^db_conf/', 'website.views.db_conf_view'),
-    url(r'^get_data/', 'website.views.get_data'),
+    url(r'^get_data/', 'website.views.get_timeline_data'),
 
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
