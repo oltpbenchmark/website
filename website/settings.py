@@ -83,7 +83,7 @@ STATICFILES_FINDERS = (
 )
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = '(q*(cs7i8+zmekvaqspk20isa*7u6++9^gg9#62p+ku5tmhriu'
+SECRET_KEY = '' # CHANGE ME
 
 UPLOAD_DIR = '/usr/local/oltpwebsite'
 
