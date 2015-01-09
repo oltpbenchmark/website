@@ -452,8 +452,7 @@ def get_benchmark_data(request):
         data_package['results'][-1]['data'].reverse()
         data_package['results'][-1]['tick'].reverse()
 
-    return HttpResponse(json.dumps(data_package), mimetype='application/json')
-
+    return HttpResponse(json.dumps(data_package), content_type='application/json')
 
 @login_required(login_url='/login/')
 def get_benchmark_conf_file(request):
@@ -461,7 +460,7 @@ def get_benchmark_conf_file(request):
     if benchmark_conf.project.user != request.user:
         return render(request, '404.html')
 
-    return HttpResponse(benchmark_conf.configuration, mimetype='text/plain')
+    return HttpResponse(benchmark_conf.configuration, content_type='text/plain')
 
 
 @login_required(login_url='/login/')
@@ -626,9 +625,9 @@ def get_result_data_file(request):
     prefix = get_result_data_dir(id)
 
     if type == 'sample':
-        return HttpResponse(FileWrapper(file(prefix + '_' + type)), mimetype='text/plain')
+        return HttpResponse(FileWrapper(file(prefix + '_' + type)), content_type='text/plain')
     elif type == 'raw':
-        response = HttpResponse(FileWrapper(file(prefix + '_' + type)), mimetype='application/gzip')
+        response = HttpResponse(FileWrapper(file(prefix + '_' + type)), content_type='application/gzip')
         response['Content-Disposition'] = 'attachment; filename=result_' + str(id) + '.raw.gz'
         return response
 
@@ -647,7 +646,7 @@ def get_timeline_data(request):
 
     project = get_object_or_404(Project, pk=request.GET['proj'])
     if project.user != request.user:
-        return HttpResponse(json.dumps(data_package), mimetype='application/json')
+        return HttpResponse(json.dumps(data_package), content_type='application/json')
 
     revs = int(request.GET['revs'])
 
@@ -730,4 +729,4 @@ def get_timeline_data(request):
 
             data_package['timelines'].append(data)
 
-    return HttpResponse(json.dumps(data_package), mimetype='application/json')
+    return HttpResponse(json.dumps(data_package), content_type='application/json')
