@@ -210,11 +210,13 @@ def new_result(request):
 
 
 def get_result_data_dir(result_id):
+    result_path = os.path.join(UPLOAD_DIR, str(result_id % 100))
     try:
-        os.makedirs(UPLOAD_DIR + '/' + str(result_id % 100))
-    except OSError:
-        pass
-    return UPLOAD_DIR + '/' + str(result_id % 100) + '/' + str(int(result_id) / 100l)
+	os.makedirs(result_path)
+    except OSError as e:
+        if e.errno == 17:
+            pass
+    return os.path.join(result_path, str(int(result_id) / 100l))
 
 
 def handle_result_file(proj, files):

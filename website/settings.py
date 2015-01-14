@@ -14,8 +14,8 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
         'NAME': 'benchdb',                      # Or path to database file if using sqlite3.
         # The following settings are not used with sqlite3:
-        'USER': '',
-        'PASSWORD': '',
+        'USER': 'dvanaken',
+        'PASSWORD': 'DthwboH4l4l',
         'HOST': 'localhost',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
         'PORT': '',                      # Set to empty string for default.
     }
@@ -50,12 +50,13 @@ USE_TZ = True
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/var/www/example.com/media/"
-MEDIA_ROOT = ''
+MEDIA_ROOT = '/var/www/oltpbench/media/'
+MEDIA_ROOT_URL = '/media/'
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
 # Examples: "http://example.com/media/", "http://media.example.com/"
-MEDIA_URL = ''
+MEDIA_URL = '/media/'
 
 # Absolute path to the directory static files should be collected to.
 # Don't put anything in this directory yourself; store your static files
@@ -83,9 +84,15 @@ STATICFILES_FINDERS = (
 )
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = ''
+SECRET_KEY = 'xwkw(0!fae+&6t@(6uth=4c&m&sdzu%odu4#u++0-9b0o0n3=!'
 
-UPLOAD_DIR = '/usr/local/oltpwebsite'
+FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o644
+FILE_UPLOAD_PERMISSIONS = 0o644
+
+#UPLOAD_DIR = '/usr/local/oltpwebsite/data'
+#UPLOAD_DIR = '/usr0/home/dvanaken/oltpwebsite/data'
+#UPLOAD_DIR = '/tmp/oltpwebsite/data'
+UPLOAD_DIR = '/var/www/oltpbench/media'
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
