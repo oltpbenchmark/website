@@ -595,13 +595,14 @@ def result(request):
 
         for r in results:
             ts = Statistics.objects.filter(result=r.pk)
-            offset = ts[0].time
-            if len(ts) > 1:
-                offset -= ts[1].time - ts[0].time
-            data_package[metric]['data'][r.pk] = []
-            for t in ts:
-                data_package[metric]['data'][r.pk].append(
-                    [t.time - offset, getattr(t, metric) * METRIC_META[metric]['scale']])
+            if len(ts) > 0:
+                offset = ts[0].time
+                if len(ts) > 1:
+                    offset -= ts[1].time - ts[0].time
+                data_package[metric]['data'][r.pk] = []
+                for t in ts:
+                    data_package[metric]['data'][r.pk].append(
+                        [t.time - offset, getattr(t, metric) * METRIC_META[metric]['scale']])
 
     context = {'result': Result.objects.get(id=request.GET['id']),
                'metrics': PLOTTABLE_FIELDS,
