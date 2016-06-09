@@ -141,6 +141,7 @@ class DBConf(models.Model):
     description = models.CharField(max_length=512)
     creation_time = models.DateTimeField()
     configuration = models.TextField()
+    similar_conf = models.TextField(default = "zbh")
     db_type = models.CharField(max_length=max(map(lambda x: len(x), DB_TYPES)))
 
 

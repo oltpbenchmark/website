@@ -1,4 +1,13 @@
 # Django settings for sample project.
+import djcelery
+djcelery.setup_loader()
+
+BROKER_HOST = "localhost"
+BROKER_PORT = 5672
+BROKER_USER = "guest"
+BROKER_PASSWORD = "guest"
+BROKER_VHOST = "/"
+
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -11,11 +20,11 @@ MANAGERS = ADMINS
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'benchdb',                      # Or path to database file if using sqlite3.
+        'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': 'cmu', #'benchdb',                      # Or path to database file if using sqlite3.
         # The following settings are not used with sqlite3:
-        'USER': 'dvanaken',
-        'PASSWORD': 'DthwboH4l4l',
+        'USER': 'zbh',   #'dvanaken',
+        'PASSWORD': 'zbh',  #'DthwboH4l4l',
         'HOST': 'localhost',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
         'PORT': '',                      # Set to empty string for default.
     }
@@ -50,7 +59,8 @@ USE_TZ = True
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/var/www/example.com/media/"
-MEDIA_ROOT = '/var/www/oltpbench/media/'
+MEDIA_ROOT = '/Users/zhangbohan/.git/website/data/media'
+#MEDIA_ROOT = '/var/www/oltpbench/media/'
 MEDIA_ROOT_URL = '/media/'
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
@@ -62,7 +72,9 @@ MEDIA_URL = '/media/'
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/var/www/example.com/static/"
-STATIC_ROOT = 'static'
+#STATIC_ROOT = 'static'
+STATIC_ROOT = '/Users/zhangbohan/.git/website/data/static'
+#STATIC_ROOT = '/Users/zhangbohan/.git/website/website/static'
 
 # URL prefix for static files.
 # Example: "http://example.com/static/", "http://static.example.com/"
@@ -92,8 +104,8 @@ FILE_UPLOAD_PERMISSIONS = 0o644
 #UPLOAD_DIR = '/usr/local/oltpwebsite/data'
 #UPLOAD_DIR = '/usr0/home/dvanaken/oltpwebsite/data'
 #UPLOAD_DIR = '/tmp/oltpwebsite/data'
-UPLOAD_DIR = '/var/www/oltpbench/media'
-
+#UPLOAD_DIR = '/var/www/oltpbench/media'
+UPLOAD_DIR = '/Users/zhangbohan/.git/website/data/media'
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
@@ -106,6 +118,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+#'django.middleware.csrf.CsrfResponseMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -129,6 +142,7 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'debug_toolbar',
     #'django_extensions',
     # Uncomment the next line to enable the admin:
     'django.contrib.admin',
@@ -136,7 +150,9 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
     #'rest_framework',
     #'south',
+    'djcelery',
     'website',
+    'celery_example',	
 )
 
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'

@@ -72,17 +72,34 @@ function updateUrl() {
     for (var param in cfg) {
         $.address.parameter(param, cfg[param]);
     }
-    $.address.update();
+  $.address.update();
+
+  
+  new_id = $(this).attr("value")
+  $.ajaxSettings.async = false;
+  $.getJSON('/ajax_new/', {new_id: new_id} , function(ret){
+        $.each(defaults.all_metrics, function(){
+           m = this;
+           defaults.data[this]['data'][new_id] = []
+           $.each(ret[m],function(i,value){
+           defaults.data[m]['data'][new_id].push(value)})
+
+       })
+    }
+  )
+  
+   refreshContent();
 }
 
 function refreshContent() {
-    render();
+   render();
 }
 
 function initializeSite(event) {
     setValuesOfInputFields(event);
     $("input[name='metric']"  ).on('click', updateUrl);
     $("input[name='same_run']").on('click', updateUrl);
+     refreshContent();
 }
 
 function refreshSite(event) {
@@ -115,7 +132,7 @@ function init(def) {
     defaults = def;
 
     // Init and change handlers are set to the refreshContent handler
-    $.address.init(initializeSite).change(refreshSite);
+     $.address.init(initializeSite)
 }
 
 return {
