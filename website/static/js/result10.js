@@ -74,10 +74,14 @@ function updateUrl() {
     }
   $.address.update();
 
+  //info = (location.href).split('#');
+  //para = info[1].split('&'); 
   
   new_id = $(this).attr("value")
   $.ajaxSettings.async = false;
-  $.getJSON('/ajax_new/', {new_id: new_id} , function(ret){
+//  if ($.inArray(new_id, cfg['same'])  >= 0 ) 
+//  {
+    $.getJSON('/ajax_new/', {new_id: new_id} , function(ret){
         $.each(defaults.all_metrics, function(){
            m = this;
            defaults.data[this]['data'][new_id] = []
@@ -86,18 +90,41 @@ function updateUrl() {
 
        })
     }
-  )
+   )
+ // }
   
    refreshContent();
+   //location.assign('?id=' + cfg['id'] +'&' +   para[2]  +'&' + new_id + '&'+url+ '#' + info[1]) 
 }
 
+function updateUrl_metric() {
+    var cfg = getConfiguration();
+    $.address.autoUpdate(false);
+    for (var param in cfg) {
+        $.address.parameter(param, cfg[param]);
+    }
+  $.address.update();
+ refreshContent();
+
+}
+
+
 function refreshContent() {
+   // new_id = $(this).attr("value") 
+   //location.assign('?id=' + new_id )
+
+
+
+
+
+
+
    render();
 }
 
 function initializeSite(event) {
     setValuesOfInputFields(event);
-    $("input[name='metric']"  ).on('click', updateUrl);
+    $("input[name='metric']"  ).on('click', updateUrl_metric);
     $("input[name='same_run']").on('click', updateUrl);
      refreshContent();
 }
@@ -132,7 +159,8 @@ function init(def) {
     defaults = def;
 
     // Init and change handlers are set to the refreshContent handler
-     $.address.init(initializeSite)
+    // $.address.init(initializeSite).change(refreshSite);
+$.address.init(initializeSite)
 }
 
 return {

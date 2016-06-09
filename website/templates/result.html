@@ -38,6 +38,7 @@
         <td><div class="text-right">Raw data</div></td>
         <td><a href="/get_result_data_file/?id={{ result.pk }}&type=raw">Download</a></td>
     </tr>
+   
     </tbody>
 </table>
 </div>
@@ -47,22 +48,23 @@
 <div class="container">
 <div class="row">
 
+
 <div id="sidebar" class="col-md-3">
 <div id="same">
     <div><h4>Same-Configuration Runs</h4></div>
     <div class="checkbox boxbody">
         <ul>
-        {% for run in same_runs %}
+        {% for run in same_runs%}
         <li><label><input type="checkbox" name="same_run" value="{{ run.pk }}" /> {{ run.pk }}@{{ run.timestamp }}<a href="/result/?id={{ run.pk }}">(view)</a></label></li>
-        {% endfor %}
-        </ul>
+ 	{% endfor %}
+</ul>
     </div>
 </div>
 <div id="similar">
     <div><h4>Similar-Configuration Runs (<a href="/update_similar/?id={{ result.pk }}">update</a>)</h4></div>
     <div class="checkbox boxbody">
         <ul>
-        {% for run in similar_runs %}
+       {% for run in similar_runs %}
         <li><label><input type="checkbox" name="same_run" value="{{ run.pk }}" /> {{ run.pk }}@{{ run.timestamp }}<a href="/result/?id={{ run.pk }}">(view)</a></label></li>
         {% endfor %}
         </ul>
@@ -85,6 +87,8 @@
         <div id="plotgrid" class="plotcontainer"></div>
     </div>
 </div>
+
+
 </div>
 </div>
 
@@ -97,16 +101,17 @@
 <script type="text/javascript" src="{{ STATIC_URL }}js/jqplot/jqplot.canvasAxisTickRenderer.min.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/jqplot/jqplot.barRenderer.min.js"></script>
 
-<script type="text/javascript" src="{{ STATIC_URL }}js/result.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/result10.js"></script>
 
 <script type="text/javascript">
-$(function() {
-    ResultTimeline.init({
+ $(function() {
+   ResultTimeline.init({
         result: {{ result.pk }},
         data: {{ data|safe }},
         metrics: [{% for metric in default_metrics %}"{{ metric }}", {% endfor %}],
+        all_metrics: {{metrics|safe}},  
     });
-});
+}); 
 </script>
 
 {% endblock body %}

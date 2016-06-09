@@ -15,7 +15,9 @@ urlpatterns = patterns('',
     url(r'^signupin/', 'website.views.sign_up_in'),
     url(r'^$', 'website.views.home'),
     url(r'^logout/', 'website.views.logout_view'),
-
+    
+    url(r'^ajax_new/', 'website.views.ajax_new'),
+    
     url(r'^new_result/', 'website.views.new_result'),
     url(r'^result/', 'website.views.result'),
     url(r'^get_result_data_file/', 'website.views.get_result_data_file'),

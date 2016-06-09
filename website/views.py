@@ -1,12 +1,16 @@
 import json
 import string
 
+
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.views.decorators.cache import cache_page
 from django.core.context_processors import csrf
 from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http import HttpResponse
+from django.http import JsonResponse
 from django.template.defaultfilters import register
 from django.utils.datetime_safe import datetime
 from django.views.decorators.csrf import csrf_exempt
@@ -16,6 +20,7 @@ from numpy import array, linalg
 from pytz import timezone, os
 from random import choice
 from rexec import FileWrapper
+from django.core.cache import cache
 
 from models import Result, Project, DBConf, ExperimentConf, Statistics, NewResultForm, PLOTTABLE_FIELDS, METRIC_META, FEATURED_VARS, LEARNING_VARS
 from website.settings import UPLOAD_DIR
@@ -25,6 +30,19 @@ from website.settings import UPLOAD_DIR
 def get_item(dictionary, key):
     return dictionary.get(key)
 
+def ajax_new(request):
+    new_id = request.GET['new_id']
+    ts = Statistics.objects.filter(result=new_id)
+    data = {}
+    for metric in PLOTTABLE_FIELDS:   
+        if len(ts) > 0:
+            offset = ts[0].time
+            if len(ts) > 1:
+                offset -= ts[1].time - ts[0].time
+            data[metric] = []
+            for t in ts:
+                data[metric].append([t.time - offset, getattr(t, metric) * METRIC_META[metric]['scale']])
+    return HttpResponse(json.dumps(data), content_type = 'application/json')
 
 def signup_view(request):
     c = {}
@@ -75,7 +93,6 @@ def logout_view(request):
     logout(request)
     return redirect("/login/")
 
-
 def upload_code_generator(size=6, chars=string.ascii_uppercase + string.digits):
     return ''.join(choice(chars) for x in range(size))
 
@@ -98,7 +115,7 @@ def project(request):
 
     project = Project.objects.get(pk=data['id'])
 
-    results = Result.objects.filter(project=project)
+    results = Result.objects.select_related("db_conf__db_type","benchmark_conf__benchmark_type").filter(project=project)
 
     db_with_data = {}
     benchmark_with_data = {}
@@ -199,15 +216,15 @@ def new_result(request):
         form = NewResultForm(request.POST, request.FILES)
         if not form.is_valid():
             return HttpResponse(str(form))
-        try:
-            project = Project.objects.get(upload_code=form.cleaned_data['upload_code'])
+       
+        try:   
+            project = Project.objects.get(upload_code = form.cleaned_data['upload_code'])
         except Project.DoesNotExist:
-            return HttpResponse("Wrong!")
+            return HttpResponse("wrong upload_code!")
 
         return handle_result_file(project, request.FILES)
 
     return HttpResponse("POST please\n")
-
 
 def get_result_data_dir(result_id):
     result_path = os.path.join(UPLOAD_DIR, str(result_id % 100))
@@ -218,31 +235,36 @@ def get_result_data_dir(result_id):
             pass
     return os.path.join(result_path, str(int(result_id) / 100l))
 
-
 def handle_result_file(proj, files):
     db_conf_lines = "".join(map(lambda x: str(x), files['db_conf_data'].chunks())).split("\n")
     summary_lines = "".join(map(lambda x: str(x), files['summary_data'].chunks())).split("\n")
 
     db_type = summary_lines[1].strip().upper()
-    bench_type = summary_lines[2].strip().upper()
-
+    bench_type = summary_lines[3].strip().upper()
+   
+    
     if not db_type in DBConf.DB_TYPES:
-        return HttpResponse("Wrong")
+        return HttpResponse(db_type + "  db_type Wrong")
     if not bench_type in ExperimentConf.BENCHMARK_TYPES:
-        return HttpResponse("Wrong")
+        return HttpResponse(bench_type + "  bench_type  Wrong")
 
     db_conf_list = []
+    similar_conf_list = []
     for line in db_conf_lines:
         ele = line.split("=")
         key = ele[0]
         value = ""
         if len(ele) > 1:
             value = ele[1]
+        for v in LEARNING_VARS[db_type]:
+    	    if v.match(key):
+	    	similar_conf_list.append([key,value])
         db_conf_list.append([key, value])
+    	
     db_conf_str = json.dumps(db_conf_list)
-
+    similar_conf_str = json.dumps(similar_conf_list)	
     try:
-        db_confs = DBConf.objects.filter(configuration=db_conf_str)
+        db_confs = DBConf.objects.filter(configuration=db_conf_str,similar_conf=similar_conf_str)
         if len(db_confs) < 1:
             raise DBConf.DoesNotExist
         db_conf = db_confs[0]
@@ -253,10 +275,10 @@ def handle_result_file(proj, files):
         db_conf.configuration = db_conf_str
         db_conf.project = proj
         db_conf.db_type = db_type
-        db_conf.save()
+        db_conf.similar_conf = similar_conf_str
+	db_conf.save()
         db_conf.name = db_type + '@' + db_conf.creation_time.strftime("%Y-%m-%d,%H") + '#' + str(db_conf.pk)
         db_conf.save()
-
     bench_conf_lines = "".join(map(lambda x: str(x).strip(), files['benchmark_conf_data'].chunks())).split("\n")
     bench_conf_str = "".join(bench_conf_lines)
 
@@ -272,7 +294,7 @@ def handle_result_file(proj, files):
         bench_conf.configuration = bench_conf_str
         bench_conf.benchmark_type = bench_type
         bench_conf.creation_time = now()
-        for line in summary_lines[5:]:
+        for line in summary_lines[6:]:
             if line == '':
                 continue
             kv = line.split('=')
@@ -287,7 +309,7 @@ def handle_result_file(proj, files):
     result.project = proj
     result.timestamp = datetime.fromtimestamp(int(summary_lines[0]), timezone("UTC"))
     latency_dict = {}
-    line = summary_lines[3][1:-1]
+    line = summary_lines[4][1:-1]
     for field in line.split(','):
         data = field.split('=')
         latency_dict[data[0].strip()] = data[1].strip()
@@ -300,7 +322,7 @@ def handle_result_file(proj, files):
     result.p95_latency = float(latency_dict['95th'])
     result.p99_latency = float(latency_dict['99th'])
     result.max_latency = float(latency_dict['max'])
-    result.throughput = float(summary_lines[4])
+    result.throughput = float(summary_lines[5])
     result.save()
 
     path_prefix = get_result_data_dir(result.pk)
@@ -339,13 +361,11 @@ def handle_result_file(proj, files):
 
     return HttpResponse("Success")
 
-
 def filter_db_var(kv_pair, key_filters):
     for f in key_filters:
         if f.match(kv_pair[0]):
             return True
     return False
-
 
 @login_required(login_url='/login/')
 def db_conf_view(request):
@@ -486,13 +506,16 @@ def update_benchmark_conf(request):
 
 
 def result_similar(a, b):
-    db_conf_a = json.loads(a.db_conf.configuration)
-    db_conf_b = json.loads(b.db_conf.configuration)
+    db_conf_a = json.loads(a.db_conf.similar_conf)
+    db_conf_b = json.loads(b.db_conf.similar_conf)
     for kv in db_conf_a:
-        if filter_db_var(kv, LEARNING_VARS[a.db_conf.db_type]):
-            for bkv in db_conf_b:
-                if bkv[0] == kv[0] and bkv[1] != kv[1]:
+       # if filter_db_var(kv, LEARNING_VARS[a.db_conf.db_type]):
+        for bkv in db_conf_b:
+            if bkv[0] == kv[0]:
+                if bkv[1] != kv[1]:
                     return False
+		else:
+		    break
     return True
 
 
@@ -565,25 +588,30 @@ def update_similar(request):
     return redirect('/result/?id=' + str(request.GET['id']))
 
 
-#Data Format
-#    data for each selected metric
-#        meta data for the metric
-#        data: time series data for this metric
-@login_required(login_url='/login/')
+
 def result(request):
     target = get_object_or_404(Result, pk=request.GET['id'])
-
     data_package = {}
-    results = Result.objects.filter(project=target.project, benchmark_conf=target.benchmark_conf)
+    sames = {}   
+    similars = {}
+  
+    results = Result.objects.select_related("db_conf__db_type","db_conf__configuration","db_conf__similar_conf").filter(project=target.project, benchmark_conf=target.benchmark_conf)
     results = filter(lambda x: x.db_conf.db_type == target.db_conf.db_type, results)
-    sames = filter(lambda x: result_similar(x, target), results)
-    sames = filter(lambda x: x != target, sames)
+    sames = []
+    sames = filter(lambda x:  result_similar(x,target) and x != target , results)
+  
+   #    sames = cache.get_or_set(target.pk, filter(lambda x: result_similar(x,target) and x != target , results), 60*10)
+
     similars = [Result.objects.get(pk=rid) for rid in filter(lambda x: len(x) > 0, target.most_similar.split(','))]
 
     results = []
-    results.extend(sames)
-    results.extend(similars)
-    results.append(target)
+
+
+
+#   results.extend(sames)
+#   results.extend(similars)
+#   results.append(target)
+
 
     for metric in PLOTTABLE_FIELDS:
         data_package[metric] = {
@@ -593,23 +621,40 @@ def result(request):
             'metric': METRIC_META[metric]['print']
         }
 
-        for r in results:
-            ts = Statistics.objects.filter(result=r.pk)
+
+
+        same_id = []
+        same_id.append(str(target.pk))
+        for x in same_id:   
+	    key = metric + ',data,' + x ;
+ 	    tmp = cache.get(key);
+            if tmp != None:
+                data_package[metric]['data'][int(x)] = []
+            	data_package[metric]['data'][int(x)].extend(tmp);
+		continue;	
+
+	    ts = Statistics.objects.filter(result=x) 
             if len(ts) > 0:
                 offset = ts[0].time
                 if len(ts) > 1:
                     offset -= ts[1].time - ts[0].time
-                data_package[metric]['data'][r.pk] = []
+                data_package[metric]['data'][int(x)] = []
                 for t in ts:
-                    data_package[metric]['data'][r.pk].append(
+                    data_package[metric]['data'][int(x)].append(
                         [t.time - offset, getattr(t, metric) * METRIC_META[metric]['scale']])
-
-    context = {'result': Result.objects.get(id=request.GET['id']),
+	    	cache.set(key,data_package[metric]['data'][int(x)],60*5) 
+	
+	
+    
+    context = {'result': target, 
+     #Result.objects.get(id=request.GET['id']),
                'metrics': PLOTTABLE_FIELDS,
                'metric_meta': METRIC_META,
                'default_metrics': ['throughput', 'p99_latency'],
                'data': json.dumps(data_package),
                'same_runs': sames,
+	       #contacts,
+               # sames,
                'similar_runs': similars
     }
     return render(request, 'result.html', context)

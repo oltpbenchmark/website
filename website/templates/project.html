@@ -134,7 +134,7 @@
 
 <!-- table tools stuff -->
 <link rel='stylesheet' type='text/css' href='{{ STATIC_URL }}css/jquery.dataTables.css'>
-<script type="text/javascript" src='{{ STATIC_URL }}js/jquery.dataTables.min.js'></script>
+<script type="text/javascript" src='{{ STATIC_URL }}js/jquery.dataTables.min.js'></script> 
 <script type="text/javascript" src='{{ STATIC_URL }}js/FixedHeader.min.js'></script>
 </div>
 
@@ -173,17 +173,20 @@ $(function() {
 
     $("[id^=div_specific]").hide();
 
-    Timeline.init({
+   Timeline.init({
         proj: {{ project.pk }},
         dbs: [{% for db in db_types %}"{{ db }}", {% endfor %}],
         revisions: {{ defaultlast }},
         benchmark: "{{ defaultbenchmark }}",
         benchmarks: { {% for ben, conf in benchmarks.items %} "{{ ben }}": "{{ conf.pk }}", {% endfor %} },
-        equidistant: "{{ defaultequid }}",
+    
+
+      equidistant: "{{ defaultequid }}",
         additional: [{% for filter in filters %} "{{ filter.field }}", {% endfor %}],
         metrics: [{% for metric in defaultmetrics %}"{{ metric }}", {% endfor %}]
     });
 });
+
 </script>
 
 {% endblock body %}
