@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block body %}
+<div id="application_list" class="container">
+<form action="/delete_application/" method="POST"
+      onsubmit="return confirm('Are you sure you want to delete these applications and all targets/results under this application?')">
+      {% csrf_token %}
+<table id="application_table" class="table table-bordered table-striped table-hover table-nonfluid">
+    <caption><h4>Your Applications</h4></caption>
+    <tr>
+        <th><input type="checkbox" onClick="toggle(this, 'applications')" /></th>
+        <th>Application Name</th>
+        <th>Project Name</th>
+        <th>Description</th>
+        <th>Last Update</th>
+        <th>Creation Time</th>
+    </tr>
+    {% for application in applications %}
+        <tr>
+            <td style="vertical-align:middle"><input type="checkbox" name="applications" value="{{ application.pk }}" /></td>
+            <td style="vertical-align:middle"><a href="/application/?id={{application.pk}}">{{ application.name }}</a></td>
+            <td style="vertical-align:middle">{{ project.name }}</a></td>
+            <td style="vertical-align:middle">{{ application.description|linebreaks }}</td>
+            <td style="vertical-align:middle">{{ application.creation_time }}</td>
+            <td style="vertical-align:middle">{{ application.last_update }}</td>
+        </tr>
+    {% endfor %}
+</table>
+<button class="btn btn-default" type="submit" name="id" value="{{proj_id}}">Delete selected applications</button>
+<a class="btn btn-default" href="/edit_application/?pid={{proj_id}}&id=">Create a new application</a>
+</form>
+</div>
+
+<script type="text/javascript">
+function toggle(source, name) {
+    checkboxes = document.getElementsByName(name);
+    for(var i=0, n=checkboxes.length; i<n; i++) {
+        checkboxes[i].checked = source.checked;
+    }
+}
+</script>
+
+{% endblock body %}

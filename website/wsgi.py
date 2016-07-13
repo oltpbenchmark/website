@@ -15,8 +15,8 @@ framework.
 """
 import os, sys
 
-sys.path.append('/var/www/oltpbench/website')
-
+#sys.path.append('/var/www/oltpbench/website')
+sys.path.append('/Users/zbh/Desktop/git/website')
 # We defer to a DJANGO_SETTINGS_MODULE already in the environment. This breaks
 # if running multiple sites in the same mod_wsgi process. To fix this, use
 # mod_wsgi daemon mode with each site in its own daemon process, or use

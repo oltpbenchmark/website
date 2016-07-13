@@ -14,8 +14,8 @@
         </tr>
         {% if project %}
         <tr>
-            <td align="right"><label for="upload_code">Upload Code:</label></td>
-            <td><div id="upload_code">{{ project.upload_code }}</div></td>
+            <td align="right"><label for="apps">Applications:</label></td>
+            <td><div id="apps"><a href="/project/?id={{ project.pk }}">here</a></div></td>
         </tr>
         <tr>
             <td align="right"><label>Last update:</label></td>
@@ -29,7 +29,6 @@
     </table>
     <button class="btn btn-default" type="submit" name="id" value="{{ project.pk }}">Submit</button>
     {% if project %}
-    <button class="btn btn-default" type="submit" name="id_new_code" value="{{ project.pk }}">Submit & Get a new upload code</button>
     <a class="btn btn-default" href="/project/?id={{ project.pk }}">Cancel</a>
     {% else %}
     <a class="btn btn-default" href="/">Cancel</a>
