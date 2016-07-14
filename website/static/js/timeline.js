@@ -189,7 +189,8 @@ function disable_options(value) {
 
 function getConfiguration() {
     var config = {
-        proj: defaults.proj,
+       // proj: defaults.proj,
+        proj:defaults.proj,
         db: readCheckbox("input[name='db']:checked"),
         ben: $("input[name='benchmark']:checked").val(),
         spe: readCheckbox("input[name^='specific']:checked"),
