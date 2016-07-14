@@ -2,16 +2,13 @@
 import djcelery
 djcelery.setup_loader()
 
-#BROKER_HOST = "localhost"
-#BROKER_PORT = 5672
-#BROKER_USER = "guest"
-#BROKER_PASSWORD = "guest"
-#BROKER_VHOST = "/"
+BROKER_HOST = "localhost"
+BROKER_PORT = 5672
+BROKER_USER = "guest"
+BROKER_PASSWORD = "guest"
+BROKER_VHOST = "/"
 
-# deploy RabbitMq
-BROKER_URL='amqp://guest:guest@localhost:5672//'
 
-TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
@@ -24,7 +21,7 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'benchdb',                      # Or path to database file if using sqlite3.
+        'NAME': 'cmu', #'benchdb',                      # Or path to database file if using sqlite3.
         # The following settings are not used with sqlite3:
         'USER': 'zbh',   #'dvanaken',
         'PASSWORD': 'zbh',  #'DthwboH4l4l',
@@ -62,7 +59,7 @@ USE_TZ = True
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/var/www/example.com/media/"
-MEDIA_ROOT = '/Users/zbh/Desktop/git/website/data/media'
+MEDIA_ROOT = '/Users/zhangbohan/.git/website/data/media'
 #MEDIA_ROOT = '/var/www/oltpbench/media/'
 MEDIA_ROOT_URL = '/media/'
 
@@ -76,7 +73,7 @@ MEDIA_URL = '/media/'
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/var/www/example.com/static/"
 #STATIC_ROOT = 'static'
-STATIC_ROOT = '/Users/zbh/Desktop/git/website/data/static'
+STATIC_ROOT = '/Users/zhangbohan/.git/website/data/static'
 #STATIC_ROOT = '/Users/zhangbohan/.git/website/website/static'
 
 # URL prefix for static files.
@@ -108,8 +105,7 @@ FILE_UPLOAD_PERMISSIONS = 0o644
 #UPLOAD_DIR = '/usr0/home/dvanaken/oltpwebsite/data'
 #UPLOAD_DIR = '/tmp/oltpwebsite/data'
 #UPLOAD_DIR = '/var/www/oltpbench/media'
-UPLOAD_DIR = '/Users/zbh/Desktop/git/website/data/media'
-
+UPLOAD_DIR = '/Users/zhangbohan/.git/website/data/media'
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
@@ -156,7 +152,7 @@ INSTALLED_APPS = (
     #'south',
     'djcelery',
     'website',
-    #'celery_example',	
+    'celery_example',	
 )
 
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'

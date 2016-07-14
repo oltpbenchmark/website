@@ -6,7 +6,6 @@ from django.contrib.staticfiles.views import serve
 from django.views.decorators.cache import never_cache
 from website import settings
 
-
 admin.autodiscover()
 
 urlpatterns = patterns('',
@@ -23,15 +22,9 @@ urlpatterns = patterns('',
     url(r'^result/', 'website.views.result'),
     url(r'^get_result_data_file/', 'website.views.get_result_data_file'),
     url(r'^update_similar/', 'website.views.update_similar'),
-    
-    url(r'^edit_application/', 'website.views.edit_application'),
-    url(r'^update_application/', 'website.views.update_application'),
-    url(r'^application/', 'website.views.application'),    
-    url(r'^project_info/', 'website.views.project_info'),  
-    url(r'^delete_application/', 'website.views.delete_application'),    
+
     url(r'^edit_project/', 'website.views.edit_project'),
     url(r'^project/', 'website.views.project'),
-  #  url(r'^project/', 'website.tasks.project'),
     url(r'^delete_project/', 'website.views.delete_project'),
     url(r'^update_project/', 'website.views.update_project'),
 

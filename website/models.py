@@ -3,7 +3,7 @@ import re
 from django.db import models
 from django.contrib.auth.models import User
 from django import forms
-from django.contrib import admin
+
 
 class NewResultForm(forms.Form):
     upload_code = forms.CharField(max_length=30)
@@ -12,7 +12,6 @@ class NewResultForm(forms.Form):
     db_conf_data = forms.FileField()
     benchmark_conf_data = forms.FileField()
     summary_data = forms.FileField()
-
 
 
 class Project(models.Model):
@@ -25,73 +24,38 @@ class Project(models.Model):
     upload_code = models.CharField(max_length=30)
 
     def delete(self, using=None):
-#        targets = DBConf.objects.filter(project=self)
-#        results = Result.objects.filter(project=self)
-        apps = Application.objects.filter(project=self)
-#       for t in targets:
-  #          t.delete()
-  #      for r in results:
-  #          r.delete()
-        for x in apps:
-	    x.delete()
-        super(Project, self).delete(using)
-
-
-
-class Application(models.Model):
-    user = models.ForeignKey(User)
-    name = models.CharField(max_length=64)
-    description = models.TextField()
-   
-    project = models.ForeignKey(Project)
-    creation_time = models.DateTimeField()
-    last_update = models.DateTimeField()
-
-    upload_code = models.CharField(max_length=30)
-  
-    def delete(self, using=None):
-        targets = DBConf.objects.filter(application=self)
-        results = Result.objects.filter(application=self)
-        expconfs =  ExperimentConf.objects.filter(application=self)
+        targets = DBConf.objects.filter(project=self)
+        results = Result.objects.filter(project=self)
         for t in targets:
             t.delete()
         for r in results:
             r.delete()
-        for x in expconfs:
-            x.delete()
-        super(Application, self).delete(using)
-
-
-
+        super(Project, self).delete(using)
 
 
 class ExperimentConf(models.Model):
-#    BENCHMARK_TYPES = [x.upper() for x in sorted([
-#        'tpcc',
-#        'tatp',
-#        'wikipedia',
-#        'resourcestresser',
-#        'twitter',
-#        'epinions',
-#         'ycsb',
-#        'jpab',
-#        'seats',
-#        'auctionmark',
-#        'chbenchmark',
-#        'voter',
-#        'linkbench',
-#        'sibench'
-#    ])]
-   
-    application = models.ForeignKey(Application)
-   
+    BENCHMARK_TYPES = [x.upper() for x in sorted([
+        'tpcc',
+        'tatp',
+        'wikipedia',
+        'resourcestresser',
+        'twitter',
+        'epinions',
+        'ycsb',
+        'jpab',
+        'seats',
+        'auctionmark',
+        'chbenchmark',
+        'voter',
+        'linkbench',
+        'sibench'
+    ])]
 
-  #  project = models.ForeignKey(Project)
+    project = models.ForeignKey(Project)
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=512)
     configuration = models.TextField()
-    benchmark_type = models.CharField(max_length=512)
-#sum(map(lambda x: len(x) + 1, BENCHMARK_TYPES)))
+    benchmark_type = models.CharField(max_length=sum(map(lambda x: len(x) + 1, BENCHMARK_TYPES)))
     creation_time = models.DateTimeField()
     isolation = models.TextField()
     scalefactor = models.TextField()
@@ -104,64 +68,56 @@ class ExperimentConf(models.Model):
     ]
 
 
-#FEATURED_VARS = {
-#    'DB2': [],
-#    'MYSQL': [
-#        re.compile(ur'innodb_buffer_pool_size', re.UNICODE | re.IGNORECASE),
-#        re.compile(ur'innodb_buffer_pool_instances', re.UNICODE | re.IGNORECASE),
-#        re.compile(ur'innodb_log_file_size', re.UNICODE | re.IGNORECASE),
-#        re.compile(ur'innodb_log_buffer_size', re.UNICODE | re.IGNORECASE),
-#        re.compile(ur'innodb_flush_log_at_trx_commit', re.UNICODE | re.IGNORECASE),
-#        re.compile(ur'innodb_thread_concurrency', re.UNICODE | re.IGNORECASE),
-#        re.compile(ur'innodb_file_per_table', re.UNICODE | re.IGNORECASE),
-#        re.compile(ur'key_buffer_size', re.UNICODE | re.IGNORECASE),
-#        re.compile(ur'table_cache', re.UNICODE | re.IGNORECASE),
-#        re.compile(ur'thread_cache', re.UNICODE | re.IGNORECASE),
-#        re.compile(ur'query_cache_size', re.UNICODE | re.IGNORECASE),
-#    ],
-#    'POSTGRES': [],
-#    'ORACLE': [],
-#    'SQLSERVER': [],
-#    'SQLITE': [],
-#    'AMAZONRDS': [],
-#    'HSTORE': [],
-#    'SQLAZURE': [],
-#    'ASSCLOWN': [],
-#    'HSQLDB': [],
-#    'H2': [],
-#    'NUODB': []
-#}
+FEATURED_VARS = {
+    'DB2': [],
+    'MYSQL': [
+        re.compile(ur'innodb_buffer_pool_size', re.UNICODE | re.IGNORECASE),
+        re.compile(ur'innodb_buffer_pool_instances', re.UNICODE | re.IGNORECASE),
+        re.compile(ur'innodb_log_file_size', re.UNICODE | re.IGNORECASE),
+        re.compile(ur'innodb_log_buffer_size', re.UNICODE | re.IGNORECASE),
+        re.compile(ur'innodb_flush_log_at_trx_commit', re.UNICODE | re.IGNORECASE),
+        re.compile(ur'innodb_thread_concurrency', re.UNICODE | re.IGNORECASE),
+        re.compile(ur'innodb_file_per_table', re.UNICODE | re.IGNORECASE),
+        re.compile(ur'key_buffer_size', re.UNICODE | re.IGNORECASE),
+        re.compile(ur'table_cache', re.UNICODE | re.IGNORECASE),
+        re.compile(ur'thread_cache', re.UNICODE | re.IGNORECASE),
+        re.compile(ur'query_cache_size', re.UNICODE | re.IGNORECASE),
+    ],
+    'POSTGRES': [],
+    'ORACLE': [],
+    'SQLSERVER': [],
+    'SQLITE': [],
+    'AMAZONRDS': [],
+    'HSTORE': [],
+    'SQLAZURE': [],
+    'ASSCLOWN': [],
+    'HSQLDB': [],
+    'H2': [],
+    'NUODB': []
+}
 
-class FEATURED_PARAMS(models.Model):
-    db_type = models.CharField(max_length=64)
-    params = models.CharField(max_length=512)
 
-#LEARNING_VARS = {
-#    'DB2': [],
-#    'MYSQL': [
-#        re.compile(ur'innodb_buffer_pool_size', re.UNICODE | re.IGNORECASE),
-#        re.compile(ur'innodb_buffer_pool_instances', re.UNICODE | re.IGNORECASE),
-#
-#        re.compile(ur'innodb_log_file_size', re.UNICODE | re.IGNORECASE),
-#        re.compile(ur'innodb_log_buffer_size', re.UNICODE | re.IGNORECASE),
-#        re.compile(ur'innodb_thread_concurrency', re.UNICODE | re.IGNORECASE),
-#    ],
-#    'POSTGRES': [],
-#    'ORACLE': [],
-#    'SQLSERVER': [],
-#    'SQLITE': [],
-#    'AMAZONRDS': [],
-#    'HSTORE': [],
-#    'SQLAZURE': [],
-#    'ASSCLOWN': [],
-#    'HSQLDB': [],
-#    'H2': [],
-#    'NUODB': []
-#}
-
-class LEARNING_PARAMS(models.Model):
-    db_type = models.CharField(max_length=64)
-    params = models.CharField(max_length=512)
+LEARNING_VARS = {
+    'DB2': [],
+    'MYSQL': [
+        re.compile(ur'innodb_buffer_pool_size', re.UNICODE | re.IGNORECASE),
+        re.compile(ur'innodb_buffer_pool_instances', re.UNICODE | re.IGNORECASE),
+        re.compile(ur'innodb_log_file_size', re.UNICODE | re.IGNORECASE),
+        re.compile(ur'innodb_log_buffer_size', re.UNICODE | re.IGNORECASE),
+        re.compile(ur'innodb_thread_concurrency', re.UNICODE | re.IGNORECASE),
+    ],
+    'POSTGRES': [],
+    'ORACLE': [],
+    'SQLSERVER': [],
+    'SQLITE': [],
+    'AMAZONRDS': [],
+    'HSTORE': [],
+    'SQLAZURE': [],
+    'ASSCLOWN': [],
+    'HSQLDB': [],
+    'H2': [],
+    'NUODB': []
+}
 
 class DBConf(models.Model):
     DB_TYPES = sorted([
@@ -179,8 +135,8 @@ class DBConf(models.Model):
         'H2',
         'NUODB'
     ])
-    application = models.ForeignKey(Application)
-    #project = models.ForeignKey(Project)
+
+    project = models.ForeignKey(Project)
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=512)
     creation_time = models.DateTimeField()
@@ -217,12 +173,9 @@ METRIC_META = {
 
 
 class Result(models.Model):
-   # project = models.ForeignKey(Project)
+    project = models.ForeignKey(Project)
     benchmark_conf = models.ForeignKey(ExperimentConf)
     db_conf = models.ForeignKey(DBConf)
-
-    application = models.ForeignKey(Application)
-
     timestamp = models.DateTimeField()
     throughput = models.FloatField()
     avg_latency = models.FloatField()
