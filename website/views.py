@@ -25,7 +25,7 @@ from random import choice
 from rexec import FileWrapper
 from django.core.cache import cache
 
-from models import Result, Application,Project, DBConf, ExperimentConf, Statistics, NewResultForm, PLOTTABLE_FIELDS, METRIC_META, FEATURED_PARAMS, LEARNING_PARAMS
+from models import * 
 from website.settings import UPLOAD_DIR
 
 import sys
@@ -113,8 +113,27 @@ def home(request):
 
 
 @login_required(login_url='/login/')
+def ml_info(request):
+    id = request.GET['id'] 
+    res = Result.objects.get(pk=id)
+    task = Task.objects.get(pk=id)
+    if task.running_time != None:
+        time = task.running_time
+    else:
+        time = now() - res.creation_time
+        time = time.seconds
+    
+    limit = Website_Conf.objects.get(name = "Time_Limit")
+    context = {"id":id,
+               "result":res,
+               "time":time,
+               "task":task,
+               "limit":limit.value}
+
+    return render(request,"ml_info.html",context) 
+
+@login_required(login_url='/login/')
 def project(request):
-  #  time.sleep(10)
     id = request.GET['id']
     applications = Application.objects.filter(project = id)  
     project = Project.objects.get(pk=id)
@@ -125,57 +144,9 @@ def project(request):
     return render(request, 'home_application.html', context)    
 
 
- #   p = Project.objects.get(pk=id)
- #   if p.user != request.user:
- #       return render(request, '404.html')
 
- #    data = request.GET
- #    project = Project.objects.get(pk=data['id'])
 
- #   results = Result.objects.select_related("db_conf__db_type","benchmark_conf__benchmark_type").filter(project=project)
 
- #  db_with_data = {}
- #   benchmark_with_data = {}
-
-  #  for res in results:
-   #     db_with_data[res.db_conf.db_type] = True
-  #      benchmark_with_data[res.benchmark_conf.benchmark_type] = True
-  #  benchmark_confs = set([res.benchmark_conf for res in results])
-
-  #  dbs = [db for db in DBConf.DB_TYPES if db in db_with_data]
-   # benchmark_types = [benchmark for benchmark in ExperimentConf.BENCHMARK_TYPES if benchmark in benchmark_with_data]
- #   benchmark_types = benchmark_with_data.keys()
-  #  benchmarks = {}
-  #  for benchmark in benchmark_types:
-  #      specific_benchmark = [b for b in benchmark_confs if b.benchmark_type == benchmark]
-  #      benchmarks[benchmark] = specific_benchmark
-
-  #  lastrevisions = [10, 50, 200, 1000]
-
-  #  filters = []
-   # for field in ExperimentConf.FILTER_FIELDS:
-   #     value_dict = {}
-   #     for res in results:
-   #         value_dict[getattr(res.benchmark_conf, field['field'])] = True
-   #     f = {'values': [key for key in value_dict.iterkeys()], 'print': field['print'], 'field': field['field']}
-   #     filters.append(f)
-
-   # context = {'project': project,
-   #            'db_types': dbs,
-   #            'benchmarks': benchmarks,
-   #            'lastrevisions': lastrevisions,
-   #            'defaultlast': 10,
-   #            'defaultequid': False,
-   #            'defaultbenchmark': 'grid',
-  #             'metrics': PLOTTABLE_FIELDS,
-  #             'metric_meta': METRIC_META,
-  #             'defaultmetrics': ['throughput', 'p99_latency'],
-  #             'filters': filters,
-  #             'project': p,
-  #             'results': Result.objects.filter(project=p)}
-
-   # context.update(csrf(request))
-   # return render(request, 'project.html', context)
 
 @login_required(login_url='/login/')
 def project_info(request):
@@ -208,7 +179,6 @@ def application(request):
         benchmark_with_data[res.benchmark_conf.benchmark_type] = True
     benchmark_confs = set([res.benchmark_conf for res in results])
     dbs = [db for db in DBConf.DB_TYPES if db in db_with_data]
-   # benchmark_types = [benchmark for benchmark in ExperimentConf.BENCHMARK_TYPES if benchmark in benchmark_with_data]
     benchmark_types = benchmark_with_data.keys()
     benchmarks = {}
     for benchmark in benchmark_types:
@@ -307,7 +277,6 @@ def update_project(request):
         p.creation_time = now()
         p.user = request.user
         p.upload_code = upload_code_generator(size=20)
-       #p.project = proj_id
     else:
         p = Project.objects.get(pk=proj_id)
         if p.user != request.user:
@@ -327,8 +296,6 @@ def update_project(request):
                'applications':applications}
     return render(request, 'home_application.html', context)
    
-#return redirect('/home_application/?id=' + str(p.pk))
-#    return redirect('/project/?id=' + str(p.pk))
 
 def update_application(request):
     if 'id_new_code' in request.POST:
@@ -369,16 +336,13 @@ def write_file(input,output_file, chunk_size = 512):
 
 @csrf_exempt
 def new_result(request):
-    #return HttpResponse(" request.POST ")
     if request.method == 'POST':
         form = NewResultForm(request.POST, request.FILES)
         
         if not form.is_valid():
             return HttpResponse(str(form))
-        #return HttpResponse(form.cleaned_data['upload_code']) 
         try:   
             application = Application.objects.get(upload_code = form.cleaned_data['upload_code'])
-         #   write_file(request.FILES['db_conf_data'], '/Users/zbh/Desktop/git/website/out.txt')
         except Application.DoesNotExist:
             return HttpResponse("wrong upload_code!")
 
@@ -397,20 +361,26 @@ def get_result_data_dir(result_id):
 
 
 def handle_result_file(app, files):
-    db_conf_lines = "".join(map(lambda x: str(x), files['db_conf_data'].chunks())).split("\n")
-    summary_lines = "".join(map(lambda x: str(x), files['summary_data'].chunks())).split("\n")
     
+    summary = "".join( files['summary_data'].chunks())
+    summary_lines = json.loads(summary)
+    db_conf = "".join(files['db_conf_data'].chunks())
+    db_conf_lines = json.loads(db_conf) 
+    globals = db_conf_lines['global']
+    globals = globals[0]
 
-    db_type = summary_lines[1].strip().upper()
-    bench_type = summary_lines[3].strip().upper()
-   
-    #app_name = summary_lines[6].strip().upper()  
+    db_cnf_names = globals['variable_names']
+    db_cnf_values = globals['variable_values']
+    db_cnf_info = {}
+    for i in range(len(db_cnf_names)):
+        db_cnf_info[db_cnf_names[i]] = db_cnf_values[i]
+
+    db_type = summary_lines['dbms'].upper()
+    bench_type = summary_lines['benchmark'].upper()
  
     
     if not db_type in DBConf.DB_TYPES:
         return HttpResponse(db_type + "  db_type Wrong")
-   # if not bench_type in ExperimentConf.BENCHMARK_TYPES:
-   #     return HttpResponse(bench_type + "  bench_type  Wrong")
 
     features = LEARNING_PARAMS.objects.filter(db_type = db_type)
     LEARNING_VARS = []
@@ -419,12 +389,9 @@ def handle_result_file(app, files):
 
     db_conf_list = []
     similar_conf_list = []
-    for line in db_conf_lines:
-        ele = line.split("=")
-        key = ele[0]
-        value = ""
-        if len(ele) > 1:
-            value = ele[1]
+    for i in range(len(db_cnf_info)):
+        key = db_cnf_info.keys()[i]
+        value = db_cnf_info.values()[i]    
         for v in LEARNING_VARS:
     	    if v.match(key):
 	    	similar_conf_list.append([key,value])
@@ -433,19 +400,6 @@ def handle_result_file(app, files):
     db_conf_str = json.dumps(db_conf_list)
     similar_conf_str = json.dumps(similar_conf_list)	
     
-    #try: 
-    #    app_confs = Application.objects.filter(name=app_name,project = proj)
-    #
-    #    if len(app_confs) < 1:
-    #	    raise Application.DoesNotExist    	 
-    #    app_conf = app_confs[0]
-    #except Application.DoesNotExist:
-    #	app_conf = Application()
-    #     app_conf.name = app_name
-    #    app_conf.project = proj
-    #    app_conf.description = ''
-    #    app_conf.user = proj.user
-    #   app_conf.save()	
 
     try:
         db_confs = DBConf.objects.filter(configuration=db_conf_str,similar_conf=similar_conf_str)
@@ -457,15 +411,13 @@ def handle_result_file(app, files):
         db_conf.creation_time = now()
         db_conf.name = ''
         db_conf.configuration = db_conf_str
-      #  db_conf.project = app.project
         db_conf.application = app
         db_conf.db_type = db_type
         db_conf.similar_conf = similar_conf_str
 	db_conf.save()
         db_conf.name = db_type + '@' + db_conf.creation_time.strftime("%Y-%m-%d,%H") + '#' + str(db_conf.pk)
         db_conf.save()
-    bench_conf_lines = "".join(map(lambda x: str(x).strip(), files['benchmark_conf_data'].chunks())).split("\n")
-    bench_conf_str = "".join(bench_conf_lines)
+    bench_conf_str = files['benchmark_conf_data']
 
     try:
         bench_confs = ExperimentConf.objects.filter(configuration=bench_conf_str)
@@ -475,16 +427,13 @@ def handle_result_file(app, files):
     except ExperimentConf.DoesNotExist:
         bench_conf = ExperimentConf()
         bench_conf.name = ''
-      #  bench_conf.project = app.project
         bench_conf.application = app
         bench_conf.configuration = bench_conf_str
         bench_conf.benchmark_type = bench_type
         bench_conf.creation_time = now()
-        for line in summary_lines[7:]:
-            if line == '':
-                continue
-            kv = line.split('=')
-            setattr(bench_conf, kv[0], kv[1])
+        bench_conf.isolation = summary_lines['isolation_level'].upper()
+        bench_conf.terminals = summary_lines['terminals']
+        bench_conf.scalefactor = summary_lines['scalefactor']
         bench_conf.save()
         bench_conf.name = bench_type + '@' + bench_conf.creation_time.strftime("%Y-%m-%d,%H") + '#' + str(bench_conf.pk)
         bench_conf.save()
@@ -492,25 +441,27 @@ def handle_result_file(app, files):
     result = Result()
     result.db_conf = db_conf
     result.benchmark_conf = bench_conf
-    #result.project = app.project
     result.application = app
-    result.timestamp = datetime.fromtimestamp(int(summary_lines[0]), timezone("UTC"))
+    result.timestamp = datetime.fromtimestamp(int(summary_lines['timestamp_utc_sec']), timezone("UTC"))
 
     latency_dict = {}
-    line = summary_lines[4][1:-1]
-    for field in line.split(','):
-        data = field.split('=')
-        latency_dict[data[0].strip()] = data[1].strip()
-    result.avg_latency = float(latency_dict['avg'])
-    result.min_latency = float(latency_dict['min'])
-    result.p25_latency = float(latency_dict['25th'])
-    result.p50_latency = float(latency_dict['median'])
-    result.p75_latency = float(latency_dict['75th'])
-    result.p90_latency = float(latency_dict['90th'])
-    result.p95_latency = float(latency_dict['95th'])
-    result.p99_latency = float(latency_dict['99th'])
-    result.max_latency = float(latency_dict['max'])
-    result.throughput = float(summary_lines[5])
+    names = summary_lines['variable_names']
+    values = summary_lines['variable_values']
+    for i in range(len(names)):
+        latency_dict[names[i]] = values[i]
+         
+
+    result.avg_latency = float(latency_dict['avg_lat_ms'])
+    result.min_latency = float(latency_dict['min_lat_ms'])
+    result.p25_latency = float(latency_dict['25th_lat_ms'])
+    result.p50_latency = float(latency_dict['med_lat_ms'])
+    result.p75_latency = float(latency_dict['75th_lat_ms'])
+    result.p90_latency = float(latency_dict['90th_lat_ms'])
+    result.p95_latency = float(latency_dict['95th_lat_ms'])
+    result.p99_latency = float(latency_dict['99th_lat_ms'])
+    result.max_latency = float(latency_dict['max_lat_ms'])
+    result.throughput = float(latency_dict['throughput_req_per_sec'])
+    result.creation_time = now()
     result.save()
 
     path_prefix = get_result_data_dir(result.pk)
@@ -519,27 +470,29 @@ def handle_result_file(app, files):
             dest.write(chunk)
         dest.close()
     with open(path_prefix + '_raw', 'wb') as dest:
+        for chunk in files['raw_data'].chunks():
+            dest.write(chunk)
         dest.close()
 
-    sample_lines = "".join(map(lambda x: str(x), files['sample_data'].chunks())).split("\n")[1:]
+    myfile = "".join(files['sample_data'].chunks())
+    input = json.loads(myfile)
+    sample_lines = input['samples']
 
     for line in sample_lines:
-        if line.strip() == '':
-            continue
         sta = Statistics()
-        nums = line.split(",")
+        nums = line
         sta.result = result
-        sta.time = int(nums[0])
-        sta.throughput = float(nums[1])
-        sta.avg_latency = float(nums[2])
-        sta.min_latency = float(nums[3])
-        sta.p25_latency = float(nums[4])
-        sta.p50_latency = float(nums[5])
-        sta.p75_latency = float(nums[6])
-        sta.p90_latency = float(nums[7])
-        sta.p95_latency = float(nums[8])
-        sta.p99_latency = float(nums[9])
-        sta.max_latency = float(nums[10])
+        sta.time = int(float(nums[0]))
+        sta.throughput = float(nums[2])
+        sta.avg_latency = float(nums[3])
+        sta.min_latency = float(nums[4])
+        sta.p25_latency = float(nums[5])
+        sta.p50_latency = float(nums[6])
+        sta.p75_latency = float(nums[7])
+        sta.p90_latency = float(nums[8])
+        sta.p95_latency = float(nums[9])
+        sta.p99_latency = float(nums[10])
+        sta.max_latency = float(nums[11])
         sta.save()
  
     app.project.last_update = now()
@@ -547,10 +500,44 @@ def handle_result_file(app, files):
     app.project.save()
     app.save() 
     
-
+    id = result.pk
+    task = Task()
+    task.id = id
+    task.creation_time = now() 
     response = run_ml.delay(files)
-    res = response.get()   
-    return  HttpResponse(res)
+    task.status = response.status
+    task.save()
+    #time limits  default  300s 
+    time_limit = Website_Conf.objects.get(name = 'Time_Limit')
+    time_limit = int(time_limit.value)
+    
+    for i in range(time_limit):
+        time.sleep(1)
+        if response.status != task.status:
+            task.status = response.status
+            task.save()
+        if response.ready():
+            task.finish_time = now()
+            break
+    if task.status == "FAILURE":
+        task.traceback = response.traceback
+        task.running_time = (task.finish_time - task.creation_time).seconds
+    elif task.status == "SUCCESS":
+        res = response.result
+        with open(path_prefix + '_new_conf', 'wb') as dest:        
+            dest.write(res)
+            dest.close()
+ 
+        task.running_time = (task.finish_time - task.creation_time).seconds
+        task.result = res
+        task.save()
+        return HttpResponse(res) 
+    else:
+        task.status = "TIME OUT"
+        task.traceback = reponse.traceback 
+        task.running_time = time_limit
+    task.save()
+    return  HttpResponse(task.status)
 
 
 def file_iterator(file_name, chunk_size=512):
@@ -581,7 +568,6 @@ def db_conf_view(request):
     for f in features:
         tmp = re.compile(f.params, re.UNICODE | re.IGNORECASE)
     	FEATURED_VARS.append(tmp)
-# re.compile(f, re.UNICODE | re.IGNORECASE))  
  
     featured = filter(lambda x: filter_db_var(x, FEATURED_VARS), conf)
 
@@ -637,8 +623,7 @@ def benchmark_configuration(request):
                'default_metrics': ['throughput', 'p99_latency']}
     return render(request, 'benchmark_conf.html', context)
 
-
-#Data Format
+# Data Format
 #    error
 #    metrics as a list of selected metrics
 #    results
@@ -718,7 +703,6 @@ def result_similar(a, b):
     db_conf_a = json.loads(a.db_conf.similar_conf)
     db_conf_b = json.loads(b.db_conf.similar_conf)
     for kv in db_conf_a:
-       # if filter_db_var(kv, LEARNING_VARS[a.db_conf.db_type]):
         for bkv in db_conf_b:
             if bkv[0] == kv[0]:
                 if bkv[1] != kv[1]:
@@ -810,6 +794,7 @@ def update_similar(request):
 
 def result(request):
     target = get_object_or_404(Result, pk=request.GET['id'])
+    task = get_object_or_404(Task, id=request.GET['id'])
     data_package = {}
     sames = {}   
     similars = {}
@@ -819,7 +804,6 @@ def result(request):
     sames = []
     sames = filter(lambda x:  result_similar(x,target) and x != target , results)
   
-   #    sames = cache.get_or_set(target.pk, filter(lambda x: result_similar(x,target) and x != target , results), 60*10)
 
     similars = [Result.objects.get(pk=rid) for rid in filter(lambda x: len(x) > 0, target.most_similar.split(','))]
 
@@ -827,9 +811,6 @@ def result(request):
 
 
 
-#   results.extend(sames)
-#   results.extend(similars)
-#   results.append(target)
 
 
     for metric in PLOTTABLE_FIELDS:
@@ -866,14 +847,12 @@ def result(request):
 	
     
     context = {'result': target, 
-     #Result.objects.get(id=request.GET['id']),
                'metrics': PLOTTABLE_FIELDS,
                'metric_meta': METRIC_META,
                'default_metrics': ['throughput', 'p99_latency'],
                'data': json.dumps(data_package),
                'same_runs': sames,
-	       #contacts,
-               # sames,
+  	       'task':task,
                'similar_runs': similars
     }
     return render(request, 'result.html', context)
@@ -882,7 +861,7 @@ def result(request):
 @login_required(login_url='/login/')
 def get_result_data_file(request):
     target = get_object_or_404(Result, pk=request.GET['id'])
-
+    task =  get_object_or_404(Task, pk=request.GET['id'])
     if target.application.user != request.user:
         return render(request, '404.html')
 
@@ -892,10 +871,16 @@ def get_result_data_file(request):
     prefix = get_result_data_dir(id)
 
     if type == 'sample':
-        return HttpResponse(FileWrapper(file(prefix + '_' + type)), content_type='text/plain')
+        response = HttpResponse(FileWrapper(file(prefix + '_' + type)), content_type='text/plain')
+        response.__setitem__('Content-Disposition', 'attachment; filename=result_' + str(id) + '.sample')
+        return response
     elif type == 'raw':
-        response = HttpResponse(FileWrapper(file(prefix + '_' + type)), content_type='application/gzip')
-        response['Content-Disposition'] = 'attachment; filename=result_' + str(id) + '.raw.gz'
+        response = HttpResponse(FileWrapper(file(prefix + '_' + type)), content_type='text/plain')    
+        response['Content-Disposition'] = 'attachment; filename=result_' + str(id) + '.raw'
+        return response
+    elif type == 'new_conf':
+        response = HttpResponse(FileWrapper(file(prefix + '_' + type)), content_type='text/plain')
+        response['Content-Disposition'] = 'attachment; filename=result_' + str(id) + '.new_conf'
         return response
 
 
@@ -925,9 +910,7 @@ def get_timeline_data(request):
     # Determine which benchmark is selected
     benchmarks = []
     if request.GET['ben'] == 'grid':
-        #benchmarks = ExperimentConf.BENCHMARK_TYPES
         revs = 10
-        #results = filter(lambda x: x.benchmark_conf.benchmark_type in benchmarks, results)
         table_results = []
     elif request.GET['ben'] == 'show_none':
         benchmarks = []

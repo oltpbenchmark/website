@@ -8,10 +8,9 @@ from poster.encode import multipart_encode
 from poster.streaminghttp import register_openers
 register_openers()
 
-
-@task
+@task()
 def run_ml(file):  #run machine learning code
-    time.sleep(10)
+    time.sleep(20)
 
     # do something 
     f = open('/Users/zbh/Desktop/git/website/new_conf','w')
@@ -22,7 +21,7 @@ def run_ml(file):  #run machine learning code
     
     # get new configuration
     new_conf = "zbh"
-
+#    x = 1/0
     return new_conf
 
 

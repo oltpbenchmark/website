@@ -2,15 +2,10 @@
 import djcelery
 djcelery.setup_loader()
 
-#BROKER_HOST = "localhost"
-#BROKER_PORT = 5672
-#BROKER_USER = "guest"
-#BROKER_PASSWORD = "guest"
-#BROKER_VHOST = "/"
 
 # deploy RabbitMq
 BROKER_URL='amqp://guest:guest@localhost:5672//'
-
+CELERY_TRACK_STARTED = True
 TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -24,7 +19,7 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'benchdb',                      # Or path to database file if using sqlite3.
+        'NAME': 'benchdb2',                      # Or path to database file if using sqlite3.
         # The following settings are not used with sqlite3:
         'USER': 'zbh',   #'dvanaken',
         'PASSWORD': 'zbh',  #'DthwboH4l4l',

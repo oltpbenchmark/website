@@ -25,18 +25,20 @@ class Project(models.Model):
     upload_code = models.CharField(max_length=30)
 
     def delete(self, using=None):
-#        targets = DBConf.objects.filter(project=self)
-#        results = Result.objects.filter(project=self)
         apps = Application.objects.filter(project=self)
-#       for t in targets:
-  #          t.delete()
-  #      for r in results:
-  #          r.delete()
         for x in apps:
 	    x.delete()
         super(Project, self).delete(using)
 
 
+class Task(models.Model):
+    id = models.IntegerField(primary_key=True)
+    creation_time = models.DateTimeField()
+    finish_time = models.DateTimeField(null=True)
+    running_time = models.IntegerField(null=True)
+    status = models.CharField(max_length=64) 
+    traceback =  models.TextField(null=True)
+    result = models.TextField(null=True)
 
 class Application(models.Model):
     user = models.ForeignKey(User)
@@ -66,32 +68,13 @@ class Application(models.Model):
 
 
 class ExperimentConf(models.Model):
-#    BENCHMARK_TYPES = [x.upper() for x in sorted([
-#        'tpcc',
-#        'tatp',
-#        'wikipedia',
-#        'resourcestresser',
-#        'twitter',
-#        'epinions',
-#         'ycsb',
-#        'jpab',
-#        'seats',
-#        'auctionmark',
-#        'chbenchmark',
-#        'voter',
-#        'linkbench',
-#        'sibench'
-#    ])]
-   
     application = models.ForeignKey(Application)
    
 
-  #  project = models.ForeignKey(Project)
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=512)
     configuration = models.TextField()
     benchmark_type = models.CharField(max_length=512)
-#sum(map(lambda x: len(x) + 1, BENCHMARK_TYPES)))
     creation_time = models.DateTimeField()
     isolation = models.TextField()
     scalefactor = models.TextField()
@@ -104,60 +87,15 @@ class ExperimentConf(models.Model):
     ]
 
 
-#FEATURED_VARS = {
-#    'DB2': [],
-#    'MYSQL': [
-#        re.compile(ur'innodb_buffer_pool_size', re.UNICODE | re.IGNORECASE),
-#        re.compile(ur'innodb_buffer_pool_instances', re.UNICODE | re.IGNORECASE),
-#        re.compile(ur'innodb_log_file_size', re.UNICODE | re.IGNORECASE),
-#        re.compile(ur'innodb_log_buffer_size', re.UNICODE | re.IGNORECASE),
-#        re.compile(ur'innodb_flush_log_at_trx_commit', re.UNICODE | re.IGNORECASE),
-#        re.compile(ur'innodb_thread_concurrency', re.UNICODE | re.IGNORECASE),
-#        re.compile(ur'innodb_file_per_table', re.UNICODE | re.IGNORECASE),
-#        re.compile(ur'key_buffer_size', re.UNICODE | re.IGNORECASE),
-#        re.compile(ur'table_cache', re.UNICODE | re.IGNORECASE),
-#        re.compile(ur'thread_cache', re.UNICODE | re.IGNORECASE),
-#        re.compile(ur'query_cache_size', re.UNICODE | re.IGNORECASE),
-#    ],
-#    'POSTGRES': [],
-#    'ORACLE': [],
-#    'SQLSERVER': [],
-#    'SQLITE': [],
-#    'AMAZONRDS': [],
-#    'HSTORE': [],
-#    'SQLAZURE': [],
-#    'ASSCLOWN': [],
-#    'HSQLDB': [],
-#    'H2': [],
-#    'NUODB': []
-#}
 
 class FEATURED_PARAMS(models.Model):
     db_type = models.CharField(max_length=64)
     params = models.CharField(max_length=512)
 
-#LEARNING_VARS = {
-#    'DB2': [],
-#    'MYSQL': [
-#        re.compile(ur'innodb_buffer_pool_size', re.UNICODE | re.IGNORECASE),
-#        re.compile(ur'innodb_buffer_pool_instances', re.UNICODE | re.IGNORECASE),
-#
-#        re.compile(ur'innodb_log_file_size', re.UNICODE | re.IGNORECASE),
-#        re.compile(ur'innodb_log_buffer_size', re.UNICODE | re.IGNORECASE),
-#        re.compile(ur'innodb_thread_concurrency', re.UNICODE | re.IGNORECASE),
-#    ],
-#    'POSTGRES': [],
-#    'ORACLE': [],
-#    'SQLSERVER': [],
-#    'SQLITE': [],
-#    'AMAZONRDS': [],
-#    'HSTORE': [],
-#    'SQLAZURE': [],
-#    'ASSCLOWN': [],
-#    'HSQLDB': [],
-#    'H2': [],
-#    'NUODB': []
-#}
+class Website_Conf(models.Model):
+    name = models.CharField(max_length=64)
+    value = models.CharField(max_length=512)
+
 
 class LEARNING_PARAMS(models.Model):
     db_type = models.CharField(max_length=64)
@@ -180,7 +118,6 @@ class DBConf(models.Model):
         'NUODB'
     ])
     application = models.ForeignKey(Application)
-    #project = models.ForeignKey(Project)
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=512)
     creation_time = models.DateTimeField()
@@ -217,11 +154,11 @@ METRIC_META = {
 
 
 class Result(models.Model):
-   # project = models.ForeignKey(Project)
     benchmark_conf = models.ForeignKey(ExperimentConf)
     db_conf = models.ForeignKey(DBConf)
 
     application = models.ForeignKey(Application)
+    creation_time = models.DateTimeField()
 
     timestamp = models.DateTimeField()
     throughput = models.FloatField()

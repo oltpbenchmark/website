@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+<div id="proj_info" class="container">
+<table class="table table-striped table-bordered table-condensed table-hover">
+    <caption><h4>Task Info</h4></caption>
+    <tbody>
+    <tr>
+        <td><div class="text-right">ID:</div></td>
+        <td>{{ id }}</td>
+    </tr>
+    <tr>
+        <td><div class="text-top text-right">Project:</div></td>
+        <td>{{ result.application.project.name|linebreaks }}</td>
+    </tr>
+    <tr>
+        <td><div class="text-right">Applications:</div></td>
+        <td><div id="apps">{{result.application.name}}</div></td>
+    </tr>
+    <tr>
+        <td><div class="text-right">Start time:</div></td>
+        <td>{{ task.creation_time }}</td>
+    </tr>
+    <tr>
+        <td><div class="text-right">Running time:</div></td>
+        <td>{{ time }} seconds</td>
+    </tr>
+    <tr>
+        <td><div class="text-right">Time Limit:</div></td>
+        <td>{{ limit }} seconds</td>
+    </tr>
+    <tr>
+        <td><div class="text-right">Status:</div></td>
+        <td>{{ task.status }} </td>
+    </tr>
+    <tr>
+        <td><div class="text-right">Traceback:</div></td>
+        <td>{{ task.traceback }} </td>
+    </tr>
+    <tr>
+        <td><div class="text-right">Result:</div></td>
+        <td><a href="/get_result_data_file/?id={{ result.pk }}&type=new_conf">Download </td>
+    </tr>
+    </tbody>
+</table>
+</div>
+
+
+{% endblock body %}

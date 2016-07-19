@@ -18,6 +18,7 @@ urlpatterns = patterns('',
     url(r'^logout/', 'website.views.logout_view'),
     
     url(r'^ajax_new/', 'website.views.ajax_new'),
+    url(r'^status/', 'website.views.ml_info'),
     
     url(r'^new_result/', 'website.views.new_result'),
     url(r'^result/', 'website.views.result'),
@@ -31,7 +32,6 @@ urlpatterns = patterns('',
     url(r'^delete_application/', 'website.views.delete_application'),    
     url(r'^edit_project/', 'website.views.edit_project'),
     url(r'^project/', 'website.views.project'),
-  #  url(r'^project/', 'website.tasks.project'),
     url(r'^delete_project/', 'website.views.delete_project'),
     url(r'^update_project/', 'website.views.update_project'),
 
