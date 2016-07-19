@@ -10,17 +10,13 @@ register_openers()
 
 @task()
 def run_ml(file):  #run machine learning code
-    time.sleep(20)
+    time.sleep(60)
 
     # do something 
-    f = open('/Users/zbh/Desktop/git/website/new_conf','w')
-    for chunk in file['sample_data'].chunks():
-        f.write(chunk)
-    f.close()
 
     
     # get new configuration
-    new_conf = "zbh"
+    new_conf = "Here are the results"
 #    x = 1/0
     return new_conf
 

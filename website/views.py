@@ -28,8 +28,6 @@ from django.core.cache import cache
 from models import * 
 from website.settings import UPLOAD_DIR
 
-import sys
-sys.path.append("/Users/zbh/Desktop/git/website")
 from tasks import run_ml
 
 
