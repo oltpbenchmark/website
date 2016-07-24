@@ -5,9 +5,10 @@ from django.http import StreamingHttpResponse
 import time
 from website.tasks import * 
 
+from django.template.context_processors import csrf
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.decorators.cache import cache_page
-from django.core.context_processors import csrf
+#from django.core.context_processors import csrf
 from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -415,7 +416,8 @@ def handle_result_file(app, files):
 	db_conf.save()
         db_conf.name = db_type + '@' + db_conf.creation_time.strftime("%Y-%m-%d,%H") + '#' + str(db_conf.pk)
         db_conf.save()
-    bench_conf_str = files['benchmark_conf_data']
+    bench_conf_str = "".join( files['benchmark_conf_data'].chunks())
+   # bench_conf_str 
 
     try:
         bench_confs = ExperimentConf.objects.filter(configuration=bench_conf_str)
@@ -532,7 +534,7 @@ def handle_result_file(app, files):
         return HttpResponse(res) 
     else:
         task.status = "TIME OUT"
-        task.traceback = reponse.traceback 
+        task.traceback = response.traceback 
         task.running_time = time_limit
     task.save()
     return  HttpResponse(task.status)
@@ -670,12 +672,14 @@ def get_benchmark_data(request):
 
 @login_required(login_url='/login/')
 def get_benchmark_conf_file(request):
+    id = request.GET['id']
     benchmark_conf = get_object_or_404(ExperimentConf, pk=request.GET['id'])
     if benchmark_conf.application.user != request.user:
         return render(request, '404.html')
 
-    return HttpResponse(benchmark_conf.configuration, content_type='text/plain')
-
+    response = HttpResponse(benchmark_conf.configuration, content_type='text/plain')
+    response['Content-Disposition'] = 'attachment; filename=result_' + str(id) + '.ben.cnf'
+    return response
 
 @login_required(login_url='/login/')
 def edit_benchmark_conf(request):

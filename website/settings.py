@@ -1,14 +1,51 @@
 # Django settings for sample project.
 import djcelery
-djcelery.setup_loader()
+from django.template import loader
 
+djcelery.setup_loader()
 
 # deploy RabbitMq
 BROKER_URL='amqp://guest:guest@localhost:5672//'
 CELERY_TRACK_STARTED = True
 TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 DEBUG = True
-TEMPLATE_DEBUG = DEBUG
+
+
+TEMPLATE_LOADERS = [
+             # insert your TEMPLATE_LOADERS here
+             'django.template.loaders.filesystem.Loader',
+             'django.template.loaders.app_directories.Loader',
+]
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [
+            # insert your TEMPLATE_DIRS here
+            # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
+            # Always use forward slashes, even on Windows.
+            # Don't forget to use absolute paths, not relative paths.
+            '/Users/zbh/Desktop/website/website/template'
+        ],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                # Insert your TEMPLATE_CONTEXT_PROCESSORS here or use this
+                # list if you haven't customized them:
+                'django.contrib.auth.context_processors.auth',
+                'django.template.context_processors.debug',
+                'django.template.context_processors.i18n',
+                'django.template.context_processors.media',
+                'django.template.context_processors.static',
+                'django.template.context_processors.tz',
+                'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.csrf',
+             ],
+             'debug': DEBUG,
+        },
+    },
+]
+
 
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
@@ -99,25 +136,15 @@ SECRET_KEY = 'xwkw(0!fae+&6t@(6uth=4c&m&sdzu%odu4#u++0-9b0o0n3=!'
 FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o644
 FILE_UPLOAD_PERMISSIONS = 0o644
 
-#UPLOAD_DIR = '/usr/local/oltpwebsite/data'
-#UPLOAD_DIR = '/usr0/home/dvanaken/oltpwebsite/data'
-#UPLOAD_DIR = '/tmp/oltpwebsite/data'
 #UPLOAD_DIR = '/var/www/oltpbench/media'
 UPLOAD_DIR = '/Users/zbh/Desktop/git/website/data/media'
 
-# List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
-)
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-#'django.middleware.csrf.CsrfResponseMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -128,11 +155,6 @@ ROOT_URLCONF = 'website.urls'
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'website.wsgi.application'
 
-TEMPLATE_DIRS = (
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-)
 
 INSTALLED_APPS = (
     'django.contrib.auth',
@@ -151,7 +173,6 @@ INSTALLED_APPS = (
     #'south',
     'djcelery',
     'website',
-    #'celery_example',	
 )
 
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'

@@ -8,7 +8,7 @@ from poster.encode import multipart_encode
 from poster.streaminghttp import register_openers
 register_openers()
 
-@task()
+@task(rate_limit='10/m')
 def run_ml(file):  #run machine learning code
     time.sleep(60)
 
@@ -16,7 +16,7 @@ def run_ml(file):  #run machine learning code
 
     
     # get new configuration
-    new_conf = "Here are the results"
+    new_conf = "Here is the result ..... \n \n "
 #    x = 1/0
     return new_conf
 
