@@ -7,14 +7,11 @@ djcelery.setup_loader()
 # BasePath
 BasePath = '/home/ubuntu'
 
-
 # deploy RabbitMq
 BROKER_URL='amqp://guest:guest@localhost:5672//'
 CELERY_TRACK_STARTED = True
 TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 DEBUG = True
-
-
 
 TEMPLATES = [
     {
@@ -26,7 +23,6 @@ TEMPLATES = [
             # Don't forget to use absolute paths, not relative paths.
             BasePath + '/website/website/template'
         ],
-#        'APP_DIRS': True,
         'OPTIONS': {
                 'context_processors': [
                 # Insert your TEMPLATE_CONTEXT_PROCESSORS here or use this
