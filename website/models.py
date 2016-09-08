@@ -3,7 +3,9 @@ import re
 from django.db import models
 from django.contrib.auth.models import User
 from django import forms
+from django.core.validators import validate_comma_separated_integer_list
 from django.contrib import admin
+
 
 class NewResultForm(forms.Form):
     upload_code = forms.CharField(max_length=30)
@@ -171,8 +173,8 @@ class Result(models.Model):
     p95_latency = models.FloatField()
     p99_latency = models.FloatField()
     max_latency = models.FloatField()
-    most_similar = models.CommaSeparatedIntegerField(max_length=100)
-
+#    most_similar = models.CommaSeparatedIntegerField(max_length=100)
+    most_similar = models.CharField(max_length=100,validators=[validate_comma_separated_integer_list])
     def __unicode__(self):
         return unicode(self.pk)
 

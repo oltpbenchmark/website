@@ -11,11 +11,11 @@ TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 DEBUG = True
 
 
-TEMPLATE_LOADERS = [
-             # insert your TEMPLATE_LOADERS here
-             'django.template.loaders.filesystem.Loader',
-             'django.template.loaders.app_directories.Loader',
-]
+#TEMPLATE_LOADERS = [
+#             # insert your TEMPLATE_LOADERS here
+#             'django.template.loaders.filesystem.Loader',
+#             'django.template.loaders.app_directories.Loader',
+#]
 
 TEMPLATES = [
     {
@@ -27,9 +27,9 @@ TEMPLATES = [
             # Don't forget to use absolute paths, not relative paths.
             '/Users/zbh/Desktop/website/website/template'
         ],
-        'APP_DIRS': True,
+#        'APP_DIRS': True,
         'OPTIONS': {
-            'context_processors': [
+                'context_processors': [
                 # Insert your TEMPLATE_CONTEXT_PROCESSORS here or use this
                 # list if you haven't customized them:
                 'django.contrib.auth.context_processors.auth',
@@ -41,6 +41,9 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.csrf',
              ],
+             'loaders':['django.template.loaders.filesystem.Loader',
+             'django.template.loaders.app_directories.Loader',
+             ] ,  
              'debug': DEBUG,
         },
     },
@@ -56,12 +59,15 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'benchdb2',                      # Or path to database file if using sqlite3.
+        'NAME': 'website_db',                      # Or path to database file if using sqlite3.
         # The following settings are not used with sqlite3:
         'USER': 'zbh',   #'dvanaken',
-        'PASSWORD': 'zbh',  #'DthwboH4l4l',
+        'PASSWORD': 'zbh19950730',  #'DthwboH4l4l',
         'HOST': 'localhost',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
         'PORT': '',                      # Set to empty string for default.
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES',innodb_strict_mode=1",
+        },
     }
 }
 
