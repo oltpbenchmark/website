@@ -1,5 +1,12 @@
 [
   {
+    "model":"website.Website_Conf",
+    "fields":{
+        "name":"Time_Limit",
+        "value":"60"
+     }
+  },
+  {
     "model":"website.LEARNING_PARAMS",
     "fields":{
         "db_type":"MYSQL",
