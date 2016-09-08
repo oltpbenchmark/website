@@ -9,6 +9,7 @@ Dependencies
 * Python +2.7
 * python-mysqldb 
 * django-debug-toolbar +1.5
+* celery +3.1.23
 * django-celery +3.1.17
 * rabbitmq-server 
 
