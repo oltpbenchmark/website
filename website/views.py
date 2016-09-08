@@ -32,6 +32,8 @@ from website.settings import UPLOAD_DIR
 from tasks import run_ml
 
 
+from django.core.exceptions import FieldError
+
 # For the html template to access dict object
 @register.filter
 def get_item(dictionary, key):
@@ -168,31 +170,41 @@ def application(request):
 
     application = Application.objects.get(pk=data['id'])
 
-    results = Result.objects.select_related("db_conf__db_type","benchmark_conf__benchmark_type").filter(application=application)
+    results = []
+    filters = []
+    dbs = []
+    lastrevisions = [10, 50, 200, 1000]
+
+    results = Result.objects.filter(application=application)
+#    if len(results) > 0:
+#        results = Result.objects.select_related("db_conf__db_type","benchmark_conf__benchmark_type").filter(application=application)   
 
     db_with_data = {}
     benchmark_with_data = {}
+    benchmarks = {} 
+    print len(results) 
 
-    for res in results:
-        db_with_data[res.db_conf.db_type] = True
-        benchmark_with_data[res.benchmark_conf.benchmark_type] = True
-    benchmark_confs = set([res.benchmark_conf for res in results])
-    dbs = [db for db in DBConf.DB_TYPES if db in db_with_data]
-    benchmark_types = benchmark_with_data.keys()
-    benchmarks = {}
-    for benchmark in benchmark_types:
-        specific_benchmark = [b for b in benchmark_confs if b.benchmark_type == benchmark]
-        benchmarks[benchmark] = specific_benchmark
-
-    lastrevisions = [10, 50, 200, 1000]
-
-    filters = []
-    for field in ExperimentConf.FILTER_FIELDS:
-        value_dict = {}
+    if len(results) != 0 : 
         for res in results:
-            value_dict[getattr(res.benchmark_conf, field['field'])] = True
-        f = {'values': [key for key in value_dict.iterkeys()], 'print': field['print'], 'field': field['field']}
-        filters.append(f)
+            db_with_data[res.db_conf.db_type] = True
+            benchmark_with_data[res.benchmark_conf.benchmark_type] = True
+    
+        benchmark_confs = set([res.benchmark_conf for res in results])
+        dbs = [db for db in DBConf.DB_TYPES if db in db_with_data]
+        benchmark_types = benchmark_with_data.keys()
+        benchmarks = {}
+        for benchmark in benchmark_types:
+            specific_benchmark = [b for b in benchmark_confs if b.benchmark_type == benchmark]
+            benchmarks[benchmark] = specific_benchmark
+
+ #   lastrevisions = [10, 50, 200, 1000]
+
+        for field in ExperimentConf.FILTER_FIELDS:
+            value_dict = {}
+            for res in results:
+                value_dict[getattr(res.benchmark_conf, field['field'])] = True
+            f = {'values': [key for key in value_dict.iterkeys()], 'print': field['print'], 'field': field['field']}
+            filters.append(f)
 
     context = {'project': project,
                'db_types': dbs,

@@ -4,6 +4,10 @@ from django.template import loader
 
 djcelery.setup_loader()
 
+# BasePath
+BasePath = '/home/ubuntu'
+
+
 # deploy RabbitMq
 BROKER_URL='amqp://guest:guest@localhost:5672//'
 CELERY_TRACK_STARTED = True
@@ -11,11 +15,6 @@ TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 DEBUG = True
 
 
-#TEMPLATE_LOADERS = [
-#             # insert your TEMPLATE_LOADERS here
-#             'django.template.loaders.filesystem.Loader',
-#             'django.template.loaders.app_directories.Loader',
-#]
 
 TEMPLATES = [
     {
@@ -25,7 +24,7 @@ TEMPLATES = [
             # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
             # Always use forward slashes, even on Windows.
             # Don't forget to use absolute paths, not relative paths.
-            '/Users/zbh/Desktop/website/website/template'
+            BasePath + '/website/website/template'
         ],
 #        'APP_DIRS': True,
         'OPTIONS': {
@@ -100,7 +99,7 @@ USE_TZ = True
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/var/www/example.com/media/"
-MEDIA_ROOT = '/Users/zbh/Desktop/git/website/data/media'
+MEDIA_ROOT = BasePath + '/website/data/media'
 #MEDIA_ROOT = '/var/www/oltpbench/media/'
 MEDIA_ROOT_URL = '/media/'
 
@@ -113,9 +112,7 @@ MEDIA_URL = '/media/'
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/var/www/example.com/static/"
-#STATIC_ROOT = 'static'
-STATIC_ROOT = '/Users/zbh/Desktop/git/website/data/static'
-#STATIC_ROOT = '/Users/zhangbohan/.git/website/website/static'
+STATIC_ROOT = BasePath + '/website/data/static'
 
 # URL prefix for static files.
 # Example: "http://example.com/static/", "http://static.example.com/"
@@ -143,7 +140,7 @@ FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o644
 FILE_UPLOAD_PERMISSIONS = 0o644
 
 #UPLOAD_DIR = '/var/www/oltpbench/media'
-UPLOAD_DIR = '/Users/zbh/Desktop/git/website/data/media'
+UPLOAD_DIR = BasePath + '/website/data/media'
 
 
 MIDDLEWARE_CLASSES = (
