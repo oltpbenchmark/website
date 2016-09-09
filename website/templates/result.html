@@ -11,6 +11,15 @@
         <td>{{ result.pk }}</td>
     </tr>
     <tr>
+        <td><div class="text-right">Project</div></td>
+        <td>{{ result.application.project.name }}</td>
+    </tr>
+
+    <tr>
+        <td><div class="text-right">Application</div></td>
+        <td>{{ result.application.name }}</td>
+    </tr>
+    <tr>
         <td><div class="text-top text-right">DB Conf</div></td>
         <td><a href="/db_conf/?id={{ result.db_conf.pk }}">{{ result.db_conf.name }}</a></td>
     </tr>
@@ -21,6 +30,10 @@
     <tr>
         <td><div class="text-right">Experiment Time</div></td>
         <td>{{ result.timestamp }}</td>
+    </tr>
+    <tr>
+        <td><div class="text-right">Upload Time</div></td>
+        <td>{{ result.creation_time }}</td>
     </tr>
     <tr>
         <td><div class="text-right">Overall Throughout</div></td>
@@ -38,12 +51,17 @@
         <td><div class="text-right">Raw data</div></td>
         <td><a href="/get_result_data_file/?id={{ result.pk }}&type=raw">Download</a></td>
     </tr>
-   
+    <tr>
+        <td><div class="text-right">Status:</div></td>
+        <td><a href="/status/?id={{ result.pk }}">{{task.status}}</td>
+    </tr>   
+
     </tbody>
 </table>
 </div>
 
 <hr>
+
 
 <div class="container">
 <div class="row">
@@ -59,11 +77,19 @@
  	{% endfor %}
 </ul>
     </div>
+    <div class="pagination">
+    <a href="#" class="first" data-action="first">&laquo;</a>
+    <a href="#" class="previous" data-action="previous">&lsaquo;</a>
+    <input type="text" readonly="readonly" data-max-page="40" />
+    <a href="#" class="next" data-action="next">&rsaquo;</a>
+    <a href="#" class="last" data-action="last">&raquo;</a>
+    </div>
+
 </div>
 <div id="similar">
     <div><h4>Similar-Configuration Runs (<a href="/update_similar/?id={{ result.pk }}">update</a>)</h4></div>
     <div class="checkbox boxbody">
-        <ul>
+        <ul  >
        {% for run in similar_runs %}
         <li><label><input type="checkbox" name="same_run" value="{{ run.pk }}" /> {{ run.pk }}@{{ run.timestamp }}<a href="/result/?id={{ run.pk }}">(view)</a></label></li>
         {% endfor %}
@@ -102,6 +128,7 @@
 <script type="text/javascript" src="{{ STATIC_URL }}js/jqplot/jqplot.barRenderer.min.js"></script>
 
 <script type="text/javascript" src="{{ STATIC_URL }}js/result10.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/jquery.jqpagination.min.js"></script>
 
 <script type="text/javascript">
  $(function() {
@@ -112,6 +139,31 @@
         all_metrics: {{metrics|safe}},  
     });
 }); 
+</script>
+
+<script type="text/javascript">
+$(document).ready(function() {
+
+    $table_rows = $("#same  li");
+    var table_row_limit = 10;
+    var page_table  = function(page) {
+
+        var offset = (page - 1) * table_row_limit,
+            limit = page * table_row_limit;
+
+        $table_rows.hide();
+
+        $table_rows.slice(offset, limit).show();
+
+    }
+    $('.pagination').jqPagination({
+        max_page: Math.ceil($table_rows.length / table_row_limit),
+        paged : page_table
+
+    });
+    page_table(1);
+
+});
 </script>
 
 {% endblock body %}
