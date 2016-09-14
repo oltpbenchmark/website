@@ -7,12 +7,23 @@ Dependencies
 ========
 * Django == 1.9  (currently does not support Django 1.10) 
 * Python +2.7
-* python-mysqldb 
+* python-mysqldb
+sudo apt-get install python-mysqldb
 * django-debug-toolbar +1.5
+   sudo pip install django-debug-toolbar
 * celery +3.1.23
+    sudo pip install celery
 * django-celery +3.1.17
+   sudo pip install django-celery
 * rabbitmq-server 
-
+   sudo apt-get install rabbitmq-server
+* Tensorflow
+* sklearn 
+      sudo apt-get install python-sklearn
+* poster
+     sudo pip install poster
+* numpy
+      sudo pip install numpy
 
 Quick Start
 =====
@@ -27,7 +38,7 @@ Quick Start
     python manage.py  migrate
     
 ###3.Preload the parameters
-    python manage.py  loaddata  pre-data.json 
+    python manage.py  loaddata  ./preload/*
     
 ###4.Run the rabbitmq and celery worker
     rabbitmq-server & 

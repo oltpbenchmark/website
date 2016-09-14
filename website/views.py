@@ -5,6 +5,7 @@ from django.http import StreamingHttpResponse
 import time
 from website.tasks import * 
 
+import xml.dom.minidom
 from django.template.context_processors import csrf
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.decorators.cache import cache_page
@@ -30,9 +31,7 @@ from models import *
 from website.settings import UPLOAD_DIR
 
 from tasks import run_ml
-
-
-from django.core.exceptions import FieldError
+from gp_workload import gp_workload
 
 # For the html template to access dict object
 @register.filter
@@ -170,41 +169,31 @@ def application(request):
 
     application = Application.objects.get(pk=data['id'])
 
-    results = []
-    filters = []
-    dbs = []
-    lastrevisions = [10, 50, 200, 1000]
-
-    results = Result.objects.filter(application=application)
-#    if len(results) > 0:
-#        results = Result.objects.select_related("db_conf__db_type","benchmark_conf__benchmark_type").filter(application=application)   
+    results = Result.objects.select_related("db_conf__db_type","benchmark_conf__benchmark_type").filter(application=application)
 
     db_with_data = {}
     benchmark_with_data = {}
-    benchmarks = {} 
-    print len(results) 
 
-    if len(results) != 0 : 
+    for res in results:
+        db_with_data[res.db_conf.db_type] = True
+        benchmark_with_data[res.benchmark_conf.benchmark_type] = True
+    benchmark_confs = set([res.benchmark_conf for res in results])
+    dbs = [db for db in DBConf.DB_TYPES if db in db_with_data]
+    benchmark_types = benchmark_with_data.keys()
+    benchmarks = {}
+    for benchmark in benchmark_types:
+        specific_benchmark = [b for b in benchmark_confs if b.benchmark_type == benchmark]
+        benchmarks[benchmark] = specific_benchmark
+
+    lastrevisions = [10, 50, 200, 1000]
+
+    filters = []
+    for field in ExperimentConf.FILTER_FIELDS:
+        value_dict = {}
         for res in results:
-            db_with_data[res.db_conf.db_type] = True
-            benchmark_with_data[res.benchmark_conf.benchmark_type] = True
-    
-        benchmark_confs = set([res.benchmark_conf for res in results])
-        dbs = [db for db in DBConf.DB_TYPES if db in db_with_data]
-        benchmark_types = benchmark_with_data.keys()
-        benchmarks = {}
-        for benchmark in benchmark_types:
-            specific_benchmark = [b for b in benchmark_confs if b.benchmark_type == benchmark]
-            benchmarks[benchmark] = specific_benchmark
-
- #   lastrevisions = [10, 50, 200, 1000]
-
-        for field in ExperimentConf.FILTER_FIELDS:
-            value_dict = {}
-            for res in results:
-                value_dict[getattr(res.benchmark_conf, field['field'])] = True
-            f = {'values': [key for key in value_dict.iterkeys()], 'print': field['print'], 'field': field['field']}
-            filters.append(f)
+            value_dict[getattr(res.benchmark_conf, field['field'])] = True
+        f = {'values': [key for key in value_dict.iterkeys()], 'print': field['print'], 'field': field['field']}
+        filters.append(f)
 
     context = {'project': project,
                'db_types': dbs,
@@ -351,13 +340,16 @@ def new_result(request):
         form = NewResultForm(request.POST, request.FILES)
         
         if not form.is_valid():
-            return HttpResponse(str(form))
+            return HttpResponse("Form is not valid\n"  + str(form))
         try:   
             application = Application.objects.get(upload_code = form.cleaned_data['upload_code'])
         except Application.DoesNotExist:
             return HttpResponse("wrong upload_code!")
+        use = form.cleaned_data['upload_use']
+        hardware = form.cleaned_data['hardware']
+        cluster = form.cleaned_data['cluster']
 
-        return handle_result_file(application, request.FILES)
+        return handle_result_file(application, request.FILES,use,hardware,cluster)
 
     return HttpResponse("POST please\n")
 
@@ -371,12 +363,162 @@ def get_result_data_dir(result_id):
     return os.path.join(result_path, str(int(result_id) / 100l))
 
 
-def handle_result_file(app, files):
+def process_config(cfg,knob_dict,sum):
+    db_conf_lines = json.loads(cfg)
+    #(x_.cfg)
+    globals = db_conf_lines['global'][0]
+    db_cnf_names = globals['variable_names']
+    db_cnf_values = globals['variable_values']
+    row_x = []
+    row_y = []
+    for knob in knob_dict:
+        j = db_cnf_names.index(knob)
+        value = str(db_cnf_values[j])
+        value = value.lower().replace(".","")
+        value = value.replace("-","")
+        if value.isdigit() == False:
+            s = knob_dict[knob]
+            s = s.lower().split(',')
+            s = sorted(s)
+            #### NULL VALUE #####
+            if value == "":
+                value = -1
+            else:
+                value = s.index(value)
+        row_x.append(float(value))
+
+    summary_lines = json.loads(sum)
+    sum_names = summary_lines['variable_names']
+    sum_values = summary_lines['variable_values']
+    row_y.append(float(sum_values[sum_names.index("99th_lat_ms")]))
+    return row_x, row_y
+
+def handle_result_file(app, files,use,hardware,cluster):
     
+    # cluster  'unknown'
     summary = "".join( files['summary_data'].chunks())
     summary_lines = json.loads(summary)
     db_conf = "".join(files['db_conf_data'].chunks())
     db_conf_lines = json.loads(db_conf) 
+    
+    status_data = "".join( files['db_status'].chunks())
+    res_data = "".join( files['sample_data'].chunks())
+    raw_data = "".join( files['raw_data'].chunks())
+    bench_conf_data = "".join( files['benchmark_conf_data'].chunks())   
+
+    w = Workload_info()
+    dom = xml.dom.minidom.parseString(bench_conf_data)
+    root = dom.documentElement
+    w.isolation = (root.getElementsByTagName('isolation'))[0].firstChild.data
+    w.scalefactor = (root.getElementsByTagName('scalefactor'))[0].firstChild.data
+    w.terminals  = (root.getElementsByTagName('terminals'))[0].firstChild.data
+    w.time  = (root.getElementsByTagName('time'))[0].firstChild.data
+    w.rate  = (root.getElementsByTagName('rate'))[0].firstChild.data
+    w.skew  = (root.getElementsByTagName('skew'))[0].firstChild.data
+    weights = root.getElementsByTagName('weights')
+    trans = root.getElementsByTagName('name')
+    trans_dict = {}
+    for i in range(trans.length):
+        trans_dict[trans[i].firstChild.data] = weights[i].firstChild.data
+    trans_json = json.dumps(trans_dict)
+    w.trans_weights = trans_json
+    w.workload = bench_conf_data
+    w.save()
+
+
+    db_type = summary_lines['dbms'].upper()
+    db_version = summary_lines['version']
+    bench_type = summary_lines['benchmark'].upper()
+
+    bench = Oltpbench_info()
+    bench.summary = summary
+    bench.dbms_name = db_type
+    bench.dbms_version = db_version
+    bench.res = res_data
+    bench.status = status_data
+    bench.raw = raw_data
+    bench.cfg = db_conf
+    bench.wid = w
+    bench.user =  app.user
+
+    bench.hardware = hardware 
+    bench.cluster = cluster
+
+    bench.save()
+
+    if use.lower() == 'store':
+        return HttpResponse( "Store Success !") 
+
+
+    knob_params = KNOB_PARAMS.objects.filter(db_type = db_type)
+    knob_dict = {}
+
+    for x in knob_params:
+        name = x.params
+        tmp = Knob_catalog.objects.filter(name=name)
+        knob_dict[name] = tmp[0].valid_vals
+   
+    cfgs = Oltpbench_info.objects.filter(user=app.user)   
+ 
+    target_Xs=[]
+    target_Ys=[]
+
+    for x in cfgs:
+        target_x,target_y = process_config(x.cfg,knob_dict,x.summary)
+        target_Xs.append(target_x)
+        target_Ys.append(target_y)
+
+    exps = Oltpbench_info.objects.filter(dbms_name=db_type,dbms_version=db_version,hardware = hardware)
+
+    #print target_Xs
+    #print target_Ys
+
+
+    ### workload mapping 
+
+    clusters_list= []
+    for x in exps: 
+        t = x.cluster
+        if t not in clusters_list and t != 'unknown':
+            clusters_list.append(t)
+
+
+
+    
+    workload_min = []
+    X_min = []
+    Y_min = []
+    min_dist = 1000000
+
+   # ridges = np.random.uniform(0,1,[sample_size])
+
+    for name in clusters_list:
+        exps_ = Oltpbench_info.objects.filter(dbms_name=db_type,dbms_version=db_version,hardware = hardware,cluster = name )       
+        
+        X=[]
+        Y=[]        
+        for x_ in exps_:
+            x,y = process_config(x_.cfg,knob_dict,x_.summary)
+            X.append(x)
+            Y.append(y)  
+   
+        sample_size = len(X)
+        ridges = np.random.uniform(0,1,[sample_size])
+        print "workload"
+        y_gp = gp_workload(X,Y,target_Xs,ridges) 
+        dist = np.sqrt(sum(pow(np.transpose(y_gp-target_Ys)[0],2)))
+        if min_dist > dist:
+            min_dist = dist
+            X_min = X
+            Y_min = Y
+            workload_min = name
+
+    bench.cluster = workload_min 
+    bench.save()
+
+
+
+
     globals = db_conf_lines['global']
     globals = globals[0]
 
@@ -386,8 +528,6 @@ def handle_result_file(app, files):
     for i in range(len(db_cnf_names)):
         db_cnf_info[db_cnf_names[i]] = db_cnf_values[i]
 
-    db_type = summary_lines['dbms'].upper()
-    bench_type = summary_lines['benchmark'].upper()
  
     
     if not db_type in DBConf.DB_TYPES:
@@ -429,7 +569,6 @@ def handle_result_file(app, files):
         db_conf.name = db_type + '@' + db_conf.creation_time.strftime("%Y-%m-%d,%H") + '#' + str(db_conf.pk)
         db_conf.save()
     bench_conf_str = "".join( files['benchmark_conf_data'].chunks())
-   # bench_conf_str 
 
     try:
         bench_confs = ExperimentConf.objects.filter(configuration=bench_conf_str)
@@ -511,16 +650,17 @@ def handle_result_file(app, files):
     app.last_update = now()
     app.project.save()
     app.save() 
-    
+
     id = result.pk
     task = Task()
     task.id = id
     task.creation_time = now() 
-    response = run_ml.delay(files)
+    print "run_ml"
+    response = run_ml.delay(X_min,Y_min,knob_dict.keys() )
     task.status = response.status
     task.save()
     #time limits  default  300s 
-    time_limit = Website_Conf.objects.get(name = 'Time_Limit')
+    time_limit =  Website_Conf.objects.get(name = 'Time_Limit')
     time_limit = int(time_limit.value)
     
     for i in range(time_limit):
@@ -894,7 +1034,7 @@ def get_result_data_file(request):
         return response
     elif type == 'new_conf':
         response = HttpResponse(FileWrapper(file(prefix + '_' + type)), content_type='text/plain')
-        response['Content-Disposition'] = 'attachment; filename=result_' + str(id) + '.new_conf'
+        response['Content-Disposition'] = 'attachment; filename=result_' + str(id) + '_new_conf'
         return response
 
 

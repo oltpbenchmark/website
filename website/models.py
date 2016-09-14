@@ -3,17 +3,93 @@ import re
 from django.db import models
 from django.contrib.auth.models import User
 from django import forms
-from django.core.validators import validate_comma_separated_integer_list
 from django.contrib import admin
 
 
+class Knob_catalog(models.Model):
+    id = models.IntegerField(primary_key=True)
+#    dbms_name = models.TextField()
+#    dbms_version = models.TextField()
+    dbms_id = models.IntegerField()
+    name = models.TextField()
+    vartype = models.TextField()
+    unit = models.TextField(null=True)
+    category = models.TextField(null=True)
+    summary = models.TextField(null=True)
+    description = models.TextField(null=True)
+    scope = models.TextField()
+    dynamic = models.BooleanField()
+    min_value = models.TextField(null=True)
+    max_value = models.TextField(null=True)
+    valid_vals = models.TextField(null=True) 
+    default_val = models.TextField()
+    deprecated = models.BooleanField()
+    dangerous = models.TextField(null=True)
+    safe_vals = models.TextField(null=True)
+    rank = models.IntegerField(null=True)
+    
+
+class Metric_catalog(models.Model):
+    id = models.IntegerField(primary_key=True)
+    dbms_id = models.IntegerField()
+ #   dbms_name = models.TextField()
+ #   dbms_version = models.TextField()
+    scale = models.TextField()
+    name = models.TextField()
+    vartype = models.TextField()
+    description = models.TextField(null=True)
+    scope = models.TextField(null=True)
+    featured = models.BooleanField()
+
+class DBMS_catalog(models.Model): 
+    id = models.IntegerField(primary_key=True)
+    dbms_name = models.TextField()
+    version = models.TextField()
+
+
+class Workload_info(models.Model):
+    #id = models.AutoField(primary_key=True) 
+    isolation = models.CharField(max_length=64)
+    scalefactor = models.IntegerField()
+    terminals = models.IntegerField()
+    time = models.IntegerField()
+    rate = models.CharField(max_length=64)
+    skew = models.FloatField(null=True)
+    trans_weights = models.TextField()
+    workload = models.TextField()
+
+class Oltpbench_info(models.Model):
+#    id = models.IntegerField(primary_key=True)
+
+    user = models.ForeignKey(User) 
+    dbms_name = models.CharField(max_length=64)
+    dbms_version = models.CharField(max_length=64)
+
+    hardware = models.CharField(null=True, max_length=64)
+    cluster = models.TextField(null=True)
+
+    summary = models.TextField()
+    res = models.TextField()
+    status = models.TextField()
+    cfg = models.TextField()
+    raw = models.TextField(null=True)
+    
+    wid = models.ForeignKey(Workload_info)
+     
+
 class NewResultForm(forms.Form):
     upload_code = forms.CharField(max_length=30)
+
+    upload_use = forms.CharField(max_length=30) #compute/store
+    hardware = forms.CharField(max_length=30) # hardware 
+    cluster = forms.CharField(max_length=200) # store cluster    
+
     sample_data = forms.FileField()
     raw_data = forms.FileField()
     db_conf_data = forms.FileField()
     benchmark_conf_data = forms.FileField()
     summary_data = forms.FileField()
+    db_status =forms.FileField() #.status
 
 
 
@@ -33,6 +109,8 @@ class Project(models.Model):
         super(Project, self).delete(using)
 
 
+
+
 class Task(models.Model):
     id = models.IntegerField(primary_key=True)
     creation_time = models.DateTimeField()
@@ -41,6 +119,7 @@ class Task(models.Model):
     status = models.CharField(max_length=64) 
     traceback =  models.TextField(null=True)
     result = models.TextField(null=True)
+
 
 class Application(models.Model):
     user = models.ForeignKey(User)
@@ -98,10 +177,14 @@ class Website_Conf(models.Model):
     name = models.CharField(max_length=64)
     value = models.CharField(max_length=512)
 
-
 class LEARNING_PARAMS(models.Model):
     db_type = models.CharField(max_length=64)
     params = models.CharField(max_length=512)
+
+class KNOB_PARAMS(models.Model):
+    db_type = models.CharField(max_length=64)
+    params = models.CharField(max_length=512)
+
 
 class DBConf(models.Model):
     DB_TYPES = sorted([
@@ -173,8 +256,8 @@ class Result(models.Model):
     p95_latency = models.FloatField()
     p99_latency = models.FloatField()
     max_latency = models.FloatField()
-#    most_similar = models.CommaSeparatedIntegerField(max_length=100)
-    most_similar = models.CharField(max_length=100,validators=[validate_comma_separated_integer_list])
+    most_similar = models.CommaSeparatedIntegerField(max_length=100)
+
     def __unicode__(self):
         return unicode(self.pk)
 
