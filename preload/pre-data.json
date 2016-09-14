@@ -3,7 +3,7 @@
     "model":"website.Website_Conf",
     "fields":{
         "name":"Time_Limit",
-        "value":"60"
+        "value":"300"
      }
   },
   {
