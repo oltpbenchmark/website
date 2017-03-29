@@ -169,7 +169,8 @@ def application(request):
 
     application = Application.objects.get(pk=data['id'])
 
-    results = Result.objects.select_related("db_conf__db_type","benchmark_conf__benchmark_type").filter(application=application)
+#     results = Result.objects.select_related("db_conf__db_type","benchmark_conf__benchmark_type").filter(application=application)
+    results = Result.objects.prefetch_related("db_conf__db_type","benchmark_conf__benchmark_type").filter(application=application)
 
     db_with_data = {}
     benchmark_with_data = {}
