@@ -256,7 +256,8 @@ class Result(models.Model):
     p95_latency = models.FloatField()
     p99_latency = models.FloatField()
     max_latency = models.FloatField()
-    most_similar = models.CommaSeparatedIntegerField(max_length=100)
+    #most_similar = models.CommaSeparatedIntegerField(max_length=100)
+    most_similar = models.CharField(max_length=100)
 
     def __unicode__(self):
         return unicode(self.pk)
