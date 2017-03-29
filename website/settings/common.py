@@ -3,9 +3,7 @@ Common Django settings for the OtterTune project.
 
 """
 
-import sys
 from os.path import abspath, dirname, join
-from django.template import loader
 
 try:
     from credentials import SECRET_KEY, DATABASES
@@ -198,11 +196,14 @@ INSTALLED_APPS = (
 
 import djcelery
 
-djcelery.setup_loader()
+# Deploy message broker (RabbitMq)
+BROKER_URL = 'amqp://guest:guest@localhost:5672//'
 
-# deploy RabbitMq
-BROKER_URL='amqp://guest:guest@localhost:5672//'
+# Enable finer-grained reporting: will report 'started' when
+# task is executed by a worker.
 CELERY_TRACK_STARTED = True
+
+djcelery.setup_loader()
 
 ## ==============================================
 ## LOGGING CONFIGURATION
