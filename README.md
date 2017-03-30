@@ -14,7 +14,7 @@ sudo apt-get install python-pip python-dev python-mysqldb rabbitmq-server
 ##### Python Packages
 
 ```
-sudo pip install -r [requirements.txt](requirements.txt)
+sudo pip install -r requirements.txt
 ```
 
 ## Installation Instructions
@@ -63,17 +63,13 @@ python manage.py createsuperuser
 ##### 6. Preload the static database data
 
 ```
-python manage.py  loaddata  ./preload/*
+python manage.py loaddata ./script/preload/*
 ```
     
-##### 7. Run the message broker and celery worker
+##### 7. Start the message broker, celery worker, and website server
 
 ```
-rabbitmq-server & python manage.py celery worker --loglevel=info
-```
-
-##### 8. Run the website server
-
-```
+sudo rabbitmq-server -detached
+python manage.py celery worker --loglevel=info
 python manage.py runserver 0.0.0.0:8000
 ```
