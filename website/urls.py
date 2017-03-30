@@ -1,7 +1,8 @@
-from django.conf.urls import   include, url
+from django.conf.urls import include, url
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
+#from django.contrib.auth import views as auth_views
 from django.contrib.staticfiles.views import serve
 from django.views.decorators.cache import never_cache
 from website import settings
@@ -10,12 +11,12 @@ from website import views as website_views
 admin.autodiscover()
 
 urlpatterns =[
-    url(r'^signup/', website_views.signup_view),
-    url(r'^login/', website_views.login_view),
-    url(r'^auth/', website_views.auth_and_login),
-    url(r'^signupin/', website_views.sign_up_in),
+    url(r'^signup/', website_views.signup_view, name='signup'),
+    url(r'^login/', website_views.login_view, name='login'),
+    #url(r'^auth/', website_views.auth_and_login),
+    #url(r'^signupin/', website_views.sign_up_in),
     url(r'^$', website_views.home),
-    url(r'^logout/', website_views.logout_view),
+    url(r'^logout/', website_views.logout_view, name='logout'),
     
     url(r'^ajax_new/', website_views.ajax_new),
     url(r'^status/', website_views.ml_info),
@@ -52,5 +53,9 @@ urlpatterns =[
 ]
 
 if settings.DEBUG:
-    urlpatterns.extend(
-        [ url(r'^static/(?P<path>.*)$', never_cache(serve)),])
+    import debug_toolbar
+
+    urlpatterns = [
+        url(r'^__debug__/', include(debug_toolbar.urls)),
+    ] + urlpatterns + [ url(r'^static/(?P<path>.*)$', never_cache(serve)),]
+    

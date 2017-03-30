@@ -1,14 +1,27 @@
 {% extends "base.html" %}
 
-{% block body %}
 
+
+{% block body %}
 <div class="container">
-    <div class="col-md-4">
-    <form action="/signupin/" method="POST" class="form-signin"> {% csrf_token %}
-        <input type="email" class="form-control" placeholder="Email address" name="email" required autofocus>
-        <input type="password" class="form-control" placeholder="Password" name="password" required>
+    <div class="col-sm-5">
+
+    <form action="/signup/" method="POST" class="form-signin"> {% csrf_token %}
+    	<div class="form-group">
+        <input type="text" class="form-control" placeholder="Username" name="username" required autofocus>
+		</div>
+		<div class="form-group">
+		<input type="email" placeholder="Email" class="form-control" name="email">
+        </div>
+        <div class="form-group">
+        <input type="password" class="form-control" placeholder="Password" name="password1" required>
+        </div>
+        <div class="form-group">
+        <input type="password" class="form-control" placeholder="Confirm password" name="password2" required>
+        </div>
         <button class="btn btn-primary" type="submit" name="submit" value="submit-value">Sign up</button>
     </form>
     </div>
 </div>
+
 {% endblock body %}

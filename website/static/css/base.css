@@ -23,6 +23,12 @@
   padding-left: 10px;
 }
 
+.signup-outline {
+	outline: 10px solid red;
+  	background: transparent;
+  	margin: 1em;
+}
+
 div.miniplot:hover { background-color: #F1F1F1; }
 
 div.miniplot {

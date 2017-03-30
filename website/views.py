@@ -1,31 +1,30 @@
-import json
 import string
-import re 
-from django.http import StreamingHttpResponse
 import time
-from website.tasks import * 
+import json
+import math
+from random import choice
+from numpy import array, linalg
+from pytz import timezone, os
+from rexec import FileWrapper
+
+import logging
+log = logging.getLogger(__name__)
 
 import xml.dom.minidom
 from django.template.context_processors import csrf
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.views.decorators.cache import cache_page
+# from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+# from django.views.decorators.cache import cache_page
 #from django.core.context_processors import csrf
+from django.core.cache import cache
 from django.shortcuts import redirect, render, get_object_or_404
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import login, logout
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
-from django.http import HttpResponse
-from django.http import JsonResponse
+from django.http import HttpResponse, QueryDict
 from django.template.defaultfilters import register
 from django.utils.datetime_safe import datetime
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.timezone import now
-from math import log
-from numpy import array, linalg
-from pytz import timezone, os
-from random import choice
-from rexec import FileWrapper
-from django.core.cache import cache
 
 from models import * 
 from website.settings import UPLOAD_DIR
@@ -53,48 +52,47 @@ def ajax_new(request):
     return HttpResponse(json.dumps(data), content_type = 'application/json')
 
 def signup_view(request):
-    c = {}
-    c.update(csrf(request))
-    return render(request, 'signup.html', c)
-
+    if request.user.is_authenticated():
+        return redirect('/')
+    if request.method == 'POST':
+        post = request.POST
+        form = UserCreationForm(post)
+        if form.is_valid():
+            form.save()
+            new_post = QueryDict(mutable=True)
+            new_post.update(post)
+            new_post['password'] = post['password1']
+            request.POST = new_post
+            return login_view(request)
+        else:
+            log.info("Invalid request: {}".format(', '.join(form.error_messages)))
+        
+    else:
+        form = UserCreationForm()
+    token = {}
+    token.update(csrf(request))
+    token['form'] = form
+    
+    return render(request, 'signup.html', token)
 
 def login_view(request):
-    c = {}
-    c.update(csrf(request))
-    return render(request, 'login.html', c)
-
-
-def auth_and_login(request, onsuccess='/', onfail='/login/'):
-    user = authenticate(username=request.POST['email'], password=request.POST['password'])
-    if user is not None:
-        login(request, user)
-        return redirect(onsuccess)
+    if request.user.is_authenticated():
+        return redirect('/')
+    if request.method == 'POST':
+        post = request.POST
+        form = AuthenticationForm(None, post)
+        if form.is_valid():
+            login(request, form.get_user())
+            return redirect('/')
+        else:
+            log.info("Invalid request: {}".format(', '.join(form.error_messages)))
     else:
-        return redirect(onfail)
+        form = AuthenticationForm()
+    token = {}
+    token.update(csrf(request))
+    token['form'] = form
 
-
-def create_user(username, email, password):
-    user = User(username=username, email=email)
-    user.set_password(password)
-    user.save()
-    return user
-
-
-def user_exists(username):
-    user_count = User.objects.filter(username=username).count()
-    if user_count == 0:
-        return False
-    return True
-
-
-def sign_up_in(request):
-    post = request.POST
-    if not user_exists(post['email']):
-        create_user(username=post['email'], email=post['email'], password=post['password'])
-        return auth_and_login(request)
-    else:
-        return redirect("/login/")
-
+    return render(request, 'login.html', token)
 
 @login_required(login_url='/login/')
 def logout_view(request):
@@ -357,7 +355,7 @@ def new_result(request):
 def get_result_data_dir(result_id):
     result_path = os.path.join(UPLOAD_DIR, str(result_id % 100))
     try:
-	os.makedirs(result_path)
+        os.makedirs(result_path)
     except OSError as e:
         if e.errno == 17:
             pass
@@ -859,11 +857,10 @@ def result_similar(a, b):
     db_conf_b = json.loads(b.db_conf.similar_conf)
     for kv in db_conf_a:
         for bkv in db_conf_b:
-            if bkv[0] == kv[0]:
-                if bkv[1] != kv[1]:
-                    return False
-		else:
-		    break
+            if bkv[0] == kv[0] and bkv[1] != kv[1]:
+                return False
+            else:
+                break
     return True
 
 
@@ -881,7 +878,7 @@ def learn_model(results):
             for kv in db_conf:
                 if f.match(kv[0]):
                     try:
-                        values.append(log(int(kv[1])))
+                        values.append(math.log(int(kv[1])))
                         break
                     except Exception:
                         values.append(0.0)
@@ -912,12 +909,12 @@ def apply_model(model, data, target):
             if f.match(kv[0]):
                 if kv[1] == '0':
                     kv[1] = '1'
-                v1 = log(int(kv[1]))
+                v1 = math.log(int(kv[1]))
         for kv in db_conf_t:
             if f.match(kv[0]):
                 if kv[1] == '0':
                     kv[1] = '1'
-                v2 = log(int(kv[1]))
+                v2 = math.log(int(kv[1]))
         values.append(v1 - v2)
 
     score = 0
