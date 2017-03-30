@@ -55,11 +55,12 @@
 					</div>
 					<button type="submit" class="btn btn-success">Sign in</button>
 				</form>
+				{% endif %}
 			</div>
 			<!--/.navbar-collapse -->
 		</div>
 	</div>
-	{% endif %}
+	
 	{% if form.errors %}
 	{% for field in form %}
 	{% for error in field.errors %}

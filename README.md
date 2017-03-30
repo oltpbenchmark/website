@@ -50,8 +50,8 @@ mysqladmin create -u <username> -p ottertune
 ##### 4. Migrate the Django models into the database
 
 ```
-python manage.py makemigrations
-python manage.py migrate
+python manage.py makemigrations website
+python manage.py migrate website
 ```
 
 ##### 5. Create the super user

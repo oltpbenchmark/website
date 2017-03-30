@@ -3,7 +3,8 @@ Common Django settings for the OtterTune project.
 
 """
 
-from os.path import abspath, dirname, join
+import os
+from os.path import abspath, dirname, exists, join
 
 try:
     from credentials import SECRET_KEY, DATABASES
@@ -217,6 +218,11 @@ djcelery.setup_loader()
 ## LOGGING CONFIGURATION
 ## ==============================================
 
+# Create logging directory
+LOG_DIR = join(PROJECT_ROOT, 'log')
+if not exists(LOG_DIR):
+    os.mkdir(LOG_DIR)
+
 # A website logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
 # the site admins on every HTTP 500 error when DEBUG=False.
@@ -239,7 +245,7 @@ LOGGING = {
         'logfile': {
             'level':'DEBUG',
             'class':'logging.handlers.RotatingFileHandler',
-            'filename': PROJECT_ROOT + "/log/website.log",
+            'filename': join(LOG_DIR, 'website.log'),
             'maxBytes': 50000,
             'backupCount': 2,
             'formatter': 'standard',
