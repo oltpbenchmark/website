@@ -3,7 +3,7 @@ import time
 import json
 import math
 from random import choice
-from numpy import array, linalg
+import numpy as np
 from pytz import timezone, os
 from rexec import FileWrapper
 
@@ -100,7 +100,14 @@ def logout_view(request):
     return redirect("/login/")
 
 def upload_code_generator(size=6, chars=string.ascii_uppercase + string.digits):
-    return ''.join(choice(chars) for x in range(size))
+    # We must make sure this code does not already exist in the database
+    # although duplicates should be extremely rare.
+    new_upload_code = ''.join(choice(chars) for _ in range(size))
+    num_dup_codes = Project.objects.filter(upload_code = new_upload_code).count()
+    while (num_dup_codes > 0):
+        new_upload_code = ''.join(choice(chars) for _ in range(size))
+        num_dup_codes = Project.objects.filter(upload_code = new_upload_code).count()
+    return new_upload_code
 
 
 @login_required(login_url='/login/')
@@ -112,7 +119,7 @@ def home(request):
 
 @login_required(login_url='/login/')
 def ml_info(request):
-    id = request.GET['id'] 
+#     id = request.GET['id'] 
     res = Result.objects.get(pk=id)
     task = Task.objects.get(pk=id)
     if task.running_time != None:
@@ -140,11 +147,6 @@ def project(request):
                "proj_id":id}
     context.update(csrf(request))
     return render(request, 'home_application.html', context)    
-
-
-
-
-
 
 @login_required(login_url='/login/')
 def project_info(request):
@@ -266,8 +268,10 @@ def delete_application(request):
 
 @login_required(login_url='/login/')
 def update_project(request):
+    gen_upload_code = False
     if 'id_new_code' in request.POST:
         proj_id = request.POST['id_new_code']
+        gen_upload_code = True
     else:
         proj_id = request.POST['id']
 
@@ -275,13 +279,16 @@ def update_project(request):
         p = Project()
         p.creation_time = now()
         p.user = request.user
-        p.upload_code = upload_code_generator(size=20)
+        gen_upload_code = True
+        #p.upload_code = upload_code_generator(size=20)
     else:
         p = Project.objects.get(pk=proj_id)
         if p.user != request.user:
             return render(request, '404.html')
 
-    if 'id_new_code' in request.POST:
+#     if 'id_new_code' in request.POST:
+#         p.upload_code = upload_code_generator(size=20)
+    if gen_upload_code:
         p.upload_code = upload_code_generator(size=20)
 
     p.name = request.POST['name']
@@ -297,8 +304,10 @@ def update_project(request):
    
 
 def update_application(request):
+    gen_upload_code = False
     if 'id_new_code' in request.POST:
         app_id = request.POST['id_new_code']
+        gen_upload_code = True
     else:
         tmp = request.POST['id']
         tmp2 = tmp.split('&')
@@ -308,15 +317,18 @@ def update_application(request):
         p = Application()
         p.creation_time = now()
         p.user = request.user
-        p.upload_code = upload_code_generator(size=20)
+        gen_upload_code = True
+#         p.upload_code = upload_code_generator(size=20)
         p.project = Project.objects.get(pk=proj_id)
     else:
         p = Application.objects.get(pk=app_id)
         if p.user != request.user:
             return render(request, '404.html')
 
-    if 'id_new_code' in request.POST:
+    if gen_upload_code:
         p.upload_code = upload_code_generator(size=20)
+#     if 'id_new_code' in request.POST:
+#         p.upload_code = upload_code_generator(size=20)
 
     p.name = request.POST['name']
     p.description = request.POST['description']
@@ -324,14 +336,11 @@ def update_application(request):
     p.save()
     return redirect('/application/?id=' + str(p.pk))
 
-
-def write_file(input,output_file, chunk_size = 512):
+def write_file(contents, output_file, chunk_size = 512):
     des = open(output_file, 'w')
-    for chunk in input.chunks():
+    for chunk in contents.chunks():
         des.write(chunk)
     des.close()
-   
-
 
 @csrf_exempt
 def new_result(request):
@@ -339,17 +348,19 @@ def new_result(request):
         form = NewResultForm(request.POST, request.FILES)
         
         if not form.is_valid():
+            log.warning("Form is not valid:\n"  + str(form))
             return HttpResponse("Form is not valid\n"  + str(form))
         try:   
             application = Application.objects.get(upload_code = form.cleaned_data['upload_code'])
         except Application.DoesNotExist:
+            log.warning("Wrong upload code: " + form.cleaned_data['upload_code'])
             return HttpResponse("wrong upload_code!")
         use = form.cleaned_data['upload_use']
         hardware = form.cleaned_data['hardware']
         cluster = form.cleaned_data['cluster']
 
         return handle_result_file(application, request.FILES,use,hardware,cluster)
-
+    log.warning("Request type was not POST")
     return HttpResponse("POST please\n")
 
 def get_result_data_dir(result_id):
@@ -362,12 +373,11 @@ def get_result_data_dir(result_id):
     return os.path.join(result_path, str(int(result_id) / 100l))
 
 
-def process_config(cfg,knob_dict,sum):
+def process_config(cfg, knob_dict, summary):
     db_conf_lines = json.loads(cfg)
-    #(x_.cfg)
-    globals = db_conf_lines['global'][0]
-    db_cnf_names = globals['variable_names']
-    db_cnf_values = globals['variable_values']
+    db_globals = db_conf_lines['global'][0]
+    db_cnf_names = db_globals['variable_names']
+    db_cnf_values = db_globals['variable_values']
     row_x = []
     row_y = []
     for knob in knob_dict:
@@ -386,7 +396,7 @@ def process_config(cfg,knob_dict,sum):
                 value = s.index(value)
         row_x.append(float(value))
 
-    summary_lines = json.loads(sum)
+    summary_lines = json.loads(summary)
     sum_names = summary_lines['variable_names']
     sum_values = summary_lines['variable_values']
     row_y.append(float(sum_values[sum_names.index("99th_lat_ms")]))
@@ -886,9 +896,9 @@ def learn_model(results):
 
         features.append(values)
 
-    A = array(features)
+    A = np.array(features)
     y = [r.throughput for r in results]
-    w = linalg.lstsq(A.T, y)[0]
+    w = np.linalg.lstsq(A.T, y)[0]
 
     return w
 
