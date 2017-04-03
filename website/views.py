@@ -1,4 +1,5 @@
 import string
+import re
 import time
 import json
 import math
@@ -168,10 +169,12 @@ def application(request):
     data = request.GET
 
     application = Application.objects.get(pk=data['id'])
-
+    print "data['id'] = {}".format(data['id'])
+    print "APPLICATION: {}".format(application)
+    results = Result.objects.filter(application=application)
 #     results = Result.objects.select_related("db_conf__db_type","benchmark_conf__benchmark_type").filter(application=application)
-    results = Result.objects.prefetch_related("db_conf__db_type","benchmark_conf__benchmark_type").filter(application=application)
-
+#     results = Result.objects.prefetch_related("db_conf__db_type","benchmark_conf__benchmark_type").filter(application=application)
+    print "RESULTS: {}".format(len(results))
     db_with_data = {}
     benchmark_with_data = {}
 
@@ -189,12 +192,12 @@ def application(request):
     lastrevisions = [10, 50, 200, 1000]
 
     filters = []
-    for field in ExperimentConf.FILTER_FIELDS:
-        value_dict = {}
-        for res in results:
-            value_dict[getattr(res.benchmark_conf, field['field'])] = True
-        f = {'values': [key for key in value_dict.iterkeys()], 'print': field['print'], 'field': field['field']}
-        filters.append(f)
+#     for field in ExperimentConf.FILTER_FIELDS:
+#         value_dict = {}
+#         for res in results:
+#             value_dict[getattr(res.benchmark_conf, field['field'])] = True
+#         f = {'values': [key for key in value_dict.iterkeys()], 'print': field['print'], 'field': field['field']}
+#         filters.append(f)
 
     context = {'project': project,
                'db_types': dbs,
@@ -208,7 +211,7 @@ def application(request):
                'defaultmetrics': ['throughput', 'p99_latency'],
                'filters': filters,
                'application':application, 
-               'results': Result.objects.filter(application=application)}
+               'results': results} #Result.objects.filter(application=application)}
 
     context.update(csrf(request))
     return render(request, 'application.html', context)
@@ -355,11 +358,11 @@ def new_result(request):
         except Application.DoesNotExist:
             log.warning("Wrong upload code: " + form.cleaned_data['upload_code'])
             return HttpResponse("wrong upload_code!")
-        use = form.cleaned_data['upload_use']
-        hardware = form.cleaned_data['hardware']
-        cluster = form.cleaned_data['cluster']
+#         use = form.cleaned_data['upload_use']
+#         hardware = form.cleaned_data['hardware']
+#         cluster = form.cleaned_data['cluster']
 
-        return handle_result_file(application, request.FILES,use,hardware,cluster)
+        return handle_result_file(application, request.FILES)#,use,hardware,cluster)
     log.warning("Request type was not POST")
     return HttpResponse("POST please\n")
 
@@ -381,6 +384,9 @@ def process_config(cfg, knob_dict, summary):
     row_x = []
     row_y = []
     for knob in knob_dict:
+        # TODO (DVA): fixme
+        if knob not in db_cnf_names:
+            continue
         j = db_cnf_names.index(knob)
         value = str(db_cnf_values[j])
         value = value.lower().replace(".","")
@@ -402,17 +408,20 @@ def process_config(cfg, knob_dict, summary):
     row_y.append(float(sum_values[sum_names.index("99th_lat_ms")]))
     return row_x, row_y
 
-def handle_result_file(app, files,use,hardware,cluster):
+def handle_result_file(app, files, use="", hardware="hardware",
+                       cluster="cluster"):
     
-    # cluster  'unknown'
     summary = "".join( files['summary_data'].chunks())
     summary_lines = json.loads(summary)
     db_conf = "".join(files['db_conf_data'].chunks())
     db_conf_lines = json.loads(db_conf) 
     
-    status_data = "".join( files['db_status'].chunks())
+    status_data = "".join( files['db_status_data'].chunks())
     res_data = "".join( files['sample_data'].chunks())
-    raw_data = "".join( files['raw_data'].chunks())
+    if 'raw_data' in files:
+        raw_data = "".join( files['raw_data'].chunks())
+    else:
+        raw_data = ""
     bench_conf_data = "".join( files['benchmark_conf_data'].chunks())   
 
     w = Workload_info()
@@ -423,7 +432,11 @@ def handle_result_file(app, files,use,hardware,cluster):
     w.terminals  = (root.getElementsByTagName('terminals'))[0].firstChild.data
     w.time  = (root.getElementsByTagName('time'))[0].firstChild.data
     w.rate  = (root.getElementsByTagName('rate'))[0].firstChild.data
-    w.skew  = (root.getElementsByTagName('skew'))[0].firstChild.data
+    w.skew  = (root.getElementsByTagName('skew'))#[0].firstChild.data
+    if len(w.skew) == 0:
+        w.skew = -1.0
+    else:
+        w.skew = w.skew[0].firstChild.data
     weights = root.getElementsByTagName('weights')
     trans = root.getElementsByTagName('name')
     trans_dict = {}
@@ -498,8 +511,6 @@ def handle_result_file(app, files,use,hardware,cluster):
     X_min = []
     Y_min = []
     min_dist = 1000000
-
-   # ridges = np.random.uniform(0,1,[sample_size])
 
     for name in clusters_list:
         exps_ = Oltpbench_info.objects.filter(dbms_name=db_type,dbms_version=db_version,hardware = hardware,cluster = name )       
@@ -629,9 +640,14 @@ def handle_result_file(app, files,use,hardware,cluster):
         for chunk in files['sample_data'].chunks():
             dest.write(chunk)
         dest.close()
+    
+    # TODO (DVA): fixme
     with open(path_prefix + '_raw', 'wb') as dest:
-        for chunk in files['raw_data'].chunks():
-            dest.write(chunk)
+        if 'raw_data' in files:
+            for chunk in files['raw_data'].chunks():
+                dest.write(chunk)
+        else:
+            dest.write('')
         dest.close()
 
     myfile = "".join(files['sample_data'].chunks())
@@ -680,9 +696,12 @@ def handle_result_file(app, files,use,hardware,cluster):
         if response.ready():
             task.finish_time = now()
             break
+    
+    response_message = task.status
     if task.status == "FAILURE":
         task.traceback = response.traceback
         task.running_time = (task.finish_time - task.creation_time).seconds
+        response_message += ": " + response.traceback
     elif task.status == "SUCCESS":
         res = response.result
         with open(path_prefix + '_new_conf', 'wb') as dest:        
@@ -697,8 +716,10 @@ def handle_result_file(app, files,use,hardware,cluster):
         task.status = "TIME OUT"
         task.traceback = response.traceback 
         task.running_time = time_limit
+        response_message = "TIME OUT: " + response.traceback
     task.save()
-    return  HttpResponse(task.status)
+#     return  HttpResponse(task.status)
+    return  HttpResponse(response_message)
 
 
 def file_iterator(file_name, chunk_size=512):
@@ -983,19 +1004,17 @@ def result(request):
             'metric': METRIC_META[metric]['print']
         }
 
-
-
         same_id = []
         same_id.append(str(target.pk))
         for x in same_id:   
-	    key = metric + ',data,' + x ;
- 	    tmp = cache.get(key);
+            key = metric + ',data,' + x ;
+            tmp = cache.get(key);
             if tmp != None:
                 data_package[metric]['data'][int(x)] = []
-            	data_package[metric]['data'][int(x)].extend(tmp);
-		continue;	
+                data_package[metric]['data'][int(x)].extend(tmp);
+                continue;	
 
-	    ts = Statistics.objects.filter(result=x) 
+            ts = Statistics.objects.filter(result=x) 
             if len(ts) > 0:
                 offset = ts[0].time
                 if len(ts) > 1:
@@ -1004,18 +1023,19 @@ def result(request):
                 for t in ts:
                     data_package[metric]['data'][int(x)].append(
                         [t.time - offset, getattr(t, metric) * METRIC_META[metric]['scale']])
-	    	cache.set(key,data_package[metric]['data'][int(x)],60*5) 
-	
-	
+                cache.set(key,data_package[metric]['data'][int(x)],60*5) 
+
+
     
-    context = {'result': target, 
-               'metrics': PLOTTABLE_FIELDS,
-               'metric_meta': METRIC_META,
-               'default_metrics': ['throughput', 'p99_latency'],
-               'data': json.dumps(data_package),
-               'same_runs': sames,
-  	       'task':task,
-               'similar_runs': similars
+    context = {
+        'result': target, 
+        'metrics': PLOTTABLE_FIELDS,
+        'metric_meta': METRIC_META,
+        'default_metrics': ['throughput', 'p99_latency'],
+        'data': json.dumps(data_package),
+        'same_runs': sames,
+        'task':task,
+        'similar_runs': similars
     }
     return render(request, 'result.html', context)
 

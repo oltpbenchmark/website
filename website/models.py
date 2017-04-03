@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
-import re
 from django.db import models
 from django.contrib.auth.models import User
 from django import forms
-from django.contrib import admin
 
 
 class Knob_catalog(models.Model):
@@ -32,8 +30,8 @@ class Knob_catalog(models.Model):
 class Metric_catalog(models.Model):
     id = models.IntegerField(primary_key=True)
     dbms_id = models.IntegerField()
- #   dbms_name = models.TextField()
- #   dbms_version = models.TextField()
+#    dbms_name = models.TextField()
+#    dbms_version = models.TextField()
     scale = models.TextField()
     name = models.TextField()
     vartype = models.TextField()
@@ -80,16 +78,17 @@ class Oltpbench_info(models.Model):
 class NewResultForm(forms.Form):
     upload_code = forms.CharField(max_length=30)
 
-    upload_use = forms.CharField(max_length=30) #compute/store
-    hardware = forms.CharField(max_length=30) # hardware 
-    cluster = forms.CharField(max_length=200) # store cluster    
+#     upload_use = forms.CharField(max_length=30) #compute/store
+#     hardware = forms.CharField(max_length=30) # hardware 
+#     cluster = forms.CharField(max_length=200) # store cluster    
 
     sample_data = forms.FileField()
-    raw_data = forms.FileField()
+#     raw_data = forms.FileField()
     db_conf_data = forms.FileField()
+    db_status_data =forms.FileField()
     benchmark_conf_data = forms.FileField()
     summary_data = forms.FileField()
-    db_status =forms.FileField() #.status
+    
 
 
 
@@ -105,7 +104,7 @@ class Project(models.Model):
     def delete(self, using=None):
         apps = Application.objects.filter(project=self)
         for x in apps:
-	    x.delete()
+            x.delete()
         super(Project, self).delete(using)
 
 
@@ -122,6 +121,7 @@ class Task(models.Model):
 
 
 class Application(models.Model):
+#     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User)
     name = models.CharField(max_length=64)
     description = models.TextField()
@@ -256,8 +256,8 @@ class Result(models.Model):
     p95_latency = models.FloatField()
     p99_latency = models.FloatField()
     max_latency = models.FloatField()
-    #most_similar = models.CommaSeparatedIntegerField(max_length=100)
-    most_similar = models.CharField(max_length=100)
+    most_similar = models.CommaSeparatedIntegerField(max_length=100)
+#     most_similar = models.CharField(max_length=100)
 
     def __unicode__(self):
         return unicode(self.pk)

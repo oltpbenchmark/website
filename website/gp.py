@@ -23,7 +23,7 @@ def gp_tf(xs,ys,xt,ridge):
     xt_ = tf.Variable(xt[0],tf.float32) 
 
     sess = tf.Session()
-    init = tf.initialize_all_variables()
+    init = tf.global_variables_initializer()
     sess.run(init)
 
 
@@ -32,7 +32,7 @@ def gp_tf(xs,ys,xt,ridge):
 
     v1 = tf.placeholder(tf.float32,name="v1")
     v2 = tf.placeholder(tf.float32,name="v2")
-    dist = tf.sqrt(tf.reduce_sum(tf.pow(tf.sub(v1, v2), 2),1))
+    dist = tf.sqrt(tf.reduce_sum(tf.pow(tf.subtract(v1, v2), 2),1))
 
     tmp = np.zeros([sample_size,sample_size])
     for i in range(sample_size):
@@ -44,7 +44,7 @@ def gp_tf(xs,ys,xt,ridge):
     K = tf.exp(-tmp/sigma_cl) + tf.diag(ridge);
 #    print "Finished K "
 
-    K2_mat =  tf.sqrt(tf.reduce_sum(tf.pow(tf.sub(xt_, xs), 2),1))
+    K2_mat =  tf.sqrt(tf.reduce_sum(tf.pow(tf.subtract(xt_, xs), 2),1))
     K2_mat = tf.transpose(tf.expand_dims(K2_mat,0))
     K2 = tf.cast(tf.exp(-K2_mat/sigma_cl),tf.float32)
 
@@ -52,11 +52,11 @@ def gp_tf(xs,ys,xt,ridge):
     yhat_ =  tf.cast(tf.matmul( tf.transpose(K2) ,x),tf.float32)
     sig_val = tf.cast((tf.sqrt(1 -  tf.matmul( tf.transpose(K2) ,tf.matmul(tf.matrix_inverse(K) , K2)) )),tf.float32)
 
-    Loss = tf.squeeze(tf.sub(yhat_,sig_val))
+    Loss = tf.squeeze(tf.subtract(yhat_,sig_val))
 #    optimizer = tf.train.GradientDescentOptimizer(0.1)    
     optimizer = tf.train.AdamOptimizer(0.1)
     train = optimizer.minimize(Loss)
-    init = tf.initialize_all_variables()
+    init = tf.global_variables_initializer()
     sess.run(init)
 
     yhats = []

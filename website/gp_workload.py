@@ -26,7 +26,7 @@ def gp_workload(xs,ys,xt,ridge):
 
     v1 = tf.placeholder(tf.float32,name="v1")
     v2 = tf.placeholder(tf.float32,name="v2")
-    dist = tf.sqrt(tf.reduce_sum(tf.pow(tf.sub(v1, v2), 2),1))
+    dist = tf.sqrt(tf.reduce_sum(tf.pow(tf.subtract(v1, v2), 2),1))
     sess = tf.Session()
 #    sess = tf.Session(config=tf.ConfigProto(log_device_placement=True))
 

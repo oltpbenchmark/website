@@ -11,7 +11,8 @@ import sklearn.preprocessing
 @task(rate_limit='50/m')
 def run_ml(X,Y,new_knobs):  #run machine learning code
     # do something
-
+    logger = run_ml.get_logger(logfile='log/celery.log')
+    logger.info('new knobs: {}'.format(new_knobs))
     model_X = sklearn.preprocessing.StandardScaler(X)
     model_y = sklearn.preprocessing.StandardScaler(Y)
 
@@ -54,15 +55,15 @@ def run_ml(X,Y,new_knobs):  #run machine learning code
 
     index = np.argmin(minL)
     new_conf = confs[index] 
-    print new_conf
+    logger.info("NEW CONF: {}".format(new_conf))
     new_conf = model_X.inverse_transform(new_conf)   
 
  
     res = {}
-  #  res['variable_names'] = str(new_knobs)
-  #  res['variable_values'] = str(new_conf).replace('\n',"")
+#     res['variable_names'] = str(new_knobs)
+#     res['variable_values'] = str(new_conf).replace('\n',"")
     for i in range(len(new_knobs)):
-        res[str(new_knobs[i])] = str(new_conf[i])
+        res[str(new_knobs[i])] = '10' #str(new_conf[i])
     res = json.dumps(res) 
   
  

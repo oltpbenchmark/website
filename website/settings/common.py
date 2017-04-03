@@ -182,7 +182,6 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'debug_toolbar',
     #'django_extensions',
-    # Uncomment the next line to enable the admin:
     'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
@@ -268,8 +267,9 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': False,
         },
-        '': {
+        'website.views': {
             'handlers': ['console', 'logfile'],
+            'propagate': False,
             'level': 'DEBUG',
         },
         'django.request': {

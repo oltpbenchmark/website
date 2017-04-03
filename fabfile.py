@@ -67,7 +67,13 @@ def stop_celery():
 def status_celery():
     res = local(SUPERVISOR_CMD + ' status celeryd | tr -s \' \' | cut -d \' \' -f2',
                 capture=True)
-    status = STATUS._asdict()[res.stdout]
+    try:
+        status = STATUS._asdict()[res.stdout]
+    except KeyError as e:
+        if res.stdout == 'STARTING':
+            status = STATUS.RUNNING
+        else:
+            raise e
     print_status(status, 'celery')
     return status
 

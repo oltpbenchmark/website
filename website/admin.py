@@ -1,5 +1,5 @@
 from django.contrib import admin
-from website.models import LEARNING_PARAMS, FEATURED_PARAMS, Project, Result, ExperimentConf, DBConf,Statistics
+from website.models import LEARNING_PARAMS, FEATURED_PARAMS, Project, Result, ExperimentConf, DBConf, Statistics, Application
 
 class ExperimentConfAdmin(admin.ModelAdmin):
     list_display = [ 'name', 'application', 'benchmark_type', 'creation_time' ]
@@ -19,13 +19,18 @@ class FEATURED_PARAMSAdmin(admin.ModelAdmin):
 
 class LEARNING_PARAMSAdmin(admin.ModelAdmin):  
     list_display = [ 'db_type', 'params']
+    
+class ApplicationAdmin(admin.ModelAdmin):
+    fields = ['user', 'name', 'description', 'creation_time',
+              'last_update', 'upload_code']
+    list_display = ('name', 'id', 'user', 'last_update', 'creation_time')
+    list_display_links = ('name',)
 
 
+admin.site.register(Application, ApplicationAdmin)
 admin.site.register(Project, ProjectAdmin)
 admin.site.register(ExperimentConf, ExperimentConfAdmin)
 admin.site.register(DBConf, DBConfAdmin)
 admin.site.register(FEATURED_PARAMS,FEATURED_PARAMSAdmin)
 admin.site.register(LEARNING_PARAMS, LEARNING_PARAMSAdmin)
-
-
 admin.site.register(Result)
