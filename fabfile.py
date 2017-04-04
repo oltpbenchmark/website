@@ -28,23 +28,25 @@ STATUS = Status(0, 1)
 @task
 def start_rabbitmq(detached=True):
     detached = parse_bool(detached)
-    cmd = 'rabbitmq-server' + (' -detached' if detached else '')
-    sudo(cmd, pty=False)
+    cmd = 'sudo rabbitmq-server' + (' -detached' if detached else '')
+    local(cmd)
 
 @task
 def stop_rabbitmq():
-    sudo('rabbitmqctl stop', pty=False)
+    #sudo('rabbitmqctl stop', pty=False)
+    local('sudo rabbitmqctl stop')
 
 @task
 def status_rabbitmq():
     with settings(warn_only=True), quiet():
-        res = sudo('rabbitmqctl status', pty=False)
-    if res.return_code == 2:
+        #res = sudo('rabbitmqctl status', pty=False)
+        res = local('sudo rabbitmqctl status')
+    if res.return_code == 2 or res.return_code == 69:
         status = STATUS.STOPPED
     elif res.return_code == 0:
         status = STATUS.RUNNING
     else:
-        raise Exception("Rabbitmq: unknown status " + res.return_code)
+        raise Exception("Rabbitmq: unknown status " + str(res.return_code))
     print status
     print_status(status, 'rabbitmq')
     return status
@@ -100,4 +102,4 @@ def parse_bool(value):
 
 def print_status(status, task_name):
     print "{} status: {}".format(task_name, STATUS._fields[STATUS.index(status)])
-    
+
