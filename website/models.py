@@ -3,50 +3,41 @@ from django.db import models
 from django.contrib.auth.models import User
 from django import forms
 
+class DBMSCatalog(models.Model):
+    name = models.CharField(max_length=32)
+    version = models.CharField(max_length=16)
 
-class Knob_catalog(models.Model):
-    id = models.IntegerField(primary_key=True)
-#    dbms_name = models.TextField()
-#    dbms_version = models.TextField()
-    dbms_id = models.IntegerField()
-    name = models.TextField()
-    vartype = models.TextField()
-    unit = models.TextField(null=True)
+class KnobCatalog(models.Model):
+    dbms = models.ForeignKey(DBMSCatalog) 
+    name = models.CharField(max_length=64)
+    vartype = models.CharField(max_length=32)
+    unit = models.CharField(max_length=16, null=True)
     category = models.TextField(null=True)
     summary = models.TextField(null=True)
     description = models.TextField(null=True)
-    scope = models.TextField()
-    dynamic = models.BooleanField()
-    min_value = models.TextField(null=True)
-    max_value = models.TextField(null=True)
-    valid_vals = models.TextField(null=True) 
-    default_val = models.TextField()
-    deprecated = models.BooleanField()
-    dangerous = models.TextField(null=True)
-    safe_vals = models.TextField(null=True)
-    rank = models.IntegerField(null=True)
-    
+    scope = models.CharField(max_length=16)
+    minval = models.CharField(max_length=32, null=True)
+    maxval = models.CharField(max_length=32, null=True)
+    default = models.TextField()
+    enumvals = models.TextField(null=True)
+    context = models.CharField(max_length=32)
+    tunable = models.BooleanField()
 
-class Metric_catalog(models.Model):
-    id = models.IntegerField(primary_key=True)
-    dbms_id = models.IntegerField()
-#    dbms_name = models.TextField()
-#    dbms_version = models.TextField()
-    scale = models.TextField()
-    name = models.TextField()
-    vartype = models.TextField()
-    description = models.TextField(null=True)
-    scope = models.TextField(null=True)
-    featured = models.BooleanField()
+class MetricCatalog(models.Model):
+    METRIC_TYPES = (
+        ('C', 'COUNTER'),
+        ('S', 'STATISTIC'),
+        ('I', 'INFO')
+    )
 
-class DBMS_catalog(models.Model): 
-    id = models.IntegerField(primary_key=True)
-    dbms_name = models.TextField()
-    version = models.TextField()
+    dbms = models.ForeignKey(DBMSCatalog)
+    name = models.CharField(max_length=64)
+    vartype = models.CharField(max_length=32)
+    summary = models.TextField(null=True)
+    scope = models.CharField(max_length=16)
+    metric_type = models.CharField(max_length=16, choices=METRIC_TYPES)
 
-
-class Workload_info(models.Model):
-    #id = models.AutoField(primary_key=True) 
+class Workload_info(models.Model): 
     isolation = models.CharField(max_length=64)
     scalefactor = models.IntegerField()
     terminals = models.IntegerField()
@@ -60,8 +51,9 @@ class Oltpbench_info(models.Model):
 #    id = models.IntegerField(primary_key=True)
 
     user = models.ForeignKey(User) 
-    dbms_name = models.CharField(max_length=64)
-    dbms_version = models.CharField(max_length=64)
+    dbms = models.ForeignKey(DBMSCatalog)
+#     dbms_name = models.CharField(max_length=64)
+#     dbms_version = models.CharField(max_length=64)
 
     hardware = models.CharField(null=True, max_length=64)
     cluster = models.TextField(null=True)
@@ -83,14 +75,11 @@ class NewResultForm(forms.Form):
 #     cluster = forms.CharField(max_length=200) # store cluster    
 
     sample_data = forms.FileField()
-#     raw_data = forms.FileField()
-    db_conf_data = forms.FileField()
-    db_status_data =forms.FileField()
+    raw_data = forms.FileField()
+    db_parameters_data = forms.FileField()
+    db_metrics_data =forms.FileField()
     benchmark_conf_data = forms.FileField()
     summary_data = forms.FileField()
-    
-
-
 
 class Project(models.Model):
     user = models.ForeignKey(User)
@@ -121,7 +110,6 @@ class Task(models.Model):
 
 
 class Application(models.Model):
-#     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User)
     name = models.CharField(max_length=64)
     description = models.TextField()
@@ -169,46 +157,47 @@ class ExperimentConf(models.Model):
 
 
 
-class FEATURED_PARAMS(models.Model):
-    db_type = models.CharField(max_length=64)
-    params = models.CharField(max_length=512)
+# class FEATURED_PARAMS(models.Model):
+#     db_type = models.CharField(max_length=64)
+#     params = models.CharField(max_length=512)
 
-class Website_Conf(models.Model):
-    name = models.CharField(max_length=64)
-    value = models.CharField(max_length=512)
+# class Website_Conf(models.Model):
+#     name = models.CharField(max_length=64)
+#     value = models.CharField(max_length=512)
 
-class LEARNING_PARAMS(models.Model):
-    db_type = models.CharField(max_length=64)
-    params = models.CharField(max_length=512)
-
-class KNOB_PARAMS(models.Model):
-    db_type = models.CharField(max_length=64)
-    params = models.CharField(max_length=512)
+# class LEARNING_PARAMS(models.Model):
+#     db_type = models.CharField(max_length=64)
+#     params = models.CharField(max_length=512)
+# 
+# class KNOB_PARAMS(models.Model):
+#     db_type = models.CharField(max_length=64)
+#     params = models.CharField(max_length=512)
 
 
 class DBConf(models.Model):
-    DB_TYPES = sorted([
-        'DB2',
-        'MYSQL',
-        'POSTGRES',
-        'ORACLE',
-        'SQLSERVER',
-        'SQLITE',
-        'AMAZONRDS',
-        'HSTORE',
-        'SQLAZURE',
-        'ASSCLOWN',
-        'HSQLDB',
-        'H2',
-        'NUODB'
-    ])
+#     DB_TYPES = sorted([
+#         'DB2',
+#         'MYSQL',
+#         'POSTGRES',
+#         'ORACLE',
+#         'SQLSERVER',
+#         'SQLITE',
+#         'AMAZONRDS',
+#         'HSTORE',
+#         'SQLAZURE',
+#         'ASSCLOWN',
+#         'HSQLDB',
+#         'H2',
+#         'NUODB'
+#     ])
     application = models.ForeignKey(Application)
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=512)
     creation_time = models.DateTimeField()
     configuration = models.TextField()
     similar_conf = models.TextField(default = "zbh")
-    db_type = models.CharField(max_length=max(map(lambda x: len(x), DB_TYPES)))
+    dbms = models.ForeignKey(DBMSCatalog)
+    #db_type = models.CharField(max_length=max(map(lambda x: len(x), DB_TYPES)))
 
 
 PLOTTABLE_FIELDS = [
@@ -226,15 +215,15 @@ PLOTTABLE_FIELDS = [
 
 METRIC_META = {
     'throughput': {'unit': 'transactions/second', 'lessisbetter': False, 'scale': 1, 'print': 'Throughput'},
-    'p99_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 0.001, 'print': '99% Latency'},
-    'p95_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 0.001, 'print': '95% Latency'},
-    'p90_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 0.001, 'print': '90% Latency'},
-    'p75_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 0.001, 'print': '75% Latency'},
-    'p50_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 0.001, 'print': 'Med. Latency'},
-    'p25_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 0.001, 'print': '25% Latency'},
-    'min_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 0.001, 'print': 'Min Latency'},
-    'avg_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 0.001, 'print': 'Avg. Latency'},
-    'max_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 0.001, 'print': 'Max Latency'}
+    'p99_latency': {'unit': 'milliseconds', 'lessisbetter': True, 'scale': 0.001, 'print': '99% Latency'},
+    'p95_latency': {'unit': 'milliseconds', 'lessisbetter': True, 'scale': 0.001, 'print': '95% Latency'},
+    'p90_latency': {'unit': 'milliseconds', 'lessisbetter': True, 'scale': 0.001, 'print': '90% Latency'},
+    'p75_latency': {'unit': 'milliseconds', 'lessisbetter': True, 'scale': 0.001, 'print': '75% Latency'},
+    'p50_latency': {'unit': 'milliseconds', 'lessisbetter': True, 'scale': 0.001, 'print': 'Med. Latency'},
+    'p25_latency': {'unit': 'milliseconds', 'lessisbetter': True, 'scale': 0.001, 'print': '25% Latency'},
+    'min_latency': {'unit': 'milliseconds', 'lessisbetter': True, 'scale': 0.001, 'print': 'Min Latency'},
+    'avg_latency': {'unit': 'milliseconds', 'lessisbetter': True, 'scale': 0.001, 'print': 'Avg. Latency'},
+    'max_latency': {'unit': 'milliseconds', 'lessisbetter': True, 'scale': 0.001, 'print': 'Max Latency'}
 }
 
 

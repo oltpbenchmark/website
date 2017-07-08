@@ -1,0 +1,10 @@
+[
+  {
+    "model":"website.DBMSCatalog",
+    "pk":1,
+    "fields":{
+        "name":"POSTGRES",
+        "version":"9.6"
+     }
+  }
+]

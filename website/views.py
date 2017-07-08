@@ -9,6 +9,7 @@ from pytz import timezone, os
 from rexec import FileWrapper
 
 import logging
+from django.core.exceptions import ObjectDoesNotExist
 log = logging.getLogger(__name__)
 
 import xml.dom.minidom
@@ -129,12 +130,12 @@ def ml_info(request):
         time = now() - res.creation_time
         time = time.seconds
     
-    limit = Website_Conf.objects.get(name = "Time_Limit")
+    #limit = Website_Conf.objects.get(name = "Time_Limit")
     context = {"id":id,
                "result":res,
                "time":time,
                "task":task,
-               "limit":limit.value}
+               "limit":"300"} #limit.value}
 
     return render(request,"ml_info.html",context) 
 
@@ -175,14 +176,16 @@ def application(request):
 #     results = Result.objects.select_related("db_conf__db_type","benchmark_conf__benchmark_type").filter(application=application)
 #     results = Result.objects.prefetch_related("db_conf__db_type","benchmark_conf__benchmark_type").filter(application=application)
     print "RESULTS: {}".format(len(results))
-    db_with_data = {}
+#     db_with_data = {}
     benchmark_with_data = {}
+    dbs = []
 
     for res in results:
-        db_with_data[res.db_conf.db_type] = True
+        #db_with_data[res.db_conf.db_type] = True
+        dbs.append(res.db_conf.dbms.name)
         benchmark_with_data[res.benchmark_conf.benchmark_type] = True
     benchmark_confs = set([res.benchmark_conf for res in results])
-    dbs = [db for db in DBConf.DB_TYPES if db in db_with_data]
+    #dbs = [db for db in DBConf.DB_TYPES if db in db_with_data]
     benchmark_types = benchmark_with_data.keys()
     benchmarks = {}
     for benchmark in benchmark_types:
@@ -362,7 +365,7 @@ def new_result(request):
 #         hardware = form.cleaned_data['hardware']
 #         cluster = form.cleaned_data['cluster']
 
-        return handle_result_file(application, request.FILES)#,use,hardware,cluster)
+        return handle_result_files(application, request.FILES, 'store')#,use,hardware,cluster)
     log.warning("Request type was not POST")
     return HttpResponse("POST please\n")
 
@@ -408,172 +411,202 @@ def process_config(cfg, knob_dict, summary):
     row_y.append(float(sum_values[sum_names.index("99th_lat_ms")]))
     return row_x, row_y
 
-def handle_result_file(app, files, use="", hardware="hardware",
-                       cluster="cluster"):
-    
-    summary = "".join( files['summary_data'].chunks())
-    summary_lines = json.loads(summary)
-    db_conf = "".join(files['db_conf_data'].chunks())
-    db_conf_lines = json.loads(db_conf) 
-    
-    status_data = "".join( files['db_status_data'].chunks())
-    res_data = "".join( files['sample_data'].chunks())
-    if 'raw_data' in files:
-        raw_data = "".join( files['raw_data'].chunks())
-    else:
-        raw_data = ""
-    bench_conf_data = "".join( files['benchmark_conf_data'].chunks())   
 
-    w = Workload_info()
-    dom = xml.dom.minidom.parseString(bench_conf_data)
+def handle_result_files(app, files, use="", hardware="hardware",
+                        cluster="cluster"):
+    from .utils import parse_dbms_version_string
+    
+    # Load summary file
+    summary = json.loads(''.join(files['summary_data'].chunks()))
+
+    # Verify that the database/version is supported
+    dbms_type = summary['DBMS Type'].upper()
+    dbms_version = parse_dbms_version_string(dbms_type, summary['DBMS Version'])
+    
+    try:
+        dbms_object = DBMSCatalog.objects.get(name=dbms_type, version=dbms_version)
+    except ObjectDoesNotExist:
+        return HttpResponse('{} v{} is not yet supported.'.format(dbms_type, dbms_version))
+    
+    # Load DB parameters file
+    db_parameters = json.loads(''.join(files['db_parameters_data'].chunks()))
+    
+    # Load DB metrics file
+    db_metrics = json.loads(''.join(files['db_metrics_data'].chunks()))
+    
+    # Load benchmark config file
+    benchmark_config = ''.join(files['benchmark_conf_data'].chunks())
+    
+    # Load samples file
+    samples = ''.join(files['sample_data'].chunks())
+
+    # Load raw data file (not required)
+    raw_data = ''
+#     if 'raw_data' in files:
+#         raw_data = ''.join( files['raw_data'].chunks())
+#     else:
+#         raw_data = ''
+
+
+    # Create benchmark config model
+    dom = xml.dom.minidom.parseString(benchmark_config)
     root = dom.documentElement
-    w.isolation = (root.getElementsByTagName('isolation'))[0].firstChild.data
-    w.scalefactor = (root.getElementsByTagName('scalefactor'))[0].firstChild.data
-    w.terminals  = (root.getElementsByTagName('terminals'))[0].firstChild.data
-    w.time  = (root.getElementsByTagName('time'))[0].firstChild.data
-    w.rate  = (root.getElementsByTagName('rate'))[0].firstChild.data
-    w.skew  = (root.getElementsByTagName('skew'))#[0].firstChild.data
-    if len(w.skew) == 0:
-        w.skew = -1.0
+    benchmark_info = Workload_info()
+    benchmark_info.isolation = (root.getElementsByTagName('isolation'))[0].firstChild.data
+    benchmark_info.scalefactor = (root.getElementsByTagName('scalefactor'))[0].firstChild.data
+    benchmark_info.terminals  = (root.getElementsByTagName('terminals'))[0].firstChild.data
+    benchmark_info.time  = (root.getElementsByTagName('time'))[0].firstChild.data
+    benchmark_info.rate  = (root.getElementsByTagName('rate'))[0].firstChild.data
+    benchmark_info.skew  = (root.getElementsByTagName('skew'))
+    if len(benchmark_info.skew) == 0:
+        benchmark_info.skew = -1.0
     else:
-        w.skew = w.skew[0].firstChild.data
+        benchmark_info.skew = benchmark_info.skew[0].firstChild.data
     weights = root.getElementsByTagName('weights')
     trans = root.getElementsByTagName('name')
     trans_dict = {}
     for i in range(trans.length):
         trans_dict[trans[i].firstChild.data] = weights[i].firstChild.data
     trans_json = json.dumps(trans_dict)
-    w.trans_weights = trans_json
-    w.workload = bench_conf_data
-    w.save()
+    benchmark_info.trans_weights = trans_json
+    benchmark_info.workload = benchmark_config
+    benchmark_info.save()
 
 
-    db_type = summary_lines['dbms'].upper()
-    db_version = summary_lines['version']
-    bench_type = summary_lines['benchmark'].upper()
+    benchmark_type = summary['Benchmark Type'].upper()
 
-    bench = Oltpbench_info()
-    bench.summary = summary
-    bench.dbms_name = db_type
-    bench.dbms_version = db_version
-    bench.res = res_data
-    bench.status = status_data
-    bench.raw = raw_data
-    bench.cfg = db_conf
-    bench.wid = w
-    bench.user =  app.user
+    # Create new experiment model
+    experiment_info = Oltpbench_info()
+    experiment_info.summary = json.dumps(summary)
+#     experiment_info.dbms_name = dbms_type
+#     experiment_info.dbms_version = dbms_version
+    experiment_info.dbms = dbms_object
+    experiment_info.res = samples
+    experiment_info.status = db_metrics
+    experiment_info.raw = raw_data
+    experiment_info.cfg = db_parameters
+    experiment_info.wid = benchmark_info
+    experiment_info.user =  app.user
+    experiment_info.hardware = hardware 
+    experiment_info.cluster = cluster
 
-    bench.hardware = hardware 
-    bench.cluster = cluster
+    experiment_info.save()
 
-    bench.save()
-
-    if use.lower() == 'store':
-        return HttpResponse( "Store Success !") 
+#     if use.lower() == 'store':
+#         return HttpResponse( "Store Success !") 
 
 
-    knob_params = KNOB_PARAMS.objects.filter(db_type = db_type)
-    knob_dict = {}
+#     knob_params = KNOB_PARAMS.objects.filter(db_type = dbms_type)
+#     knob_dict = {}
+#  
+#     for x in knob_params:
+#         name = x.params
+#         tmp = Knob_catalog.objects.filter(name=name)
+#         knob_dict[name] = tmp[0].valid_vals
+#     
+#     cfgs = Oltpbench_info.objects.filter(user=app.user)   
+#   
+#     target_Xs=[]
+#     target_Ys=[]
+#  
+#     for x in cfgs:
+#         target_x,target_y = process_config(x.cfg, knob_dict, x.summary)
+#         target_Xs.append(target_x)
+#         target_Ys.append(target_y)
+#  
+#     exps = Oltpbench_info.objects.filter(dbms_name=dbms_type,
+#                                          dbms_version=dbms_version,
+#                                          hardware = hardware)
+# 
+#     #print target_Xs
+#     #print target_Ys
+# 
+# 
+#     ### workload mapping 
+# 
+#     clusters_list= []
+#     for x in exps: 
+#         t = x.cluster
+#         if t not in clusters_list and t != 'unknown':
+#             clusters_list.append(t)
+# 
+# 
+# 
+#     
+#     workload_min = []
+#     X_min = []
+#     Y_min = []
+#     min_dist = 1000000
+# 
+#     for name in clusters_list:
+#         exps_ = Oltpbench_info.objects.filter(dbms_name=dbms_type,dbms_version=dbms_version,hardware = hardware,cluster = name )       
+#         
+#         X=[]
+#         Y=[]        
+#         for x_ in exps_:
+#             x,y = process_config(x_.cfg,knob_dict,x_.summary)
+#             X.append(x)
+#             Y.append(y)  
+#    
+#         sample_size = len(X)
+#         ridges = np.random.uniform(0,1,[sample_size])
+#         print "workload"
+#         y_gp = gp_workload(X,Y,target_Xs,ridges) 
+#         dist = np.sqrt(sum(pow(np.transpose(y_gp-target_Ys)[0],2)))
+#         if min_dist > dist:
+#             min_dist = dist
+#             X_min = X
+#             Y_min = Y
+#             workload_min = name
+# 
+#     bench.cluster = workload_min 
+#     bench.save()
+# 
+# 
+# 
+# 
+#     globals = db_conf_lines['global']
+#     globals = globals[0]
+#  
+#     db_cnf_names = globals['variable_names']
+#     db_cnf_values = globals['variable_values']
+#     db_cnf_info = {}
+#     for i in range(len(db_cnf_names)):
+#         db_cnf_info[db_cnf_names[i]] = db_cnf_values[i]
+# 
+#     if not dbms_type in DBConf.DB_TYPES:
+#         return HttpResponse(dbms_type + "  db_type Wrong")
 
-    for x in knob_params:
-        name = x.params
-        tmp = Knob_catalog.objects.filter(name=name)
-        knob_dict[name] = tmp[0].valid_vals
-   
-    cfgs = Oltpbench_info.objects.filter(user=app.user)   
+    featured_params = []
+    for param in KnobCatalog.objects.filter(dbms=dbms_object, tunable=True):
+        featured_params.append(re.compile(param.name, re.UNICODE | re.IGNORECASE))
  
-    target_Xs=[]
-    target_Ys=[]
-
-    for x in cfgs:
-        target_x,target_y = process_config(x.cfg,knob_dict,x.summary)
-        target_Xs.append(target_x)
-        target_Ys.append(target_y)
-
-    exps = Oltpbench_info.objects.filter(dbms_name=db_type,dbms_version=db_version,hardware = hardware)
-
-    #print target_Xs
-    #print target_Ys
-
-
-    ### workload mapping 
-
-    clusters_list= []
-    for x in exps: 
-        t = x.cluster
-        if t not in clusters_list and t != 'unknown':
-            clusters_list.append(t)
-
-
-
-    
-    workload_min = []
-    X_min = []
-    Y_min = []
-    min_dist = 1000000
-
-    for name in clusters_list:
-        exps_ = Oltpbench_info.objects.filter(dbms_name=db_type,dbms_version=db_version,hardware = hardware,cluster = name )       
-        
-        X=[]
-        Y=[]        
-        for x_ in exps_:
-            x,y = process_config(x_.cfg,knob_dict,x_.summary)
-            X.append(x)
-            Y.append(y)  
-   
-        sample_size = len(X)
-        ridges = np.random.uniform(0,1,[sample_size])
-        print "workload"
-        y_gp = gp_workload(X,Y,target_Xs,ridges) 
-        dist = np.sqrt(sum(pow(np.transpose(y_gp-target_Ys)[0],2)))
-        if min_dist > dist:
-            min_dist = dist
-            X_min = X
-            Y_min = Y
-            workload_min = name
-
-    bench.cluster = workload_min 
-    bench.save()
-
-
-
-
-    globals = db_conf_lines['global']
-    globals = globals[0]
-
-    db_cnf_names = globals['variable_names']
-    db_cnf_values = globals['variable_values']
-    db_cnf_info = {}
-    for i in range(len(db_cnf_names)):
-        db_cnf_info[db_cnf_names[i]] = db_cnf_values[i]
-
- 
-    
-    if not db_type in DBConf.DB_TYPES:
-        return HttpResponse(db_type + "  db_type Wrong")
-
-    features = LEARNING_PARAMS.objects.filter(db_type = db_type)
-    LEARNING_VARS = []
-    for f in features:
-        LEARNING_VARS.append( re.compile(f.params, re.UNICODE | re.IGNORECASE))
-
+#     features = LEARNING_PARAMS.objects.filter(db_type = dbms_type)
+#     LEARNING_VARS = []
+#     for f in features:
+#         LEARNING_VARS.append( re.compile(f.params, re.UNICODE | re.IGNORECASE))
     db_conf_list = []
     similar_conf_list = []
-    for i in range(len(db_cnf_info)):
-        key = db_cnf_info.keys()[i]
-        value = db_cnf_info.values()[i]    
-        for v in LEARNING_VARS:
-    	    if v.match(key):
-	    	similar_conf_list.append([key,value])
-        db_conf_list.append([key, value])
-    	
+#     for i in range(len(db_cnf_info)):
+#         key = db_cnf_info.keys()[i]
+#         value = db_cnf_info.values()[i]    
+#         for v in LEARNING_VARS:
+#             if v.match(key):
+#                 similar_conf_list.append([key,value])
+#         db_conf_list.append([key, value])
+        
+    for k,v in db_parameters.iteritems():
+        for var in featured_params:
+            if var.match(k):
+                similar_conf_list.append([k, v])
+        db_conf_list.append([k, v])
+    #log.warn(db_conf_list)
     db_conf_str = json.dumps(db_conf_list)
     similar_conf_str = json.dumps(similar_conf_list)	
     
 
     try:
-        db_confs = DBConf.objects.filter(configuration=db_conf_str,similar_conf=similar_conf_str)
+        db_confs = DBConf.objects.filter(configuration=db_conf_str, similar_conf=similar_conf_str)
         if len(db_confs) < 1:
             raise DBConf.DoesNotExist
         db_conf = db_confs[0]
@@ -583,10 +616,10 @@ def handle_result_file(app, files, use="", hardware="hardware",
         db_conf.name = ''
         db_conf.configuration = db_conf_str
         db_conf.application = app
-        db_conf.db_type = db_type
+        db_conf.dbms = dbms_object
         db_conf.similar_conf = similar_conf_str
-	db_conf.save()
-        db_conf.name = db_type + '@' + db_conf.creation_time.strftime("%Y-%m-%d,%H") + '#' + str(db_conf.pk)
+        db_conf.save()
+        db_conf.name = dbms_type + '@' + db_conf.creation_time.strftime("%Y-%m-%d,%H") + '#' + str(db_conf.pk)
         db_conf.save()
     bench_conf_str = "".join( files['benchmark_conf_data'].chunks())
 
@@ -600,38 +633,32 @@ def handle_result_file(app, files, use="", hardware="hardware",
         bench_conf.name = ''
         bench_conf.application = app
         bench_conf.configuration = bench_conf_str
-        bench_conf.benchmark_type = bench_type
+        bench_conf.benchmark_type = benchmark_type
         bench_conf.creation_time = now()
-        bench_conf.isolation = summary_lines['isolation_level'].upper()
-        bench_conf.terminals = summary_lines['terminals']
-        bench_conf.scalefactor = summary_lines['scalefactor']
+        bench_conf.isolation = summary['isolation'].upper()
+        bench_conf.terminals = summary['terminals']
+        bench_conf.scalefactor = summary['scalefactor']
         bench_conf.save()
-        bench_conf.name = bench_type + '@' + bench_conf.creation_time.strftime("%Y-%m-%d,%H") + '#' + str(bench_conf.pk)
+        bench_conf.name = benchmark_type + '@' + bench_conf.creation_time.strftime("%Y-%m-%d,%H") + '#' + str(bench_conf.pk)
         bench_conf.save()
 
     result = Result()
     result.db_conf = db_conf
     result.benchmark_conf = bench_conf
     result.application = app
-    result.timestamp = datetime.fromtimestamp(int(summary_lines['timestamp_utc_sec']), timezone("UTC"))
+    result.timestamp = datetime.fromtimestamp(int(summary['Current Timestamp (milliseconds)']) / 1000, timezone("UTC"))
 
-    latency_dict = {}
-    names = summary_lines['variable_names']
-    values = summary_lines['variable_values']
-    for i in range(len(names)):
-        latency_dict[names[i]] = values[i]
-         
-
-    result.avg_latency = float(latency_dict['avg_lat_ms'])
-    result.min_latency = float(latency_dict['min_lat_ms'])
-    result.p25_latency = float(latency_dict['25th_lat_ms'])
-    result.p50_latency = float(latency_dict['med_lat_ms'])
-    result.p75_latency = float(latency_dict['75th_lat_ms'])
-    result.p90_latency = float(latency_dict['90th_lat_ms'])
-    result.p95_latency = float(latency_dict['95th_lat_ms'])
-    result.p99_latency = float(latency_dict['99th_lat_ms'])
-    result.max_latency = float(latency_dict['max_lat_ms'])
-    result.throughput = float(latency_dict['throughput_req_per_sec'])
+    latencies = summary['Latency Distribution']
+    result.avg_latency = float(latencies['Average Latency (microseconds)'])
+    result.min_latency = float(latencies['Minimum Latency (microseconds)'])
+    result.p25_latency = float(latencies['25th Percentile Latency (microseconds)'])
+    result.p50_latency = float(latencies['Median Latency (microseconds)'])
+    result.p75_latency = float(latencies['75th Percentile Latency (microseconds)'])
+    result.p90_latency = float(latencies['90th Percentile Latency (microseconds)'])
+    result.p95_latency = float(latencies['95th Percentile Latency (microseconds)'])
+    result.p99_latency = float(latencies['99th Percentile Latency (microseconds)'])
+    result.max_latency = float(latencies['Maximum Latency (microseconds)'])
+    result.throughput = float(summary['Throughput (requests/second)'])
     result.creation_time = now()
     result.save()
 
@@ -650,76 +677,91 @@ def handle_result_file(app, files, use="", hardware="hardware",
             dest.write('')
         dest.close()
 
-    myfile = "".join(files['sample_data'].chunks())
-    input = json.loads(myfile)
-    sample_lines = input['samples']
-
-    for line in sample_lines:
+    sample_lines = samples.split('\n')
+    header = sample_lines[0].split(',')
+    
+    time_idx = header.index('Time (seconds)')
+    tput_idx = header.index('Throughput (requests/second)')
+    avg_idx = header.index('Average Latency (microseconds)')
+    min_idx = header.index('Minimum Latency (microseconds)')
+    p25_idx = header.index('25th Percentile Latency (microseconds)')
+    p50_idx = header.index('Median Latency (microseconds)')
+    p75_idx = header.index('75th Percentile Latency (microseconds)')
+    p90_idx = header.index('90th Percentile Latency (microseconds)')
+    p95_idx = header.index('95th Percentile Latency (microseconds)')
+    p99_idx = header.index('99th Percentile Latency (microseconds)')
+    max_idx = header.index('Maximum Latency (microseconds)')
+    for line in sample_lines[1:]:
+        if line == '':
+            continue
         sta = Statistics()
-        nums = line
+        nums = line.strip().split(',')
+        log.warn(nums)
         sta.result = result
-        sta.time = int(float(nums[0]))
-        sta.throughput = float(nums[2])
-        sta.avg_latency = float(nums[3])
-        sta.min_latency = float(nums[4])
-        sta.p25_latency = float(nums[5])
-        sta.p50_latency = float(nums[6])
-        sta.p75_latency = float(nums[7])
-        sta.p90_latency = float(nums[8])
-        sta.p95_latency = float(nums[9])
-        sta.p99_latency = float(nums[10])
-        sta.max_latency = float(nums[11])
+        sta.time = int(nums[time_idx])
+        sta.throughput = float(nums[tput_idx])
+        sta.avg_latency = float(nums[avg_idx])
+        sta.min_latency = float(nums[min_idx])
+        sta.p25_latency = float(nums[p25_idx])
+        sta.p50_latency = float(nums[p50_idx])
+        sta.p75_latency = float(nums[p75_idx])
+        sta.p90_latency = float(nums[p90_idx])
+        sta.p95_latency = float(nums[p95_idx])
+        sta.p99_latency = float(nums[p99_idx])
+        sta.max_latency = float(nums[max_idx])
         sta.save()
  
     app.project.last_update = now()
     app.last_update = now()
     app.project.save()
-    app.save() 
+    app.save()
 
-    id = result.pk
-    task = Task()
-    task.id = id
-    task.creation_time = now() 
-    print "run_ml"
-    response = run_ml.delay(X_min,Y_min,knob_dict.keys() )
-    task.status = response.status
-    task.save()
-    #time limits  default  300s 
-    time_limit =  Website_Conf.objects.get(name = 'Time_Limit')
-    time_limit = int(time_limit.value)
-    
-    for i in range(time_limit):
-        time.sleep(1)
-        if response.status != task.status:
-            task.status = response.status
-            task.save()
-        if response.ready():
-            task.finish_time = now()
-            break
-    
-    response_message = task.status
-    if task.status == "FAILURE":
-        task.traceback = response.traceback
-        task.running_time = (task.finish_time - task.creation_time).seconds
-        response_message += ": " + response.traceback
-    elif task.status == "SUCCESS":
-        res = response.result
-        with open(path_prefix + '_new_conf', 'wb') as dest:        
-            dest.write(res)
-            dest.close()
- 
-        task.running_time = (task.finish_time - task.creation_time).seconds
-        task.result = res
-        task.save()
-        return HttpResponse(res) 
-    else:
-        task.status = "TIME OUT"
-        task.traceback = response.traceback 
-        task.running_time = time_limit
-        response_message = "TIME OUT: " + response.traceback
-    task.save()
-#     return  HttpResponse(task.status)
-    return  HttpResponse(response_message)
+    return HttpResponse( "Store Success !") 
+
+#     id = result.pk
+#     task = Task()
+#     task.id = id
+#     task.creation_time = now() 
+#     print "run_ml"
+#     response = run_ml.delay(X_min,Y_min,knob_dict.keys() )
+#     task.status = response.status
+#     task.save()
+#     #time limits  default  300s 
+#     time_limit =  Website_Conf.objects.get(name = 'Time_Limit')
+#     time_limit = int(time_limit.value)
+#     
+#     for i in range(time_limit):
+#         time.sleep(1)
+#         if response.status != task.status:
+#             task.status = response.status
+#             task.save()
+#         if response.ready():
+#             task.finish_time = now()
+#             break
+#     
+#     response_message = task.status
+#     if task.status == "FAILURE":
+#         task.traceback = response.traceback
+#         task.running_time = (task.finish_time - task.creation_time).seconds
+#         response_message += ": " + response.traceback
+#     elif task.status == "SUCCESS":
+#         res = response.result
+#         with open(path_prefix + '_new_conf', 'wb') as dest:        
+#             dest.write(res)
+#             dest.close()
+#  
+#         task.running_time = (task.finish_time - task.creation_time).seconds
+#         task.result = res
+#         task.save()
+#         return HttpResponse(res) 
+#     else:
+#         task.status = "TIME OUT"
+#         task.traceback = response.traceback 
+#         task.running_time = time_limit
+#         response_message = "TIME OUT: " + response.traceback
+#     task.save()
+# #     return  HttpResponse(task.status)
+#     return  HttpResponse(response_message)
 
 
 def file_iterator(file_name, chunk_size=512):
@@ -742,31 +784,40 @@ def db_conf_view(request):
     db_conf = DBConf.objects.get(pk=request.GET['id'])
     if db_conf.application.user != request.user:
         return render(request, '404.html')
-    conf_str = db_conf.configuration
-    conf = json.loads(conf_str, encoding="UTF-8")
+    dbms_config = json.loads(db_conf.configuration, encoding="UTF-8")
 
-    features = FEATURED_PARAMS.objects.filter(db_type = db_conf.db_type)
-    FEATURED_VARS = []
-    for f in features:
-        tmp = re.compile(f.params, re.UNICODE | re.IGNORECASE)
-    	FEATURED_VARS.append(tmp)
+    tunable_param_names = []
+    for param in KnobCatalog.objects.filter(dbms=DBConf.dbms, tunable=True):
+        tunable_param_names.append(re.compile(param.name, re.UNICODE | re.IGNORECASE))
+        
+    tunable_params = filter(lambda x: filter_db_var(x, tunable_param_names), dbms_config)
+#     tunable_params = []
+#     for k,v in dbms_config.iteritems():
+#         for param_name in tunable_param_names:
+#             if param_name.match(k):
+#                 tunable_params
+#     features = FEATURED_PARAMS.objects.filter(db_type = db_conf.db_type)
+#     FEATURED_VARS = []
+#     for f in features:
+#         tmp = re.compile(f.params, re.UNICODE | re.IGNORECASE)
+#     	FEATURED_VARS.append(tmp)
  
-    featured = filter(lambda x: filter_db_var(x, FEATURED_VARS), conf)
+#     featured = filter(lambda x: filter_db_var(x, FEATURED_VARS), conf)
 
     if 'compare' in request.GET and request.GET['compare'] != 'none':
         compare_conf = DBConf.objects.get(pk=request.GET['compare'])
         compare_conf_list = json.loads(compare_conf.configuration, encoding='UTF-8')
-        for a, b in zip(conf, compare_conf_list):
+        for a, b in zip(dbms_config, compare_conf_list):
             a.extend(b[1:])
-        for a, b in zip(featured, filter(lambda x: filter_db_var(x, FEATURED_VARS),
-                                         json.loads(compare_conf.configuration, encoding='UTF-8'))):
+        for a, b in zip(tunable_params, filter(lambda x: filter_db_var(x, tunable_param_names),
+                        json.loads(compare_conf.configuration, encoding='UTF-8'))):
             a.extend(b[1:])
 
     peer = DBConf.objects.filter(db_type=db_conf.db_type, application=db_conf.application)
     peer_db_conf = [[c.name, c.pk] for c in peer if c.pk != db_conf.pk]
 
-    context = {'parameters': conf,
-               'featured_par': featured,
+    context = {'parameters': dbms_config,
+               'featured_par': tunable_params,
                'db_conf': db_conf,
                'compare': request.GET.get('compare', 'none'),
                'peer_db_conf': peer_db_conf}
@@ -780,22 +831,25 @@ def benchmark_configuration(request):
     if benchmark_conf.application.user != request.user:
         return render(request, '404.html')
 
+    dbms_objects = DBMSCatalog.objects.all()
     all_db_confs = []
     dbs = {}
-    for db_type in DBConf.DB_TYPES:
-        dbs[db_type] = {}
+    for dbms_object in dbms_objects:
+    #for db_type in DBConf.DB_TYPES:
+        dbms_key = '{}_{}'.format(dbms_object.name, dbms_object.version)
+        dbs[dbms_key] = {}
 
-        db_confs = DBConf.objects.filter(application=benchmark_conf.application, db_type=db_type)
+        db_confs = DBConf.objects.filter(application=benchmark_conf.application, db_type=dbms_object)
         for db_conf in db_confs:
             rs = Result.objects.filter(db_conf=db_conf, benchmark_conf=benchmark_conf)
             if len(rs) < 1:
                 continue
             r = rs.latest('timestamp')
             all_db_confs.append(db_conf.pk)
-            dbs[db_type][db_conf.name] = [db_conf, r]
+            dbs[dbms_key][db_conf.name] = [db_conf, r]
 
-        if len(dbs[db_type]) < 1:
-            dbs.pop(db_type)
+        if len(dbs[dbms_key]) < 1:
+            dbs.pop(dbms_key)
 
     context = {'benchmark': benchmark_conf,
                'dbs': dbs,
@@ -897,7 +951,7 @@ def result_similar(a, b):
 
 def learn_model(results):
     features = []
-    features2 = LEARNING_PARAMS.objects.filter(db_type = results[0].db_conf.db_type)
+    features2 = KnobCatalog.objects.filter(dbms=results[0].db_conf.dbms, tunable=True)
     LEARNING_VARS = []
     for f in features2:
         LEARNING_VARS.append( re.compile(f.params, re.UNICODE | re.IGNORECASE))
@@ -928,7 +982,7 @@ def apply_model(model, data, target):
     values = []
     db_conf = json.loads(data.db_conf.configuration)
     db_conf_t = json.loads(target.db_conf.configuration)
-    features = LEARNING_PARAMS.objects.filter(db_type = data.db_conf.db_type)
+    features = KnobCatalog.objects.filter(dbms=data.db_conf.dbms, tunable=True)
     LEARNING_VARS = []
     for f in features:
         LEARNING_VARS.append( re.compile(f.params, re.UNICODE | re.IGNORECASE))
@@ -958,7 +1012,7 @@ def apply_model(model, data, target):
 def update_similar(request):
     target = get_object_or_404(Result, pk=request.GET['id'])
     results = Result.objects.filter(application=target.application, benchmark_conf=target.benchmark_conf)
-    results = filter(lambda x: x.db_conf.db_type == target.db_conf.db_type, results)
+    results = filter(lambda x: x.db_conf.dbms == target.db_conf.dbms, results)
 
     linear_model = learn_model(results)
     diff_results = filter(lambda x: x != target, results)
@@ -977,25 +1031,22 @@ def update_similar(request):
 
 def result(request):
     target = get_object_or_404(Result, pk=request.GET['id'])
-    task = get_object_or_404(Task, id=request.GET['id'])
+    #task = get_object_or_404(Task, id=request.GET['id'])
     data_package = {}
     sames = {}   
     similars = {}
   
-    results = Result.objects.select_related("db_conf__db_type","db_conf__configuration","db_conf__similar_conf").filter(application=target.application, benchmark_conf=target.benchmark_conf)
-    results = filter(lambda x: x.db_conf.db_type == target.db_conf.db_type, results)
-    sames = []
+    #results = Result.objects.select_related("db_conf__db_type","db_conf__configuration","db_conf__similar_conf").filter(application=target.application, benchmark_conf=target.benchmark_conf)
+    results = Result.objects.select_related("db_conf__application").filter(application=target.application, benchmark_conf=target.benchmark_conf)
+
+    results = filter(lambda x: x.db_conf.dbms == target.db_conf.dbms, results)
+    #sames = []
     sames = filter(lambda x:  result_similar(x,target) and x != target , results)
   
 
     similars = [Result.objects.get(pk=rid) for rid in filter(lambda x: len(x) > 0, target.most_similar.split(','))]
 
-    results = []
-
-
-
-
-
+    #results = []
     for metric in PLOTTABLE_FIELDS:
         data_package[metric] = {
             'data': {},
@@ -1025,16 +1076,24 @@ def result(request):
                         [t.time - offset, getattr(t, metric) * METRIC_META[metric]['scale']])
                 cache.set(key,data_package[metric]['data'][int(x)],60*5) 
 
+    overall_throughput = '{0:0.2f}'.format(target.throughput * METRIC_META['throughput']['scale'])
+    overall_p99_latency = '{0:0.2f}'.format(target.p99_latency * METRIC_META['p99_latency']['scale'])
 
+    default_metrics = {}
+    for met in ['throughput', 'p99_latency']:
+        default_metrics[met] = '{0:0.2f}'.format(getattr(target, met) * METRIC_META[met]['scale'])
     
     context = {
         'result': target, 
         'metrics': PLOTTABLE_FIELDS,
         'metric_meta': METRIC_META,
-        'default_metrics': ['throughput', 'p99_latency'],
+        #'default_metrics': ['throughput', 'p99_latency'],
+        'overall_throughput': overall_throughput,
+        'overall_p99_latency': overall_p99_latency,
+        'default_metrics': default_metrics,
         'data': json.dumps(data_package),
         'same_runs': sames,
-        'task':task,
+        'task':'', #task,
         'similar_runs': similars
     }
     return render(request, 'result.html', context)
@@ -1043,7 +1102,7 @@ def result(request):
 @login_required(login_url='/login/')
 def get_result_data_file(request):
     target = get_object_or_404(Result, pk=request.GET['id'])
-    task =  get_object_or_404(Task, pk=request.GET['id'])
+    #task =  get_object_or_404(Task, pk=request.GET['id'])
     if target.application.user != request.user:
         return render(request, '404.html')
 
@@ -1083,10 +1142,12 @@ def get_timeline_data(request):
         return HttpResponse(json.dumps(data_package), content_type='application/json')
 
     revs = int(request.GET['revs'])
+    
+    log.warn(request.GET['db'].split(','))
 
     # Get all results related to the selected DBMS, sort by time
     results = Result.objects.filter(application=request.GET['proj'])
-    results = filter(lambda x: x.db_conf.db_type in request.GET['db'].split(','), results)
+    results = filter(lambda x: x.db_conf.dbms.name in request.GET['db'].split(','), results)
     results = sorted(results, cmp=lambda x, y: int((x.timestamp - y.timestamp).total_seconds()))
 
     # Determine which benchmark is selected
@@ -1145,7 +1206,7 @@ def get_timeline_data(request):
             }
 
             for db in request.GET['db'].split(','):
-                d_r = filter(lambda x: x.db_conf.db_type == db, b_r)
+                d_r = filter(lambda x: x.db_conf.dbms.name == db, b_r)
                 d_r = d_r[-revs:]
                 out = [
                     [
