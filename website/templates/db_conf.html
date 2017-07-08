@@ -4,7 +4,7 @@
 <div class="container">
     <div class="container" style="overflow: auto;">
     <table class="table table-striped table-bordered table-condensed table-hover">
-        <caption><h4>DB Configuration (<a href="/edit_db_conf/?id={{ db_conf.pk }}">edit</a>)</h4></caption>
+        <caption><h4>DBMS Configuration (<a href="/edit_db_conf/?id={{ db_conf.pk }}">edit</a>)</h4></caption>
         <tbody>
         <tr>
             <td><div class="text-right">Name</div></td>
@@ -37,10 +37,10 @@
     </div>
 
     <div id="featured">
-        <h4>Featured DB System Parameters | <a onclick="switch_content()">Show Full Table</a></h4>
+        <h4>Tunable DBMS Parameters | <a onclick="switch_content()">Show All DBMS Parameters</a></h4>
         <table class="table table-striped table-bordered table-condensed table-hover" style="table-layout: fixed;">
         <caption></caption>
-        <tr><td>Parameter</td><td>Value</td>{% if compare != "none" %}<td>Comparing Value</td>{% endif %}</tr>
+        <tr><td><h5><strong>Name</strong><h5></td><td><h5><strong>Value</strong></h5></td>{% if compare != "none" %}<td>Comparing Value</td>{% endif %}</tr>
         {% for pair in featured_par %}
             {% if pair.2 and pair.2 != pair.1 %}
             <tr class="danger">
@@ -57,10 +57,10 @@
         </table>
     </div>
     <div id="para_table">
-        <h4>DB System Parameters | <a onclick="switch_content()">Show Only Featured Parameters</a></h4>
+        <h4>All DBMS Parameters | <a onclick="switch_content()">Show Tunable DBMS Parameters</a></h4>
         <table class="table table-striped table-bordered table-condensed table-hover" style="table-layout: fixed;">
         <caption></caption>
-        <tr><td>Parameter</td><td>Value</td>{% if compare != "none" %}<td>Comparing Value</td>{% endif %}</tr>
+        <tr><td><h5><strong>Name</strong><h5></td><td><h5><strong>Value</strong></h5></td>{% if compare != "none" %}<td>Comparing Value</td>{% endif %}</tr>
         {% for pair in parameters %}
             {% if pair.2 and pair.2 != pair.1 %}
             <tr class="danger">

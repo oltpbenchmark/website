@@ -127,5 +127,5 @@ def recreate_website_dbms():
     local('python manage.py migrate website')
     local('python manage.py migrate')
     local('python manage.py loaddata script/preload/*')
-    local("mysql -u {} -p{} -D {} -N -B -e \"ALTER TABLE website_oltpbench_info MODIFY raw LONGTEXT CHARACTER SET utf8 COLLATE utf8_general_ci;\"".format(user, passwd, name))
+#     local("mysql -u {} -p{} -D {} -N -B -e \"ALTER TABLE website_oltpbench_info MODIFY raw LONGTEXT CHARACTER SET utf8 COLLATE utf8_general_ci;\"".format(user, passwd, name))
 

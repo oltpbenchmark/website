@@ -1,8 +1,8 @@
 from django.contrib import admin
-from website.models import Project, Result, ExperimentConf, DBConf, Statistics, Application
+from website.models import Project, Result, BenchmarkConfig, DBConf, Statistics, Application
 
-class ExperimentConfAdmin(admin.ModelAdmin):
-    list_display = [ 'name', 'application', 'benchmark_type', 'creation_time' ]
+class BenchmarkConfigAdmin(admin.ModelAdmin):
+    list_display = [ 'name', 'benchmark_type', 'creation_time' ]
     list_filter = [ 'creation_time' ]
 
 class ProjectAdmin(admin.ModelAdmin):
@@ -29,7 +29,7 @@ class ApplicationAdmin(admin.ModelAdmin):
 
 admin.site.register(Application, ApplicationAdmin)
 admin.site.register(Project, ProjectAdmin)
-admin.site.register(ExperimentConf, ExperimentConfAdmin)
+admin.site.register(BenchmarkConfig, BenchmarkConfigAdmin)
 admin.site.register(DBConf, DBConfAdmin)
 # admin.site.register(FEATURED_PARAMS,FEATURED_PARAMSAdmin)
 # admin.site.register(LEARNING_PARAMS, LEARNING_PARAMSAdmin)

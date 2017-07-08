@@ -2,6 +2,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django import forms
+from django.core.validators import validate_comma_separated_integer_list
 
 class DBMSCatalog(models.Model):
     name = models.CharField(max_length=32)
@@ -36,35 +37,6 @@ class MetricCatalog(models.Model):
     summary = models.TextField(null=True)
     scope = models.CharField(max_length=16)
     metric_type = models.CharField(max_length=16, choices=METRIC_TYPES)
-
-class Workload_info(models.Model): 
-    isolation = models.CharField(max_length=64)
-    scalefactor = models.IntegerField()
-    terminals = models.IntegerField()
-    time = models.IntegerField()
-    rate = models.CharField(max_length=64)
-    skew = models.FloatField(null=True)
-    trans_weights = models.TextField()
-    workload = models.TextField()
-
-class Oltpbench_info(models.Model):
-#    id = models.IntegerField(primary_key=True)
-
-    user = models.ForeignKey(User) 
-    dbms = models.ForeignKey(DBMSCatalog)
-#     dbms_name = models.CharField(max_length=64)
-#     dbms_version = models.CharField(max_length=64)
-
-    hardware = models.CharField(null=True, max_length=64)
-    cluster = models.TextField(null=True)
-
-    summary = models.TextField()
-    res = models.TextField()
-    status = models.TextField()
-    cfg = models.TextField()
-    raw = models.TextField(null=True)
-    
-    wid = models.ForeignKey(Workload_info)
      
 
 class NewResultForm(forms.Form):
@@ -96,9 +68,6 @@ class Project(models.Model):
             x.delete()
         super(Project, self).delete(using)
 
-
-
-
 class Task(models.Model):
     id = models.IntegerField(primary_key=True)
     creation_time = models.DateTimeField()
@@ -123,7 +92,7 @@ class Application(models.Model):
     def delete(self, using=None):
         targets = DBConf.objects.filter(application=self)
         results = Result.objects.filter(application=self)
-        expconfs =  ExperimentConf.objects.filter(application=self)
+        expconfs =  BenchmarkConfig.objects.filter(application=self)
         for t in targets:
             t.delete()
         for r in results:
@@ -132,28 +101,49 @@ class Application(models.Model):
             x.delete()
         super(Application, self).delete(using)
 
-
-
-
-
-class ExperimentConf(models.Model):
+class BenchmarkConfig(models.Model):
     application = models.ForeignKey(Application)
-   
-
-    name = models.CharField(max_length=50)
-    description = models.CharField(max_length=512)
+    name = models.CharField(max_length=64)
+    description = models.CharField(max_length=512, null=True)
     configuration = models.TextField()
-    benchmark_type = models.CharField(max_length=512)
+    benchmark_type = models.CharField(max_length=64)
     creation_time = models.DateTimeField()
-    isolation = models.TextField()
-    scalefactor = models.TextField()
-    terminals = models.TextField()
+    isolation = models.CharField(max_length=64)
+    scalefactor = models.FloatField()
+    terminals = models.IntegerField()
+    time = models.IntegerField()
+    rate = models.CharField(max_length=32)
+    skew = models.FloatField(null=True)
+    transaction_types = models.TextField(validators=[validate_comma_separated_integer_list])
+    transaction_weights = models.TextField(validators=[validate_comma_separated_integer_list])
 
     FILTER_FIELDS = [
         {'field': 'isolation', 'print': 'Isolation Level'},
         {'field': 'scalefactor', 'print': 'Scale Factor'},
         {'field': 'terminals', 'print': '# of Terminals'},
     ]
+
+# class Oltpbench_info(models.Model):
+# #    id = models.IntegerField(primary_key=True)
+# 
+#     
+#     
+# #     dbms_name = models.CharField(max_length=64)
+# #     dbms_version = models.CharField(max_length=64)
+# 
+# 
+#     
+#     benchmark_config = models.ForeignKey(BenchmarkConfig)
+
+# class Workload_info(models.Model): 
+#     isolation = models.CharField(max_length=64)
+#     scalefactor = models.IntegerField()
+#     terminals = models.IntegerField()
+#     time = models.IntegerField()
+#     rate = models.CharField(max_length=64)
+#     skew = models.FloatField(null=True)
+#     trans_weights = models.TextField()
+#     workload = models.TextField()
 
 
 
@@ -195,9 +185,63 @@ class DBConf(models.Model):
     description = models.CharField(max_length=512)
     creation_time = models.DateTimeField()
     configuration = models.TextField()
-    similar_conf = models.TextField(default = "zbh")
+    similar_conf = models.TextField(null=True)
     dbms = models.ForeignKey(DBMSCatalog)
-    #db_type = models.CharField(max_length=max(map(lambda x: len(x), DB_TYPES)))
+
+class DBMSMetrics(models.Model):
+    application = models.ForeignKey(Application)
+    name = models.CharField(max_length=50)
+    description = models.CharField(max_length=512)
+    creation_time = models.DateTimeField()
+    configuration = models.TextField()
+    similar_conf = models.TextField(null=True)
+    dbms = models.ForeignKey(DBMSCatalog)
+
+class Result(models.Model):
+    application = models.ForeignKey(Application)
+    dbms = models.ForeignKey(DBMSCatalog)
+    benchmark_config = models.ForeignKey(BenchmarkConfig)
+    dbms_config = models.ForeignKey(DBConf)
+
+    creation_time = models.DateTimeField()
+    hardware = models.CharField(null=True, max_length=64)
+    cluster = models.TextField(null=True)
+
+    summary = models.TextField()
+    samples = models.TextField()
+#     params = models.TextField()
+#     metrics = models.TextField()
+
+    timestamp = models.DateTimeField()
+    throughput = models.FloatField()
+    avg_latency = models.FloatField()
+    min_latency = models.FloatField()
+    p25_latency = models.FloatField()
+    p50_latency = models.FloatField()
+    p75_latency = models.FloatField()
+    p90_latency = models.FloatField()
+    p95_latency = models.FloatField()
+    p99_latency = models.FloatField()
+    max_latency = models.FloatField()
+#     most_similar = models.CommaSeparatedIntegerField(max_length=100)
+    most_similar = models.CharField(max_length=100, validators=[validate_comma_separated_integer_list])
+
+    def __unicode__(self):
+        return unicode(self.pk)
+
+class Statistics(models.Model):
+    result = models.ForeignKey(Result)
+    time = models.IntegerField()
+    throughput = models.FloatField()
+    avg_latency = models.FloatField()
+    min_latency = models.FloatField()
+    p25_latency = models.FloatField()
+    p50_latency = models.FloatField()
+    p75_latency = models.FloatField()
+    p90_latency = models.FloatField()
+    p95_latency = models.FloatField()
+    p99_latency = models.FloatField()
+    max_latency = models.FloatField()
 
 
 PLOTTABLE_FIELDS = [
@@ -225,44 +269,4 @@ METRIC_META = {
     'avg_latency': {'unit': 'milliseconds', 'lessisbetter': True, 'scale': 0.001, 'print': 'Avg. Latency'},
     'max_latency': {'unit': 'milliseconds', 'lessisbetter': True, 'scale': 0.001, 'print': 'Max Latency'}
 }
-
-
-class Result(models.Model):
-    benchmark_conf = models.ForeignKey(ExperimentConf)
-    db_conf = models.ForeignKey(DBConf)
-
-    application = models.ForeignKey(Application)
-    creation_time = models.DateTimeField()
-
-    timestamp = models.DateTimeField()
-    throughput = models.FloatField()
-    avg_latency = models.FloatField()
-    min_latency = models.FloatField()
-    p25_latency = models.FloatField()
-    p50_latency = models.FloatField()
-    p75_latency = models.FloatField()
-    p90_latency = models.FloatField()
-    p95_latency = models.FloatField()
-    p99_latency = models.FloatField()
-    max_latency = models.FloatField()
-    most_similar = models.CommaSeparatedIntegerField(max_length=100)
-#     most_similar = models.CharField(max_length=100)
-
-    def __unicode__(self):
-        return unicode(self.pk)
-
-
-class Statistics(models.Model):
-    result = models.ForeignKey(Result)
-    time = models.IntegerField()
-    throughput = models.FloatField()
-    avg_latency = models.FloatField()
-    min_latency = models.FloatField()
-    p25_latency = models.FloatField()
-    p50_latency = models.FloatField()
-    p75_latency = models.FloatField()
-    p90_latency = models.FloatField()
-    p95_latency = models.FloatField()
-    p99_latency = models.FloatField()
-    max_latency = models.FloatField()
 
