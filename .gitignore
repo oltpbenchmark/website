@@ -44,3 +44,7 @@ Thumbs.db
 .project
 .pydevproject
 .settings
+
+# Raw data files #
+##################
+data/media/*

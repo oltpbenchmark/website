@@ -20,12 +20,16 @@
         <td>{{ result.application.name }}</td>
     </tr>
     <tr>
+        <td><div class="text-right">Benchmark Configuration</div></td>
+        <td><a href="/benchmark_conf/?id={{ result.benchmark_config.pk }}">{{ result.benchmark_config.name }}</a></td>
+    </tr>
+    <tr>
         <td><div class="text-top text-right">DBMS Configuration</div></td>
         <td><a href="/db_conf/?id={{ result.dbms_config.pk }}">{{ result.dbms_config.name }}</a></td>
     </tr>
     <tr>
-        <td><div class="text-right">Benchmark Configuration</div></td>
-        <td><a href="/benchmark_conf/?id={{ result.benchmark_config.pk }}">{{ result.benchmark_config.name }}</a></td>
+        <td><div class="text-top text-right">DBMS Metrics</div></td>
+        <td><a href="/dbms_metrics/?id={{ result.dbms_metrics.pk }}">{{ result.dbms_metrics.name }}</a></td>
     </tr>
     <tr>
         <td><div class="text-right">Experiment Time</div></td>
@@ -57,11 +61,12 @@
         <td><div class="text-right">Raw data</div></td>
         <td><a href="/get_result_data_file/?id={{ result.pk }}&type=raw">Download</a></td>
     </tr>
+    {% if task %}
     <tr>
         <td><div class="text-right">Status:</div></td>
         <td><a href="/status/?id={{ result.pk }}">{{task.status}}</td>
     </tr>   
-
+    {% endif %}
     </tbody>
 </table>
 </div>

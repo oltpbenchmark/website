@@ -38,7 +38,32 @@ pg_time = [
 #     cfg['t_weight_samples'] = t_weight_samples
 #     
 #     return cfg
-    
+
+
+STRING    = 1
+INTEGER   = 2
+REAL      = 3
+BOOL      = 4
+ENUM      = 5
+TIMESTAMP = 6
+
+# TYPE_NAMES = {
+#     STRING:    'string',
+#     INTEGER:   'integer',
+#     REAL:      'real',
+#     BOOL:      'bool',
+#     ENUM:      'enum',
+#     TIMESTAMP: 'timestamp',
+# }
+
+TYPE_NAMES = {
+    'string': STRING,
+    'integer': INTEGER,
+    'real': REAL,
+    'bool': BOOL,
+    'enum': ENUM,
+    'timestamp': TIMESTAMP
+}
 
 def convert(size, system=pg_system):
     for factor, suffix in system:
@@ -61,7 +86,7 @@ with open("settings.csv", "r") as f:
         else:
             param = {}
             param['name'] = row[header.index('name')]
-            param['vartype'] = row[header.index('vartype')]
+            param['vartype'] = TYPE_NAMES[row[header.index('vartype')]]
             param['category'] = row[header.index('category')]
             param['enumvals'] = row[header.index('enumvals')]
 
@@ -76,11 +101,11 @@ with open("settings.csv", "r") as f:
             default = row[header.index('boot_val')]
             minval = row[header.index('min_val')]
             maxval = row[header.index('max_val')]
-            if param['vartype'] == 'integer':
+            if param['vartype'] == INTEGER:
                 default = int(default)
                 minval = int(minval)
                 maxval = int(maxval)
-            elif param['vartype'] == 'real':
+            elif param['vartype'] == REAL:
                 default = float(default)
                 minval = float(minval)
                 maxval = float(maxval)
@@ -125,7 +150,7 @@ with open("settings.csv", "r") as f:
                 param['tunable'] = 'no'
 
             # All string param types are not tunable in 9.6
-            if param['vartype'] == 'string':
+            if param['vartype'] == STRING:
                 param['tunable'] = 'no'
             
             # We do not tune autovacuum (yet)

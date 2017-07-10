@@ -10,10 +10,12 @@
         <td><div class="text-right">Name:</div></td>
         <td>{{ benchmark.name }}</td>
     </tr>
+    {% if benchmark.description %}
     <tr>
         <td><div class="text-top text-right">Description:</div></td>
         <td>{{ benchmark.description|safe|linebreaks }}</td>
     </tr>
+    {% endif %}
     <tr>
         <td><div class="text-right">Type:</div></td>
         <td>{{ benchmark.benchmark_type }}</td>

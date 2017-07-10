@@ -14,13 +14,19 @@
         <td><div class="text-top text-right">Project:</div></td>
         <td><a href="/project_info/?id={{project.pk}}"></a>{{ project.name}}</td>
     </tr>
+    {% if application.description %}
     <tr>
         <td><div class="text-top text-right">Description:</div></td>
         <td>{{ application.description|linebreaks }}</td>
     </tr>
+    {% endif %}
     <tr>
         <td><div class="text-right">Upload code:</div></td>
         <td>{{ application.upload_code }}</td>
+    </tr>
+    <tr>
+        <td><div class="text-right">Hardware:</div></td>
+        <td>{{ application.hardware.name }}</td>
     </tr>
     <tr>
         <td><div class="text-right">Creation time:</div></td>
@@ -44,12 +50,25 @@
     <div><h4>DBMS</h4></div>
     <div class="boxbody checkbox">
         <ul>
-        {% for db in db_types %}
-        <li><label><input type="checkbox" name="db" value="{{ db }}"/> {{ db }}</label></li>
+        {% for dbkey, dbms in dbmss.items %}
+        <li><label><input type="checkbox" name="db" value="{{ dbkey }}"/> {{ dbms.full_name }}</label></li>
         {% endfor %}
         </ul>
     </div>
 </div>
+<!-- <div id="dbs">
+    <div><h4>DBMS</h4></div>
+    <div class="boxbody radio">
+        <ul>
+        <li><label><input type="radio" name="benchmark" value="show_none" /> Display none</label></li>
+        </ul>
+        <ul>
+        {% for db in dbmss %}
+        <li><label><input type="radio" name="db" value="{{ db.name }}"/> {{ db.display_full }}</label></li>
+        {% endfor %}
+        </ul>
+    </div>
+</div> -->
 <div id="benchmark">
     <div><h4>Benchmark</h4></div>
     <div class="boxbody radio">
@@ -128,6 +147,7 @@
                 <th></th>
                 <th></th>
                 <th></th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
@@ -179,11 +199,12 @@ $(function() {
 
    Timeline.init({
         proj : {{application.pk}},
-        dbs: [{% for db in db_types %}"{{ db }}", {% endfor %}],
+        db: "{{ defaultdbms }}",
         revisions: {{ defaultlast }},
         benchmark: "{{ defaultbenchmark }}",
-        benchmarks: { {% for ben, conf in benchmarks.items %} "{{ ben }}": "{{ conf.pk }}", {% endfor %} },
-      equidistant: "{{ defaultequid }}",
+        //benchmarks: { {% for ben, conf in benchmarks.items %} "{{ ben }}": "{{ conf.pk }}", {% endfor %} },
+        benchmarks: "{{ defaultspe }}",
+        equidistant: "{{ defaultequid }}",
         additional: [{% for filter in filters %} "{{ filter.field }}", {% endfor %}],
         metrics: [{% for metric in defaultmetrics %}"{{ metric }}", {% endfor %}]
     });

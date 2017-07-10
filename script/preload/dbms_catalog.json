@@ -3,7 +3,7 @@
     "model":"website.DBMSCatalog",
     "pk":1,
     "fields":{
-        "name":"POSTGRES",
+        "type":2,
         "version":"9.6"
      }
   }

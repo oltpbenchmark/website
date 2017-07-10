@@ -2,6 +2,13 @@ import sys
 import json
 import shutil
 
+COUNTER = 1
+INFO = 2
+
+INTEGER = 2
+STRING = 1
+TIMESTAMP = 6
+
 def load_data(filename):
     with open(filename, 'r') as f:
         csv_stats = f.readlines()
@@ -18,11 +25,11 @@ def load_data(filename):
         stat['metric_type'] = parts[header.index('metric_type')]
         vartype = parts[header.index('data_type')]
         if vartype == 'oid' or vartype == 'bigint' or vartype == 'double precision' or vartype == 'integer':
-            vartype = 'integer'
+            vartype = INTEGER
         elif vartype == 'name' or vartype == 'text':
-            vartype = 'string'
+            vartype = STRING
         elif vartype.startswith('timestamp'):
-            vartype = 'timestamp'
+            vartype = TIMESTAMP
         else:
             raise Exception(vartype)
         stat['vartype'] = vartype
@@ -52,7 +59,7 @@ for view_name, mets in metrics.iteritems():
     else:
         scope = 'global'
         stats = gstats
-    
+
     for metric_name in mets:
         entry = {}
         entry['model'] = 'website.MetricCatalog'
@@ -63,7 +70,14 @@ for view_name, mets in metrics.iteritems():
         vartypes.add(fields['vartype'])
         fields['summary'] = mstats['summary']
         fields['scope'] = scope
-        fields['metric_type'] = mstats['metric_type'].upper()
+        metric_type = mstats['metric_type']
+        if metric_type == 'counter':
+            mt = COUNTER
+        elif metric_type == 'info':
+            mt = INFO
+        else:
+            raise Exception('Invalid metric type: {}'.format(metric_type))
+        fields['metric_type'] = mt
         fields['dbms'] = 1
         entry['fields'] = fields
         final_metrics.append(entry)

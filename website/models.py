@@ -2,16 +2,31 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django import forms
+from django.core.exceptions import ValidationError
 from django.core.validators import validate_comma_separated_integer_list
+from website.types import DBMSType, MetricType, VarType, HardwareType
 
 class DBMSCatalog(models.Model):
-    name = models.CharField(max_length=32)
+    type = models.IntegerField(choices=DBMSType.choices())
     version = models.CharField(max_length=16)
+    
+    @property
+    def key(self):
+        return '{}_{}'.format(self.name, self.version)
+    
+    @property
+    def name(self):
+        return DBMSType.name(self.type)
+    
+    @property
+    def full_name(self):
+        return '{} v{}'.format(self.name, self.version)
+
 
 class KnobCatalog(models.Model):
     dbms = models.ForeignKey(DBMSCatalog) 
     name = models.CharField(max_length=64)
-    vartype = models.CharField(max_length=32)
+    vartype = models.IntegerField(choices=VarType.choices())
     unit = models.CharField(max_length=16, null=True)
     category = models.TextField(null=True)
     summary = models.TextField(null=True)
@@ -24,39 +39,25 @@ class KnobCatalog(models.Model):
     context = models.CharField(max_length=32)
     tunable = models.BooleanField()
 
-class MetricCatalog(models.Model):
-    METRIC_TYPES = (
-        ('C', 'COUNTER'),
-        ('S', 'STATISTIC'),
-        ('I', 'INFO')
-    )
 
+class MetricCatalog(models.Model):
     dbms = models.ForeignKey(DBMSCatalog)
     name = models.CharField(max_length=64)
-    vartype = models.CharField(max_length=32)
+    vartype = models.IntegerField(choices=VarType.choices())
     summary = models.TextField(null=True)
     scope = models.CharField(max_length=16)
-    metric_type = models.CharField(max_length=16, choices=METRIC_TYPES)
-     
+    metric_type = models.IntegerField(choices=MetricType.choices())
+        
+    def clean_fields(self, exclude=None):
+        super(MetricCatalog, self).clean_fields(exclude=exclude)
+        if self.metric_type == MetricType.COUNTER and self.vartype != VarType.INTEGER:
+            raise ValidationError('Counter metrics must be integers.')
 
-class NewResultForm(forms.Form):
-    upload_code = forms.CharField(max_length=30)
-
-#     upload_use = forms.CharField(max_length=30) #compute/store
-#     hardware = forms.CharField(max_length=30) # hardware 
-#     cluster = forms.CharField(max_length=200) # store cluster    
-
-    sample_data = forms.FileField()
-    raw_data = forms.FileField()
-    db_parameters_data = forms.FileField()
-    db_metrics_data =forms.FileField()
-    benchmark_conf_data = forms.FileField()
-    summary_data = forms.FileField()
 
 class Project(models.Model):
     user = models.ForeignKey(User)
     name = models.CharField(max_length=64)
-    description = models.TextField()
+    description = models.TextField(null=True)
     creation_time = models.DateTimeField()
     last_update = models.DateTimeField()
 
@@ -68,26 +69,29 @@ class Project(models.Model):
             x.delete()
         super(Project, self).delete(using)
 
-class Task(models.Model):
-    id = models.IntegerField(primary_key=True)
-    creation_time = models.DateTimeField()
-    finish_time = models.DateTimeField(null=True)
-    running_time = models.IntegerField(null=True)
-    status = models.CharField(max_length=64) 
-    traceback =  models.TextField(null=True)
-    result = models.TextField(null=True)
+
+class Hardware(models.Model):
+    type = models.IntegerField(choices=HardwareType.choices())
+    name = models.CharField(max_length=32)
+    cpu = models.IntegerField()
+    memory = models.FloatField()
+    storage = models.CharField(max_length=64,
+                               validators=[validate_comma_separated_integer_list])
+    storage_type = models.CharField(max_length=16)
+    additional_specs = models.TextField(null=True)
 
 
 class Application(models.Model):
     user = models.ForeignKey(User)
     name = models.CharField(max_length=64)
     description = models.TextField()
+    hardware = models.ForeignKey(Hardware)
    
     project = models.ForeignKey(Project)
     creation_time = models.DateTimeField()
     last_update = models.DateTimeField()
 
-    upload_code = models.CharField(max_length=30)
+    upload_code = models.CharField(max_length=30, unique=True)
   
     def delete(self, using=None):
         targets = DBConf.objects.filter(application=self)
@@ -100,6 +104,7 @@ class Application(models.Model):
         for x in expconfs:
             x.delete()
         super(Application, self).delete(using)
+
 
 class BenchmarkConfig(models.Model):
     application = models.ForeignKey(Application)
@@ -123,94 +128,69 @@ class BenchmarkConfig(models.Model):
         {'field': 'terminals', 'print': '# of Terminals'},
     ]
 
-# class Oltpbench_info(models.Model):
-# #    id = models.IntegerField(primary_key=True)
-# 
-#     
-#     
-# #     dbms_name = models.CharField(max_length=64)
-# #     dbms_version = models.CharField(max_length=64)
-# 
-# 
-#     
-#     benchmark_config = models.ForeignKey(BenchmarkConfig)
-
-# class Workload_info(models.Model): 
-#     isolation = models.CharField(max_length=64)
-#     scalefactor = models.IntegerField()
-#     terminals = models.IntegerField()
-#     time = models.IntegerField()
-#     rate = models.CharField(max_length=64)
-#     skew = models.FloatField(null=True)
-#     trans_weights = models.TextField()
-#     workload = models.TextField()
-
-
-
-# class FEATURED_PARAMS(models.Model):
-#     db_type = models.CharField(max_length=64)
-#     params = models.CharField(max_length=512)
-
-# class Website_Conf(models.Model):
-#     name = models.CharField(max_length=64)
-#     value = models.CharField(max_length=512)
-
-# class LEARNING_PARAMS(models.Model):
-#     db_type = models.CharField(max_length=64)
-#     params = models.CharField(max_length=512)
-# 
-# class KNOB_PARAMS(models.Model):
-#     db_type = models.CharField(max_length=64)
-#     params = models.CharField(max_length=512)
+    def clean_fields(self, exclude=None):
+        super(BenchmarkConfig, self).clean_fields(exclude=exclude)
+        if self.time <= 0:
+            raise ValidationError('Time must be greater than 0.')
 
 
 class DBConf(models.Model):
-#     DB_TYPES = sorted([
-#         'DB2',
-#         'MYSQL',
-#         'POSTGRES',
-#         'ORACLE',
-#         'SQLSERVER',
-#         'SQLITE',
-#         'AMAZONRDS',
-#         'HSTORE',
-#         'SQLAZURE',
-#         'ASSCLOWN',
-#         'HSQLDB',
-#         'H2',
-#         'NUODB'
-#     ])
     application = models.ForeignKey(Application)
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=512)
     creation_time = models.DateTimeField()
     configuration = models.TextField()
-    similar_conf = models.TextField(null=True)
+    tuning_configuration = models.TextField()
+    raw_configuration = models.TextField()
     dbms = models.ForeignKey(DBMSCatalog)
+        
 
 class DBMSMetrics(models.Model):
     application = models.ForeignKey(Application)
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=512)
     creation_time = models.DateTimeField()
+    execution_time = models.IntegerField()
     configuration = models.TextField()
-    similar_conf = models.TextField(null=True)
+    raw_configuration = models.TextField()
+#     similar_conf = models.TextField(null=True)
     dbms = models.ForeignKey(DBMSCatalog)
+
+    def clean_fields(self, exclude=None):
+        super(DBMSMetrics, self).clean_fields(exclude=exclude)
+        if self.execution_time <= 0:
+            raise ValidationError('Execution time must be greater than 0.')
+
+class Task(models.Model):
+    creation_time = models.DateTimeField()
+    finish_time = models.DateTimeField(null=True)
+    running_time = models.IntegerField(null=True)
+    status = models.CharField(max_length=64) 
+    traceback =  models.TextField(null=True)
+    result = models.TextField(null=True)
+
+
+class NewResultForm(forms.Form):
+    upload_code = forms.CharField(max_length=30)
+    sample_data = forms.FileField()
+    raw_data = forms.FileField()
+    db_parameters_data = forms.FileField()
+    db_metrics_data =forms.FileField()
+    benchmark_conf_data = forms.FileField()
+    summary_data = forms.FileField()
+        
 
 class Result(models.Model):
     application = models.ForeignKey(Application)
     dbms = models.ForeignKey(DBMSCatalog)
     benchmark_config = models.ForeignKey(BenchmarkConfig)
     dbms_config = models.ForeignKey(DBConf)
+    dbms_metrics = models.ForeignKey(DBMSMetrics)
 
     creation_time = models.DateTimeField()
-    hardware = models.CharField(null=True, max_length=64)
-    cluster = models.TextField(null=True)
-
+#     hardware = models.ForeignKey(Hardware)
     summary = models.TextField()
     samples = models.TextField()
-#     params = models.TextField()
-#     metrics = models.TextField()
 
     timestamp = models.DateTimeField()
     throughput = models.FloatField()
@@ -223,11 +203,12 @@ class Result(models.Model):
     p95_latency = models.FloatField()
     p99_latency = models.FloatField()
     max_latency = models.FloatField()
-#     most_similar = models.CommaSeparatedIntegerField(max_length=100)
     most_similar = models.CharField(max_length=100, validators=[validate_comma_separated_integer_list])
 
     def __unicode__(self):
         return unicode(self.pk)
+
+
 
 class Statistics(models.Model):
     result = models.ForeignKey(Result)

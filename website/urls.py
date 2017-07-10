@@ -36,6 +36,7 @@ urlpatterns =[
     url(r'^delete_project/', website_views.delete_project),
     url(r'^update_project/', website_views.update_project),
 
+#     url(r'^benchmark_conf/', website_views.benchmark_configuration),
     url(r'^benchmark_conf/', website_views.benchmark_configuration),
     url(r'^edit_benchmark_conf/', website_views.edit_benchmark_conf),
     url(r'^get_benchmark_data/', website_views.get_benchmark_data),
@@ -43,6 +44,7 @@ urlpatterns =[
     url(r'^update_benchmark/', website_views.update_benchmark_conf),
 
     url(r'^db_conf/', website_views.db_conf_view),
+    url(r'^dbms_metrics/', website_views.dbms_metrics_view),
     url(r'^get_data/', website_views.get_timeline_data),
 
     # Uncomment the admin/doc line below to enable admin documentation:

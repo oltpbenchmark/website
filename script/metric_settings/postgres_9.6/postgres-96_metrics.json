@@ -4,8 +4,8 @@
             "dbms": 1, 
             "name": "pg_stat_database_conflicts.datname", 
             "summary": "Name of this database", 
-            "vartype": "string", 
-            "metric_type": "INFO", 
+            "vartype": 1, 
+            "metric_type": 2, 
             "scope": "database"
         }, 
         "model": "website.MetricCatalog"
@@ -15,8 +15,8 @@
             "dbms": 1, 
             "name": "pg_stat_database_conflicts.confl_deadlock", 
             "summary": "Number of queries in this database that have been canceled due to deadlocks", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "database"
         }, 
         "model": "website.MetricCatalog"
@@ -26,8 +26,8 @@
             "dbms": 1, 
             "name": "pg_stat_database_conflicts.confl_bufferpin", 
             "summary": "Number of queries in this database that have been canceled due to pinned buffers", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "database"
         }, 
         "model": "website.MetricCatalog"
@@ -37,8 +37,8 @@
             "dbms": 1, 
             "name": "pg_stat_database_conflicts.datid", 
             "summary": "OID of a database", 
-            "vartype": "integer", 
-            "metric_type": "INFO", 
+            "vartype": 2, 
+            "metric_type": 2, 
             "scope": "database"
         }, 
         "model": "website.MetricCatalog"
@@ -48,8 +48,8 @@
             "dbms": 1, 
             "name": "pg_stat_database_conflicts.confl_tablespace", 
             "summary": "Number of queries in this database that have been canceled due to dropped tablespaces", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "database"
         }, 
         "model": "website.MetricCatalog"
@@ -59,8 +59,8 @@
             "dbms": 1, 
             "name": "pg_stat_database_conflicts.confl_lock", 
             "summary": "Number of queries in this database that have been canceled due to lock timeouts", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "database"
         }, 
         "model": "website.MetricCatalog"
@@ -70,8 +70,8 @@
             "dbms": 1, 
             "name": "pg_stat_database_conflicts.confl_snapshot", 
             "summary": "Number of queries in this database that have been canceled due to old snapshots", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "database"
         }, 
         "model": "website.MetricCatalog"
@@ -81,8 +81,8 @@
             "dbms": 1, 
             "name": "pg_stat_user_indexes.indexrelid", 
             "summary": "OID of this index", 
-            "vartype": "integer", 
-            "metric_type": "INFO", 
+            "vartype": 2, 
+            "metric_type": 2, 
             "scope": "index"
         }, 
         "model": "website.MetricCatalog"
@@ -92,8 +92,8 @@
             "dbms": 1, 
             "name": "pg_stat_user_indexes.relid", 
             "summary": "OID of the table for this index", 
-            "vartype": "integer", 
-            "metric_type": "INFO", 
+            "vartype": 2, 
+            "metric_type": 2, 
             "scope": "index"
         }, 
         "model": "website.MetricCatalog"
@@ -103,8 +103,8 @@
             "dbms": 1, 
             "name": "pg_stat_user_indexes.indexrelname", 
             "summary": "Name of this index", 
-            "vartype": "string", 
-            "metric_type": "INFO", 
+            "vartype": 1, 
+            "metric_type": 2, 
             "scope": "index"
         }, 
         "model": "website.MetricCatalog"
@@ -114,8 +114,8 @@
             "dbms": 1, 
             "name": "pg_stat_user_indexes.relname", 
             "summary": "Name of the table for this index", 
-            "vartype": "string", 
-            "metric_type": "INFO", 
+            "vartype": 1, 
+            "metric_type": 2, 
             "scope": "index"
         }, 
         "model": "website.MetricCatalog"
@@ -125,8 +125,8 @@
             "dbms": 1, 
             "name": "pg_stat_user_indexes.idx_tup_fetch", 
             "summary": "Number of live table rows fetched by simple index scans using this index", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "index"
         }, 
         "model": "website.MetricCatalog"
@@ -136,8 +136,8 @@
             "dbms": 1, 
             "name": "pg_stat_user_indexes.idx_tup_read", 
             "summary": "Number of index entries returned by scans on this index", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "index"
         }, 
         "model": "website.MetricCatalog"
@@ -147,8 +147,8 @@
             "dbms": 1, 
             "name": "pg_stat_user_indexes.idx_scan", 
             "summary": "Number of index scans initiated on this index", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "index"
         }, 
         "model": "website.MetricCatalog"
@@ -158,8 +158,8 @@
             "dbms": 1, 
             "name": "pg_stat_user_indexes.schemaname", 
             "summary": "Name of the schema this index is in", 
-            "vartype": "string", 
-            "metric_type": "INFO", 
+            "vartype": 1, 
+            "metric_type": 2, 
             "scope": "index"
         }, 
         "model": "website.MetricCatalog"
@@ -169,8 +169,8 @@
             "dbms": 1, 
             "name": "pg_stat_archiver.failed_count", 
             "summary": "Number of failed attempts for archiving WAL files", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "global"
         }, 
         "model": "website.MetricCatalog"
@@ -180,8 +180,8 @@
             "dbms": 1, 
             "name": "pg_stat_archiver.archived_count", 
             "summary": "Number of WAL files that have been successfully archived", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "global"
         }, 
         "model": "website.MetricCatalog"
@@ -191,8 +191,8 @@
             "dbms": 1, 
             "name": "pg_stat_archiver.stats_reset", 
             "summary": "Time at which these statistics were last reset", 
-            "vartype": "timestamp", 
-            "metric_type": "INFO", 
+            "vartype": 6, 
+            "metric_type": 2, 
             "scope": "global"
         }, 
         "model": "website.MetricCatalog"
@@ -202,8 +202,8 @@
             "dbms": 1, 
             "name": "pg_stat_archiver.last_archived_time", 
             "summary": "Time of the last successful archive operation", 
-            "vartype": "timestamp", 
-            "metric_type": "INFO", 
+            "vartype": 6, 
+            "metric_type": 2, 
             "scope": "global"
         }, 
         "model": "website.MetricCatalog"
@@ -213,8 +213,8 @@
             "dbms": 1, 
             "name": "pg_stat_archiver.last_failed_time", 
             "summary": "Time of the last failed archival operation", 
-            "vartype": "timestamp", 
-            "metric_type": "INFO", 
+            "vartype": 6, 
+            "metric_type": 2, 
             "scope": "global"
         }, 
         "model": "website.MetricCatalog"
@@ -224,8 +224,8 @@
             "dbms": 1, 
             "name": "pg_stat_archiver.last_failed_wal", 
             "summary": "Name of the WAL file of the last failed archival operation", 
-            "vartype": "string", 
-            "metric_type": "INFO", 
+            "vartype": 1, 
+            "metric_type": 2, 
             "scope": "global"
         }, 
         "model": "website.MetricCatalog"
@@ -235,8 +235,8 @@
             "dbms": 1, 
             "name": "pg_stat_archiver.last_archived_wal", 
             "summary": "Name of the last WAL file successfully archived", 
-            "vartype": "string", 
-            "metric_type": "INFO", 
+            "vartype": 1, 
+            "metric_type": 2, 
             "scope": "global"
         }, 
         "model": "website.MetricCatalog"
@@ -246,8 +246,8 @@
             "dbms": 1, 
             "name": "pg_stat_database.numbackends", 
             "summary": "Number of backends currently connected to this database. This is the only column in this view that returns a value reflecting current state; all other columns return the accumulated values since the last reset.", 
-            "vartype": "integer", 
-            "metric_type": "INFO", 
+            "vartype": 2, 
+            "metric_type": 2, 
             "scope": "database"
         }, 
         "model": "website.MetricCatalog"
@@ -257,8 +257,8 @@
             "dbms": 1, 
             "name": "pg_stat_database.datname", 
             "summary": "Name of this database", 
-            "vartype": "string", 
-            "metric_type": "INFO", 
+            "vartype": 1, 
+            "metric_type": 2, 
             "scope": "database"
         }, 
         "model": "website.MetricCatalog"
@@ -268,8 +268,8 @@
             "dbms": 1, 
             "name": "pg_stat_database.blks_read", 
             "summary": "Number of disk blocks read in this database", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "database"
         }, 
         "model": "website.MetricCatalog"
@@ -279,8 +279,8 @@
             "dbms": 1, 
             "name": "pg_stat_database.deadlocks", 
             "summary": "Number of deadlocks detected in this database", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "database"
         }, 
         "model": "website.MetricCatalog"
@@ -290,8 +290,8 @@
             "dbms": 1, 
             "name": "pg_stat_database.tup_fetched", 
             "summary": "Number of rows fetched by queries in this database", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "database"
         }, 
         "model": "website.MetricCatalog"
@@ -301,8 +301,8 @@
             "dbms": 1, 
             "name": "pg_stat_database.tup_updated", 
             "summary": "Number of rows updated by queries in this database", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "database"
         }, 
         "model": "website.MetricCatalog"
@@ -312,8 +312,8 @@
             "dbms": 1, 
             "name": "pg_stat_database.stats_reset", 
             "summary": "Time at which these statistics were last reset", 
-            "vartype": "timestamp", 
-            "metric_type": "INFO", 
+            "vartype": 6, 
+            "metric_type": 2, 
             "scope": "database"
         }, 
         "model": "website.MetricCatalog"
@@ -323,8 +323,8 @@
             "dbms": 1, 
             "name": "pg_stat_database.tup_inserted", 
             "summary": "Number of rows inserted by queries in this database", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "database"
         }, 
         "model": "website.MetricCatalog"
@@ -334,8 +334,8 @@
             "dbms": 1, 
             "name": "pg_stat_database.datid", 
             "summary": "OID of a database", 
-            "vartype": "integer", 
-            "metric_type": "INFO", 
+            "vartype": 2, 
+            "metric_type": 2, 
             "scope": "database"
         }, 
         "model": "website.MetricCatalog"
@@ -345,8 +345,8 @@
             "dbms": 1, 
             "name": "pg_stat_database.xact_commit", 
             "summary": "Number of transactions in this database that have been committed", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "database"
         }, 
         "model": "website.MetricCatalog"
@@ -356,8 +356,8 @@
             "dbms": 1, 
             "name": "pg_stat_database.tup_deleted", 
             "summary": "Number of rows deleted by queries in this database", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "database"
         }, 
         "model": "website.MetricCatalog"
@@ -367,8 +367,8 @@
             "dbms": 1, 
             "name": "pg_stat_database.blk_read_time", 
             "summary": "\"Time spent reading data file blocks by backends in this database, in milliseconds\"", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "database"
         }, 
         "model": "website.MetricCatalog"
@@ -378,8 +378,8 @@
             "dbms": 1, 
             "name": "pg_stat_database.xact_rollback", 
             "summary": "Number of transactions in this database that have been rolled back", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "database"
         }, 
         "model": "website.MetricCatalog"
@@ -389,8 +389,8 @@
             "dbms": 1, 
             "name": "pg_stat_database.conflicts", 
             "summary": "\"Number of queries canceled due to conflicts with recovery in this database. (Conflicts occur only on standby servers; see pg_stat_database_conflicts for details.)\"", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "database"
         }, 
         "model": "website.MetricCatalog"
@@ -400,8 +400,8 @@
             "dbms": 1, 
             "name": "pg_stat_database.blks_hit", 
             "summary": "\"Number of times disk blocks were found already in the buffer cache, so that a read was not necessary (this only includes hits in the PostgreSQL buffer cache, not the operating system's file system cache)\"", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "database"
         }, 
         "model": "website.MetricCatalog"
@@ -411,8 +411,8 @@
             "dbms": 1, 
             "name": "pg_stat_database.tup_returned", 
             "summary": "Number of rows returned by queries in this database", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "database"
         }, 
         "model": "website.MetricCatalog"
@@ -422,8 +422,8 @@
             "dbms": 1, 
             "name": "pg_stat_database.temp_files", 
             "summary": "\"Number of temporary files created by queries in this database. All temporary files are counted, regardless of why the temporary file was created (e.g., sorting or hashing), and regardless of the log_temp_files setting.\"", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "database"
         }, 
         "model": "website.MetricCatalog"
@@ -433,8 +433,8 @@
             "dbms": 1, 
             "name": "pg_stat_database.blk_write_time", 
             "summary": "\"Time spent writing data file blocks by backends in this database, in milliseconds\"", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "database"
         }, 
         "model": "website.MetricCatalog"
@@ -444,8 +444,8 @@
             "dbms": 1, 
             "name": "pg_stat_database.temp_bytes", 
             "summary": "\"Total amount of data written to temporary files by queries in this database. All temporary files are counted, regardless of why the temporary file was created, and regardless of the log_temp_files setting.\"", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "database"
         }, 
         "model": "website.MetricCatalog"
@@ -455,8 +455,8 @@
             "dbms": 1, 
             "name": "pg_stat_user_tables.last_vacuum", 
             "summary": "Last time at which this table was manually vacuumed (not counting VACUUM FULL)", 
-            "vartype": "timestamp", 
-            "metric_type": "INFO", 
+            "vartype": 6, 
+            "metric_type": 2, 
             "scope": "table"
         }, 
         "model": "website.MetricCatalog"
@@ -466,8 +466,8 @@
             "dbms": 1, 
             "name": "pg_stat_user_tables.n_tup_ins", 
             "summary": "Number of rows inserted", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "table"
         }, 
         "model": "website.MetricCatalog"
@@ -477,8 +477,8 @@
             "dbms": 1, 
             "name": "pg_stat_user_tables.n_dead_tup", 
             "summary": "Estimated number of dead rows", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "table"
         }, 
         "model": "website.MetricCatalog"
@@ -488,8 +488,8 @@
             "dbms": 1, 
             "name": "pg_stat_user_tables.last_analyze", 
             "summary": "Last time at which this table was manually analyzed", 
-            "vartype": "timestamp", 
-            "metric_type": "INFO", 
+            "vartype": 6, 
+            "metric_type": 2, 
             "scope": "table"
         }, 
         "model": "website.MetricCatalog"
@@ -499,8 +499,8 @@
             "dbms": 1, 
             "name": "pg_stat_user_tables.idx_tup_fetch", 
             "summary": "Number of live rows fetched by index scans", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "table"
         }, 
         "model": "website.MetricCatalog"
@@ -510,8 +510,8 @@
             "dbms": 1, 
             "name": "pg_stat_user_tables.n_tup_upd", 
             "summary": "Number of rows updated", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "table"
         }, 
         "model": "website.MetricCatalog"
@@ -521,8 +521,8 @@
             "dbms": 1, 
             "name": "pg_stat_user_tables.schemaname", 
             "summary": "Name of the schema that this table is in", 
-            "vartype": "string", 
-            "metric_type": "INFO", 
+            "vartype": 1, 
+            "metric_type": 2, 
             "scope": "table"
         }, 
         "model": "website.MetricCatalog"
@@ -532,8 +532,8 @@
             "dbms": 1, 
             "name": "pg_stat_user_tables.seq_tup_read", 
             "summary": "Number of live rows fetched by sequential scans", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "table"
         }, 
         "model": "website.MetricCatalog"
@@ -543,8 +543,8 @@
             "dbms": 1, 
             "name": "pg_stat_user_tables.vacuum_count", 
             "summary": "Number of times this table has been manually vacuumed (not counting VACUUM FULL)", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "table"
         }, 
         "model": "website.MetricCatalog"
@@ -554,8 +554,8 @@
             "dbms": 1, 
             "name": "pg_stat_user_tables.n_mod_since_analyze", 
             "summary": "Estimated number of rows modified since this table was last analyzed", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "table"
         }, 
         "model": "website.MetricCatalog"
@@ -565,8 +565,8 @@
             "dbms": 1, 
             "name": "pg_stat_user_tables.n_tup_del", 
             "summary": "Number of rows deleted", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "table"
         }, 
         "model": "website.MetricCatalog"
@@ -576,8 +576,8 @@
             "dbms": 1, 
             "name": "pg_stat_user_tables.last_autovacuum", 
             "summary": "Last time at which this table was vacuumed by the autovacuum daemon", 
-            "vartype": "timestamp", 
-            "metric_type": "INFO", 
+            "vartype": 6, 
+            "metric_type": 2, 
             "scope": "table"
         }, 
         "model": "website.MetricCatalog"
@@ -587,8 +587,8 @@
             "dbms": 1, 
             "name": "pg_stat_user_tables.seq_scan", 
             "summary": "Number of sequential scans initiated on this table", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "table"
         }, 
         "model": "website.MetricCatalog"
@@ -598,8 +598,8 @@
             "dbms": 1, 
             "name": "pg_stat_user_tables.relid", 
             "summary": "OID of a table", 
-            "vartype": "integer", 
-            "metric_type": "INFO", 
+            "vartype": 2, 
+            "metric_type": 2, 
             "scope": "table"
         }, 
         "model": "website.MetricCatalog"
@@ -609,8 +609,8 @@
             "dbms": 1, 
             "name": "pg_stat_user_tables.n_tup_hot_upd", 
             "summary": "\"Number of rows HOT updated (i.e., with no separate index update required)\"", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "table"
         }, 
         "model": "website.MetricCatalog"
@@ -620,8 +620,8 @@
             "dbms": 1, 
             "name": "pg_stat_user_tables.autoanalyze_count", 
             "summary": "Number of times this table has been analyzed by the autovacuum daemon", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "table"
         }, 
         "model": "website.MetricCatalog"
@@ -631,8 +631,8 @@
             "dbms": 1, 
             "name": "pg_stat_user_tables.n_live_tup", 
             "summary": "Estimated number of live rows", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "table"
         }, 
         "model": "website.MetricCatalog"
@@ -642,8 +642,8 @@
             "dbms": 1, 
             "name": "pg_stat_user_tables.relname", 
             "summary": "Name of this table", 
-            "vartype": "string", 
-            "metric_type": "INFO", 
+            "vartype": 1, 
+            "metric_type": 2, 
             "scope": "table"
         }, 
         "model": "website.MetricCatalog"
@@ -653,8 +653,8 @@
             "dbms": 1, 
             "name": "pg_stat_user_tables.last_autoanalyze", 
             "summary": "Last time at which this table was analyzed by the autovacuum daemon", 
-            "vartype": "timestamp", 
-            "metric_type": "INFO", 
+            "vartype": 6, 
+            "metric_type": 2, 
             "scope": "table"
         }, 
         "model": "website.MetricCatalog"
@@ -664,8 +664,8 @@
             "dbms": 1, 
             "name": "pg_stat_user_tables.idx_scan", 
             "summary": "Number of index scans initiated on this table", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "table"
         }, 
         "model": "website.MetricCatalog"
@@ -675,8 +675,8 @@
             "dbms": 1, 
             "name": "pg_stat_user_tables.autovacuum_count", 
             "summary": "Number of times this table has been vacuumed by the autovacuum daemon", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "table"
         }, 
         "model": "website.MetricCatalog"
@@ -686,8 +686,8 @@
             "dbms": 1, 
             "name": "pg_stat_user_tables.analyze_count", 
             "summary": "Number of times this table has been manually analyzed", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "table"
         }, 
         "model": "website.MetricCatalog"
@@ -697,8 +697,8 @@
             "dbms": 1, 
             "name": "pg_stat_bgwriter.buffers_backend", 
             "summary": "Number of buffers written directly by a backend", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "global"
         }, 
         "model": "website.MetricCatalog"
@@ -708,8 +708,8 @@
             "dbms": 1, 
             "name": "pg_stat_bgwriter.checkpoints_timed", 
             "summary": "Number of scheduled checkpoints that have been performed", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "global"
         }, 
         "model": "website.MetricCatalog"
@@ -719,8 +719,8 @@
             "dbms": 1, 
             "name": "pg_stat_bgwriter.buffers_alloc", 
             "summary": "Number of buffers allocated", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "global"
         }, 
         "model": "website.MetricCatalog"
@@ -730,8 +730,8 @@
             "dbms": 1, 
             "name": "pg_stat_bgwriter.buffers_clean", 
             "summary": "Number of buffers written by the background writer", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "global"
         }, 
         "model": "website.MetricCatalog"
@@ -741,8 +741,8 @@
             "dbms": 1, 
             "name": "pg_stat_bgwriter.buffers_backend_fsync", 
             "summary": "Number of times a backend had to execute its own fsync call (normally the background writer handles those even when the backend does its own write)", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "global"
         }, 
         "model": "website.MetricCatalog"
@@ -752,8 +752,8 @@
             "dbms": 1, 
             "name": "pg_stat_bgwriter.checkpoint_sync_time", 
             "summary": "\"Total amount of time that has been spent in the portion of checkpoint processing where files are synchronized to disk, in milliseconds\"", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "global"
         }, 
         "model": "website.MetricCatalog"
@@ -763,8 +763,8 @@
             "dbms": 1, 
             "name": "pg_stat_bgwriter.checkpoints_req", 
             "summary": "Number of requested checkpoints that have been performed", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "global"
         }, 
         "model": "website.MetricCatalog"
@@ -774,8 +774,8 @@
             "dbms": 1, 
             "name": "pg_stat_bgwriter.checkpoint_write_time", 
             "summary": "\"Total amount of time that has been spent in the portion of checkpoint processing where files are written to disk, in milliseconds\"", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "global"
         }, 
         "model": "website.MetricCatalog"
@@ -785,8 +785,8 @@
             "dbms": 1, 
             "name": "pg_stat_bgwriter.maxwritten_clean", 
             "summary": "Number of times the background writer stopped a cleaning scan because it had written too many buffers", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "global"
         }, 
         "model": "website.MetricCatalog"
@@ -796,8 +796,8 @@
             "dbms": 1, 
             "name": "pg_stat_bgwriter.buffers_checkpoint", 
             "summary": "Number of buffers written during checkpoints", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "global"
         }, 
         "model": "website.MetricCatalog"
@@ -807,8 +807,8 @@
             "dbms": 1, 
             "name": "pg_stat_bgwriter.stats_reset", 
             "summary": "Time at which these statistics were last reset", 
-            "vartype": "timestamp", 
-            "metric_type": "INFO", 
+            "vartype": 6, 
+            "metric_type": 2, 
             "scope": "global"
         }, 
         "model": "website.MetricCatalog"
@@ -818,8 +818,8 @@
             "dbms": 1, 
             "name": "pg_statio_user_indexes.indexrelid", 
             "summary": "OID of this index", 
-            "vartype": "integer", 
-            "metric_type": "INFO", 
+            "vartype": 2, 
+            "metric_type": 2, 
             "scope": "index"
         }, 
         "model": "website.MetricCatalog"
@@ -829,8 +829,8 @@
             "dbms": 1, 
             "name": "pg_statio_user_indexes.relid", 
             "summary": "OID of the table for this index", 
-            "vartype": "integer", 
-            "metric_type": "INFO", 
+            "vartype": 2, 
+            "metric_type": 2, 
             "scope": "index"
         }, 
         "model": "website.MetricCatalog"
@@ -840,8 +840,8 @@
             "dbms": 1, 
             "name": "pg_statio_user_indexes.indexrelname", 
             "summary": "Name of this index", 
-            "vartype": "string", 
-            "metric_type": "INFO", 
+            "vartype": 1, 
+            "metric_type": 2, 
             "scope": "index"
         }, 
         "model": "website.MetricCatalog"
@@ -851,8 +851,8 @@
             "dbms": 1, 
             "name": "pg_statio_user_indexes.idx_blks_hit", 
             "summary": "Number of buffer hits in this index", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "index"
         }, 
         "model": "website.MetricCatalog"
@@ -862,8 +862,8 @@
             "dbms": 1, 
             "name": "pg_statio_user_indexes.relname", 
             "summary": "Name of the table for this index", 
-            "vartype": "string", 
-            "metric_type": "INFO", 
+            "vartype": 1, 
+            "metric_type": 2, 
             "scope": "index"
         }, 
         "model": "website.MetricCatalog"
@@ -873,8 +873,8 @@
             "dbms": 1, 
             "name": "pg_statio_user_indexes.idx_blks_read", 
             "summary": "Number of disk blocks read from this index", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "index"
         }, 
         "model": "website.MetricCatalog"
@@ -884,8 +884,8 @@
             "dbms": 1, 
             "name": "pg_statio_user_indexes.schemaname", 
             "summary": "Name of the schema this index is in", 
-            "vartype": "string", 
-            "metric_type": "INFO", 
+            "vartype": 1, 
+            "metric_type": 2, 
             "scope": "index"
         }, 
         "model": "website.MetricCatalog"
@@ -895,8 +895,8 @@
             "dbms": 1, 
             "name": "pg_statio_user_tables.relid", 
             "summary": "OID of a table", 
-            "vartype": "integer", 
-            "metric_type": "INFO", 
+            "vartype": 2, 
+            "metric_type": 2, 
             "scope": "table"
         }, 
         "model": "website.MetricCatalog"
@@ -906,8 +906,8 @@
             "dbms": 1, 
             "name": "pg_statio_user_tables.heap_blks_hit", 
             "summary": "Number of buffer hits in this table", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "table"
         }, 
         "model": "website.MetricCatalog"
@@ -917,8 +917,8 @@
             "dbms": 1, 
             "name": "pg_statio_user_tables.tidx_blks_read", 
             "summary": "Number of disk blocks read from this table's TOAST table index (if any)", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "table"
         }, 
         "model": "website.MetricCatalog"
@@ -928,8 +928,8 @@
             "dbms": 1, 
             "name": "pg_statio_user_tables.tidx_blks_hit", 
             "summary": "Number of buffer hits in this table's TOAST table index (if any)", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "table"
         }, 
         "model": "website.MetricCatalog"
@@ -939,8 +939,8 @@
             "dbms": 1, 
             "name": "pg_statio_user_tables.toast_blks_hit", 
             "summary": "Number of buffer hits in this table's TOAST table (if any)", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "table"
         }, 
         "model": "website.MetricCatalog"
@@ -950,8 +950,8 @@
             "dbms": 1, 
             "name": "pg_statio_user_tables.idx_blks_hit", 
             "summary": "Number of buffer hits in all indexes on this table", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "table"
         }, 
         "model": "website.MetricCatalog"
@@ -961,8 +961,8 @@
             "dbms": 1, 
             "name": "pg_statio_user_tables.relname", 
             "summary": "Name of this table", 
-            "vartype": "string", 
-            "metric_type": "INFO", 
+            "vartype": 1, 
+            "metric_type": 2, 
             "scope": "table"
         }, 
         "model": "website.MetricCatalog"
@@ -972,8 +972,8 @@
             "dbms": 1, 
             "name": "pg_statio_user_tables.toast_blks_read", 
             "summary": "Number of disk blocks read from this table's TOAST table (if any)", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "table"
         }, 
         "model": "website.MetricCatalog"
@@ -983,8 +983,8 @@
             "dbms": 1, 
             "name": "pg_statio_user_tables.idx_blks_read", 
             "summary": "Number of disk blocks read from all indexes on this table", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "table"
         }, 
         "model": "website.MetricCatalog"
@@ -994,8 +994,8 @@
             "dbms": 1, 
             "name": "pg_statio_user_tables.schemaname", 
             "summary": "Name of the schema that this table is in", 
-            "vartype": "string", 
-            "metric_type": "INFO", 
+            "vartype": 1, 
+            "metric_type": 2, 
             "scope": "table"
         }, 
         "model": "website.MetricCatalog"
@@ -1005,8 +1005,8 @@
             "dbms": 1, 
             "name": "pg_statio_user_tables.heap_blks_read", 
             "summary": "Number of disk blocks read from this table", 
-            "vartype": "integer", 
-            "metric_type": "COUNTER", 
+            "vartype": 2, 
+            "metric_type": 1, 
             "scope": "table"
         }, 
         "model": "website.MetricCatalog"
