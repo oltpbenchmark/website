@@ -53,7 +53,6 @@ def ajax_new(request):
             data[metric] = []
             for t in ts:
                 data[metric].append([t.time - offset, getattr(t, metric) * METRIC_META[metric]['scale']])
-#     return HttpResponse(json.dumps(data), content_type = 'application/json')
     return HttpResponse(JSONUtil.dumps(data), content_type = 'application/json')
 
 def signup_view(request):
@@ -138,7 +137,7 @@ def ml_info(request):
                "result":res,
                "time":time,
                "task":task,
-               "limit":"300"} #limit.value}
+               "limit":"300"}
 
     return render(request,"ml_info.html",context) 
 
@@ -189,13 +188,6 @@ def application(request):
     
     benchmarks = {k: sorted(list(v)) for k,v in benchmarks.iteritems()}
     benchmarks = OrderedDict(sorted(benchmarks.iteritems()))
-#         benchmark_with_data[res.benchmark_config.benchmark_type] = True
-#     benchmark_confs = set([res.benchmark_config for res in results])
-#     benchmark_types = benchmark_with_data.keys()
-#     benchmarks = {}
-#     for benchmark in benchmark_types:
-#         specific_benchmark = [b for b in benchmark_confs if b.benchmark_type == benchmark]
-#         benchmarks[benchmark] = specific_benchmark
 
     lastrevisions = [10, 50, 100]
     dbs = OrderedDict(sorted(dbs.items()))
@@ -220,7 +212,7 @@ def application(request):
                'defaultmetrics': ['throughput', 'p99_latency'],
                'filters': filters,
                'application':application, 
-               'results': results} #Result.objects.filter(application=application)}
+               'results': results}
 
     context.update(csrf(request))
     return render(request, 'application.html', context)
@@ -292,14 +284,11 @@ def update_project(request):
         p.creation_time = now()
         p.user = request.user
         gen_upload_code = True
-        #p.upload_code = upload_code_generator(size=20)
     else:
         p = Project.objects.get(pk=proj_id)
         if p.user != request.user:
             return render(request, '404.html')
 
-#     if 'id_new_code' in request.POST:
-#         p.upload_code = upload_code_generator(size=20)
     if gen_upload_code:
         p.upload_code = upload_code_generator(size=20)
 
@@ -423,11 +412,9 @@ def process_config(cfg, knob_dict, summary):
 
 def handle_result_files(app, files, use="", hardware="hardware",
                         cluster="cluster"):
-#     from .types import DBMSType
     from .utils import DBMSUtil
     
     # Load summary file
-#     summary = json.loads(''.join(files['summary_data'].chunks()))
     summary = JSONUtil.loads(''.join(files['summary_data'].chunks()))
 
     # Verify that the database/version is supported
@@ -444,7 +431,6 @@ def handle_result_files(app, files, use="", hardware="hardware",
     db_parameters = JSONUtil.loads(''.join(files['db_parameters_data'].chunks()))
     
     # Load DB metrics file
-#     db_metrics = json.loads(''.join(files['db_metrics_data'].chunks()))
     db_metrics = JSONUtil.loads(''.join(files['db_metrics_data'].chunks()))
 
     
@@ -812,8 +798,7 @@ def benchmark_configuration(request):
         dbms_name = dbms_object.full_name
         dbs[dbms_name] = {}
 
-#         db_confs = DBConf.objects.filter(application=benchmark_conf.application, dbms=dbms_object)
-        db_confs = DBConf.objects.filter(dbms=dbms_object)
+        db_confs = DBConf.objects.filter(application=benchmark_conf.application, dbms=dbms_object)
         for db_conf in db_confs:
             rs = Result.objects.filter(dbms_config=db_conf, benchmark_config=benchmark_conf)
             if len(rs) < 1:
@@ -879,7 +864,6 @@ def get_benchmark_data(request):
         data_package['results'][-1]['data'].reverse()
         data_package['results'][-1]['tick'].reverse()
 
-#     return HttpResponse(json.dumps(data_package), content_type='application/json')
     return HttpResponse(JSONUtil.dumps(data_package), content_type='application/json')
 
 @login_required(login_url='/login/')
@@ -920,12 +904,6 @@ def result_similar(a, b):
         if k not in db_conf_b or v != db_conf_b[k]:
             return False
     return True
-#         for bkv in db_conf_b:
-#             if bkv[0] == kv[0] and bkv[1] != kv[1]:
-#                 return False
-#             else:
-#                 break
-#     return True
 
 def result_same(a, b):
     db_conf_a = JSONUtil.loads(a.dbms_config.configuration)
@@ -1132,15 +1110,11 @@ def get_timeline_data(request):
     results = Result.objects.filter(application=request.GET['proj'])
     results = filter(lambda x: x.dbms.key in request.GET['db'].split(','), results)
     results = sorted(results, cmp=lambda x, y: int((x.timestamp - y.timestamp).total_seconds()))
-    # Determine which benchmark is selected
 
     table_results = []
-#     if request.GET['ben'] == 'grid':
-#         table_results = results
     if request.GET['ben'] == 'show_none':
         pass
     else:
-#         benchmarks = []
         
         if request.GET['ben'] == 'grid':
             benchmarks = set()

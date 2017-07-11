@@ -153,7 +153,6 @@ class DBMSMetrics(models.Model):
     execution_time = models.IntegerField()
     configuration = models.TextField()
     raw_configuration = models.TextField()
-#     similar_conf = models.TextField(null=True)
     dbms = models.ForeignKey(DBMSCatalog)
 
     def clean_fields(self, exclude=None):
@@ -188,7 +187,6 @@ class Result(models.Model):
     dbms_metrics = models.ForeignKey(DBMSMetrics)
 
     creation_time = models.DateTimeField()
-#     hardware = models.ForeignKey(Hardware)
     summary = models.TextField()
     samples = models.TextField()
 

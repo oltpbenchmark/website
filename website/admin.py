@@ -1,6 +1,5 @@
 from django.contrib import admin
-from website.models import * #Project, Result, BenchmarkConfig, DBConf, Statistics, Application, DBMSMetrics, DBMSCatalog
-from django_extensions.management.commands.sqldiff import ORDERING_FIELD
+from website.models import *
 
 class DBMSCatalogAdmin(admin.ModelAdmin):
     list_display = ['dbms_info']

@@ -41,13 +41,11 @@ def start_rabbitmq(detached=True):
 
 @task
 def stop_rabbitmq():
-    #sudo('rabbitmqctl stop', pty=False)
     local('sudo rabbitmqctl stop')
 
 @task
 def status_rabbitmq():
     with settings(warn_only=True), quiet():
-        #res = sudo('rabbitmqctl status', pty=False)
         res = local('sudo rabbitmqctl status')
     if res.return_code == 2 or res.return_code == 69:
         status = STATUS.STOPPED
@@ -97,7 +95,6 @@ def start_server():
 
 @task
 def stop_all():
-    # TODO: update stop server
     stop_celery()
     stop_rabbitmq()
 
@@ -126,8 +123,6 @@ def recreate_website_dbms():
     local('python manage.py makemigrations website')
     local('python manage.py migrate website')
     local('python manage.py migrate')
-    local("echo \"from django.contrib.auth.models import User; User.objects.filter(email='dvanaken@andrew.cmu.edu').delete(); User.objects.create_superuser('dvanaken', 'dvanaken@andrew.cmu.edu', 'db123experiments')\" | python manage.py shell")
+    local("echo \"from django.contrib.auth.models import User; User.objects.filter(email='user@email.com').delete(); User.objects.create_superuser('user', 'user@email.com', '123')\" | python manage.py shell")
     local('python manage.py loaddata script/preload/*')
-#     local('python manage.py loaddata script/preload/debug.json')
-#     local("mysql -u {} -p{} -D {} -N -B -e \"ALTER TABLE website_oltpbench_info MODIFY raw LONGTEXT CHARACTER SET utf8 COLLATE utf8_general_ci;\"".format(user, passwd, name))
 
