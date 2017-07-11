@@ -37,7 +37,7 @@ function renderPlot(data, div_id) {
             show: true,
             tooltipLocation: 'nw',
             yvalues: 2,
-            formatString:'<table class="jqplot-highlighter"><tr><td>time:</td><td>%s</td></tr> <tr><td>' + data.metric + ':</td><td>%s</td></tr></table>'
+            formatString:'<table class="jqplot-highlighter"><tr><td>Time:</td><td>%s</td></tr> <tr><td>' + data.metric + ':</td><td>%s</td></tr></table>'
         },
         cursor: {show: true, zoom:true, showTooltip:false, clickReset:true}
     };

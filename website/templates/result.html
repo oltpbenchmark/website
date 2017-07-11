@@ -7,7 +7,7 @@
     <caption><h4>Result Info</h4></caption>
     <tbody>
     <tr>
-        <td><div class="text-right">ID</div></td>
+        <td><div class="text-right">Result ID</div></td>
         <td>{{ result.pk }}</td>
     </tr>
     <tr>
@@ -20,12 +20,16 @@
         <td>{{ result.application.name }}</td>
     </tr>
     <tr>
-        <td><div class="text-top text-right">DB Conf</div></td>
-        <td><a href="/db_conf/?id={{ result.db_conf.pk }}">{{ result.db_conf.name }}</a></td>
+        <td><div class="text-right">Benchmark Configuration</div></td>
+        <td><a href="/benchmark_conf/?id={{ result.benchmark_config.pk }}">{{ result.benchmark_config.name }}</a></td>
     </tr>
     <tr>
-        <td><div class="text-right">Benchmark Conf</div></td>
-        <td><a href="/benchmark_conf/?id={{ result.benchmark_conf.pk }}">{{ result.benchmark_conf.name }}</a></td>
+        <td><div class="text-top text-right">DBMS Configuration</div></td>
+        <td><a href="/db_conf/?id={{ result.dbms_config.pk }}">{{ result.dbms_config.name }}</a></td>
+    </tr>
+    <tr>
+        <td><div class="text-top text-right">DBMS Metrics</div></td>
+        <td><a href="/dbms_metrics/?id={{ result.dbms_metrics.pk }}">{{ result.dbms_metrics.name }}</a></td>
     </tr>
     <tr>
         <td><div class="text-right">Experiment Time</div></td>
@@ -35,14 +39,20 @@
         <td><div class="text-right">Upload Time</div></td>
         <td>{{ result.creation_time }}</td>
     </tr>
-    <tr>
+    <!-- <tr>
         <td><div class="text-right">Overall Throughout</div></td>
-        <td>{{ result.throughput }} {{ metric_meta|get_item:"throughput"|get_item:"unit" }}</td>
+        <td>{{ overall_throughput|floatformat:2 }} {{ metric_meta|get_item:"throughput"|get_item:"unit" }}</td>
     </tr>
     <tr>
         <td><div class="text-right">Overall 99% Latency</div></td>
-        <td>{{ result.p99_latency }} {{ metric_meta|get_item:"p99_latency"|get_item:"unit" }}</td>
+        <td>{{ overall_p99_latency|floatformat:2 }} {{ metric_meta|get_item:"p99_latency"|get_item:"unit" }}</td>
+    </tr> -->
+    {% for key, value in default_metrics.items %}
+    <tr>
+        <td><div class="text-right">{{ metric_meta|get_item:key|get_item:"print" }}</div></td>
+        <td>{{ value|floatformat:2 }} {{ metric_meta|get_item:key|get_item:"unit" }}</td>
     </tr>
+    {% endfor %}
     <tr>
         <td><div class="text-right">Sampled data</div></td>
         <td><a href="/get_result_data_file/?id={{ result.pk }}&type=sample">Download</a></td>
@@ -51,11 +61,12 @@
         <td><div class="text-right">Raw data</div></td>
         <td><a href="/get_result_data_file/?id={{ result.pk }}&type=raw">Download</a></td>
     </tr>
+    {% if task %}
     <tr>
         <td><div class="text-right">Status:</div></td>
         <td><a href="/status/?id={{ result.pk }}">{{task.status}}</td>
     </tr>   
-
+    {% endif %}
     </tbody>
 </table>
 </div>

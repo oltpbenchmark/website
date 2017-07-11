@@ -2,100 +2,62 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django import forms
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_comma_separated_integer_list
+from website.types import DBMSType, MetricType, VarType, HardwareType
+
+class DBMSCatalog(models.Model):
+    type = models.IntegerField(choices=DBMSType.choices())
+    version = models.CharField(max_length=16)
+    
+    @property
+    def key(self):
+        return '{}_{}'.format(self.name, self.version)
+    
+    @property
+    def name(self):
+        return DBMSType.name(self.type)
+    
+    @property
+    def full_name(self):
+        return '{} v{}'.format(self.name, self.version)
 
 
-class Knob_catalog(models.Model):
-    id = models.IntegerField(primary_key=True)
-#    dbms_name = models.TextField()
-#    dbms_version = models.TextField()
-    dbms_id = models.IntegerField()
-    name = models.TextField()
-    vartype = models.TextField()
-    unit = models.TextField(null=True)
+class KnobCatalog(models.Model):
+    dbms = models.ForeignKey(DBMSCatalog) 
+    name = models.CharField(max_length=64)
+    vartype = models.IntegerField(choices=VarType.choices())
+    unit = models.CharField(max_length=16, null=True)
     category = models.TextField(null=True)
     summary = models.TextField(null=True)
     description = models.TextField(null=True)
-    scope = models.TextField()
-    dynamic = models.BooleanField()
-    min_value = models.TextField(null=True)
-    max_value = models.TextField(null=True)
-    valid_vals = models.TextField(null=True) 
-    default_val = models.TextField()
-    deprecated = models.BooleanField()
-    dangerous = models.TextField(null=True)
-    safe_vals = models.TextField(null=True)
-    rank = models.IntegerField(null=True)
-    
-
-class Metric_catalog(models.Model):
-    id = models.IntegerField(primary_key=True)
-    dbms_id = models.IntegerField()
-#    dbms_name = models.TextField()
-#    dbms_version = models.TextField()
-    scale = models.TextField()
-    name = models.TextField()
-    vartype = models.TextField()
-    description = models.TextField(null=True)
-    scope = models.TextField(null=True)
-    featured = models.BooleanField()
-
-class DBMS_catalog(models.Model): 
-    id = models.IntegerField(primary_key=True)
-    dbms_name = models.TextField()
-    version = models.TextField()
+    scope = models.CharField(max_length=16)
+    minval = models.CharField(max_length=32, null=True)
+    maxval = models.CharField(max_length=32, null=True)
+    default = models.TextField()
+    enumvals = models.TextField(null=True)
+    context = models.CharField(max_length=32)
+    tunable = models.BooleanField()
 
 
-class Workload_info(models.Model):
-    #id = models.AutoField(primary_key=True) 
-    isolation = models.CharField(max_length=64)
-    scalefactor = models.IntegerField()
-    terminals = models.IntegerField()
-    time = models.IntegerField()
-    rate = models.CharField(max_length=64)
-    skew = models.FloatField(null=True)
-    trans_weights = models.TextField()
-    workload = models.TextField()
-
-class Oltpbench_info(models.Model):
-#    id = models.IntegerField(primary_key=True)
-
-    user = models.ForeignKey(User) 
-    dbms_name = models.CharField(max_length=64)
-    dbms_version = models.CharField(max_length=64)
-
-    hardware = models.CharField(null=True, max_length=64)
-    cluster = models.TextField(null=True)
-
-    summary = models.TextField()
-    res = models.TextField()
-    status = models.TextField()
-    cfg = models.TextField()
-    raw = models.TextField(null=True)
-    
-    wid = models.ForeignKey(Workload_info)
-     
-
-class NewResultForm(forms.Form):
-    upload_code = forms.CharField(max_length=30)
-
-#     upload_use = forms.CharField(max_length=30) #compute/store
-#     hardware = forms.CharField(max_length=30) # hardware 
-#     cluster = forms.CharField(max_length=200) # store cluster    
-
-    sample_data = forms.FileField()
-#     raw_data = forms.FileField()
-    db_conf_data = forms.FileField()
-    db_status_data =forms.FileField()
-    benchmark_conf_data = forms.FileField()
-    summary_data = forms.FileField()
-    
-
+class MetricCatalog(models.Model):
+    dbms = models.ForeignKey(DBMSCatalog)
+    name = models.CharField(max_length=64)
+    vartype = models.IntegerField(choices=VarType.choices())
+    summary = models.TextField(null=True)
+    scope = models.CharField(max_length=16)
+    metric_type = models.IntegerField(choices=MetricType.choices())
+        
+    def clean_fields(self, exclude=None):
+        super(MetricCatalog, self).clean_fields(exclude=exclude)
+        if self.metric_type == MetricType.COUNTER and self.vartype != VarType.INTEGER:
+            raise ValidationError('Counter metrics must be integers.')
 
 
 class Project(models.Model):
     user = models.ForeignKey(User)
     name = models.CharField(max_length=64)
-    description = models.TextField()
+    description = models.TextField(null=True)
     creation_time = models.DateTimeField()
     last_update = models.DateTimeField()
 
@@ -108,34 +70,33 @@ class Project(models.Model):
         super(Project, self).delete(using)
 
 
-
-
-class Task(models.Model):
-    id = models.IntegerField(primary_key=True)
-    creation_time = models.DateTimeField()
-    finish_time = models.DateTimeField(null=True)
-    running_time = models.IntegerField(null=True)
-    status = models.CharField(max_length=64) 
-    traceback =  models.TextField(null=True)
-    result = models.TextField(null=True)
+class Hardware(models.Model):
+    type = models.IntegerField(choices=HardwareType.choices())
+    name = models.CharField(max_length=32)
+    cpu = models.IntegerField()
+    memory = models.FloatField()
+    storage = models.CharField(max_length=64,
+                               validators=[validate_comma_separated_integer_list])
+    storage_type = models.CharField(max_length=16)
+    additional_specs = models.TextField(null=True)
 
 
 class Application(models.Model):
-#     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User)
     name = models.CharField(max_length=64)
     description = models.TextField()
+    hardware = models.ForeignKey(Hardware)
    
     project = models.ForeignKey(Project)
     creation_time = models.DateTimeField()
     last_update = models.DateTimeField()
 
-    upload_code = models.CharField(max_length=30)
+    upload_code = models.CharField(max_length=30, unique=True)
   
     def delete(self, using=None):
         targets = DBConf.objects.filter(application=self)
         results = Result.objects.filter(application=self)
-        expconfs =  ExperimentConf.objects.filter(application=self)
+        expconfs =  BenchmarkConfig.objects.filter(application=self)
         for t in targets:
             t.delete()
         for r in results:
@@ -145,21 +106,21 @@ class Application(models.Model):
         super(Application, self).delete(using)
 
 
-
-
-
-class ExperimentConf(models.Model):
+class BenchmarkConfig(models.Model):
     application = models.ForeignKey(Application)
-   
-
-    name = models.CharField(max_length=50)
-    description = models.CharField(max_length=512)
+    name = models.CharField(max_length=64)
+    description = models.CharField(max_length=512, null=True)
     configuration = models.TextField()
-    benchmark_type = models.CharField(max_length=512)
+    benchmark_type = models.CharField(max_length=64)
     creation_time = models.DateTimeField()
-    isolation = models.TextField()
-    scalefactor = models.TextField()
-    terminals = models.TextField()
+    isolation = models.CharField(max_length=64)
+    scalefactor = models.FloatField()
+    terminals = models.IntegerField()
+    time = models.IntegerField()
+    rate = models.CharField(max_length=32)
+    skew = models.FloatField(null=True)
+    transaction_types = models.TextField(validators=[validate_comma_separated_integer_list])
+    transaction_weights = models.TextField(validators=[validate_comma_separated_integer_list])
 
     FILTER_FIELDS = [
         {'field': 'isolation', 'print': 'Isolation Level'},
@@ -167,48 +128,99 @@ class ExperimentConf(models.Model):
         {'field': 'terminals', 'print': '# of Terminals'},
     ]
 
-
-
-class FEATURED_PARAMS(models.Model):
-    db_type = models.CharField(max_length=64)
-    params = models.CharField(max_length=512)
-
-class Website_Conf(models.Model):
-    name = models.CharField(max_length=64)
-    value = models.CharField(max_length=512)
-
-class LEARNING_PARAMS(models.Model):
-    db_type = models.CharField(max_length=64)
-    params = models.CharField(max_length=512)
-
-class KNOB_PARAMS(models.Model):
-    db_type = models.CharField(max_length=64)
-    params = models.CharField(max_length=512)
+    def clean_fields(self, exclude=None):
+        super(BenchmarkConfig, self).clean_fields(exclude=exclude)
+        if self.time <= 0:
+            raise ValidationError('Time must be greater than 0.')
 
 
 class DBConf(models.Model):
-    DB_TYPES = sorted([
-        'DB2',
-        'MYSQL',
-        'POSTGRES',
-        'ORACLE',
-        'SQLSERVER',
-        'SQLITE',
-        'AMAZONRDS',
-        'HSTORE',
-        'SQLAZURE',
-        'ASSCLOWN',
-        'HSQLDB',
-        'H2',
-        'NUODB'
-    ])
     application = models.ForeignKey(Application)
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=512)
     creation_time = models.DateTimeField()
     configuration = models.TextField()
-    similar_conf = models.TextField(default = "zbh")
-    db_type = models.CharField(max_length=max(map(lambda x: len(x), DB_TYPES)))
+    tuning_configuration = models.TextField()
+    raw_configuration = models.TextField()
+    dbms = models.ForeignKey(DBMSCatalog)
+        
+
+class DBMSMetrics(models.Model):
+    application = models.ForeignKey(Application)
+    name = models.CharField(max_length=50)
+    description = models.CharField(max_length=512)
+    creation_time = models.DateTimeField()
+    execution_time = models.IntegerField()
+    configuration = models.TextField()
+    raw_configuration = models.TextField()
+    dbms = models.ForeignKey(DBMSCatalog)
+
+    def clean_fields(self, exclude=None):
+        super(DBMSMetrics, self).clean_fields(exclude=exclude)
+        if self.execution_time <= 0:
+            raise ValidationError('Execution time must be greater than 0.')
+
+class Task(models.Model):
+    creation_time = models.DateTimeField()
+    finish_time = models.DateTimeField(null=True)
+    running_time = models.IntegerField(null=True)
+    status = models.CharField(max_length=64) 
+    traceback =  models.TextField(null=True)
+    result = models.TextField(null=True)
+
+
+class NewResultForm(forms.Form):
+    upload_code = forms.CharField(max_length=30)
+    sample_data = forms.FileField()
+    raw_data = forms.FileField()
+    db_parameters_data = forms.FileField()
+    db_metrics_data =forms.FileField()
+    benchmark_conf_data = forms.FileField()
+    summary_data = forms.FileField()
+        
+
+class Result(models.Model):
+    application = models.ForeignKey(Application)
+    dbms = models.ForeignKey(DBMSCatalog)
+    benchmark_config = models.ForeignKey(BenchmarkConfig)
+    dbms_config = models.ForeignKey(DBConf)
+    dbms_metrics = models.ForeignKey(DBMSMetrics)
+
+    creation_time = models.DateTimeField()
+    summary = models.TextField()
+    samples = models.TextField()
+
+    timestamp = models.DateTimeField()
+    throughput = models.FloatField()
+    avg_latency = models.FloatField()
+    min_latency = models.FloatField()
+    p25_latency = models.FloatField()
+    p50_latency = models.FloatField()
+    p75_latency = models.FloatField()
+    p90_latency = models.FloatField()
+    p95_latency = models.FloatField()
+    p99_latency = models.FloatField()
+    max_latency = models.FloatField()
+    most_similar = models.CharField(max_length=100, validators=[validate_comma_separated_integer_list])
+
+    def __unicode__(self):
+        return unicode(self.pk)
+
+
+
+class Statistics(models.Model):
+    result = models.ForeignKey(Result)
+    time = models.IntegerField()
+    throughput = models.FloatField()
+    avg_latency = models.FloatField()
+    min_latency = models.FloatField()
+    p25_latency = models.FloatField()
+    p50_latency = models.FloatField()
+    p75_latency = models.FloatField()
+    p90_latency = models.FloatField()
+    p95_latency = models.FloatField()
+    p99_latency = models.FloatField()
+    max_latency = models.FloatField()
 
 
 PLOTTABLE_FIELDS = [
@@ -226,54 +238,14 @@ PLOTTABLE_FIELDS = [
 
 METRIC_META = {
     'throughput': {'unit': 'transactions/second', 'lessisbetter': False, 'scale': 1, 'print': 'Throughput'},
-    'p99_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 0.001, 'print': '99% Latency'},
-    'p95_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 0.001, 'print': '95% Latency'},
-    'p90_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 0.001, 'print': '90% Latency'},
-    'p75_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 0.001, 'print': '75% Latency'},
-    'p50_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 0.001, 'print': 'Med. Latency'},
-    'p25_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 0.001, 'print': '25% Latency'},
-    'min_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 0.001, 'print': 'Min Latency'},
-    'avg_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 0.001, 'print': 'Avg. Latency'},
-    'max_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 0.001, 'print': 'Max Latency'}
+    'p99_latency': {'unit': 'milliseconds', 'lessisbetter': True, 'scale': 0.001, 'print': '99% Latency'},
+    'p95_latency': {'unit': 'milliseconds', 'lessisbetter': True, 'scale': 0.001, 'print': '95% Latency'},
+    'p90_latency': {'unit': 'milliseconds', 'lessisbetter': True, 'scale': 0.001, 'print': '90% Latency'},
+    'p75_latency': {'unit': 'milliseconds', 'lessisbetter': True, 'scale': 0.001, 'print': '75% Latency'},
+    'p50_latency': {'unit': 'milliseconds', 'lessisbetter': True, 'scale': 0.001, 'print': 'Med. Latency'},
+    'p25_latency': {'unit': 'milliseconds', 'lessisbetter': True, 'scale': 0.001, 'print': '25% Latency'},
+    'min_latency': {'unit': 'milliseconds', 'lessisbetter': True, 'scale': 0.001, 'print': 'Min Latency'},
+    'avg_latency': {'unit': 'milliseconds', 'lessisbetter': True, 'scale': 0.001, 'print': 'Avg. Latency'},
+    'max_latency': {'unit': 'milliseconds', 'lessisbetter': True, 'scale': 0.001, 'print': 'Max Latency'}
 }
-
-
-class Result(models.Model):
-    benchmark_conf = models.ForeignKey(ExperimentConf)
-    db_conf = models.ForeignKey(DBConf)
-
-    application = models.ForeignKey(Application)
-    creation_time = models.DateTimeField()
-
-    timestamp = models.DateTimeField()
-    throughput = models.FloatField()
-    avg_latency = models.FloatField()
-    min_latency = models.FloatField()
-    p25_latency = models.FloatField()
-    p50_latency = models.FloatField()
-    p75_latency = models.FloatField()
-    p90_latency = models.FloatField()
-    p95_latency = models.FloatField()
-    p99_latency = models.FloatField()
-    max_latency = models.FloatField()
-    most_similar = models.CommaSeparatedIntegerField(max_length=100)
-#     most_similar = models.CharField(max_length=100)
-
-    def __unicode__(self):
-        return unicode(self.pk)
-
-
-class Statistics(models.Model):
-    result = models.ForeignKey(Result)
-    time = models.IntegerField()
-    throughput = models.FloatField()
-    avg_latency = models.FloatField()
-    min_latency = models.FloatField()
-    p25_latency = models.FloatField()
-    p50_latency = models.FloatField()
-    p75_latency = models.FloatField()
-    p90_latency = models.FloatField()
-    p95_latency = models.FloatField()
-    p99_latency = models.FloatField()
-    max_latency = models.FloatField()
 

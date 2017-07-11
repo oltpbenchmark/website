@@ -10,7 +10,9 @@
     <tr>
         <th><input type="checkbox" onClick="toggle(this, 'projects')" /></th>
         <th>Project Name</th>
+        {% if project.description %}
         <th>Description</th>
+        {% endif %}
         <th>Last Update</th>
         <th>Creation Time</th>
     </tr>
@@ -18,7 +20,9 @@
         <tr>
             <td style="vertical-align:middle"><input type="checkbox" name="projects" value="{{ project.pk }}" /></td>
             <td style="vertical-align:middle"><a href="/project/?id={{project.pk}}">{{ project.name }}</a></td>
+            {% if project.description %}
             <td style="vertical-align:middle">{{ project.description|linebreaks }}</td>
+            {% endif %}
             <td style="vertical-align:middle">{{ project.creation_time }}</td>
             <td style="vertical-align:middle">{{ project.last_update }}</td>
         </tr>

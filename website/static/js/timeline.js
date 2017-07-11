@@ -44,7 +44,7 @@ function renderPlot(data, div_id) {
             label: 'Date',
             labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
             tickRenderer: $.jqplot.CanvasAxisTickRenderer,
-            tickOptions:{formatString:'%b %d', angle:-40},
+            tickOptions:{formatString:'%#m/%#d %H:%M', angle:-40}, //'%b %d %#I:%M'
             autoscale: true,
             rendererOptions:{sortMergedLabels:true}
         }
@@ -109,6 +109,7 @@ function render(data) {
         $("#plotgrid").html(getLoadText("No data available", h, false));
     } else if ($("input[name='benchmark']:checked").val() === "grid"){
         //Render Grid of plots
+    	console.log("PLOTTING MINIPLOTS")
         disable_options(true);
         for (var bench in data.timelines) {
             var plotid = "plot_" + data.timelines[bench].benchmark;
@@ -137,16 +138,19 @@ function render(data) {
             }},
             { "sTitle": "Creation Time", "sClass": "center"},
             { "sTitle": "DB Conf", "sClass": "center", "mRender": function (data, type, full) {
-                return '<a href="/db_conf/?id=' + full[6] + '">' + data + '</a>';
+                return '<a href="/db_conf/?id=' + full[7] + '">' + data + '</a>';
+            }},
+            { "sTitle": "DBMS Metrics", "sClass": "center", "mRender": function (data, type, full) {
+                return '<a href="/dbms_metrics/?id=' + full[8] + '">' + data + '</a>';
             }},
             { "sTitle": "Benchmark Conf", "sClass": "center", "mRender": function (data, type, full) {
-                return '<a href="/benchmark_conf/?id=' + full[7] + '">' + data + '</a>';
+                return '<a href="/benchmark_conf/?id=' + full[9] + '">' + data + '</a>';
             }},
             { "sTitle": "Throughput", "sClass": "center", "mRender": function (data, type, full) {return data.toFixed(2);}},
             { "sTitle": "p99 Latency", "sClass": "center", "mRender": function (data, type, full) {return data.toFixed(2);}},
         ],
         "bFilter": false,
-        "bAutoWidth": false,
+        "bAutoWidth": true,
         "sPaginationType": "full_numbers",
         "bDestroy": true
     });
@@ -248,10 +252,10 @@ function setValuesOfInputFields(event) {
             $(this).prop('checked', true);
         }
     });
-
+    
     // Set default selected db
     $("input:checkbox[name='db']").removeAttr('checked');
-    var dbs = event.parameters.db ? event.parameters.db.split(',') : defaults.dbs;
+    var dbs = event.parameters.db && event.parameters.db != "none" ? event.parameters.db.split(',') : defaults.db.split(',');
     var sel = $("input[name='db']");
     $.each(dbs, function(i, db) {
         sel.filter("[value='" + db + "']").prop('checked', true);
@@ -265,7 +269,7 @@ function setValuesOfInputFields(event) {
     if ($("input[name='benchmark']:checked").val() != "grid" && $("input[name='benchmark']:checked").val() != "show_none") {
         $("[id=div_specific_" + $("input[name='benchmark']:checked").val() + "]").show();
         sel = $("[id^=specific_" + $("input[name='benchmark']:checked").val() + "_]");
-        var specs = event.parameters.spe? event.parameters.spe.split(','): defaults.benchmarks[benchmark];
+        var specs = event.parameters.spe && event.parameters.spe != "none" ? event.parameters.spe.split(','): defaults.benchmarks.split(',');
         $.each(specs, function(i, spec) {
             sel.filter("[value='" + spec + "']").prop('checked', true);
         });

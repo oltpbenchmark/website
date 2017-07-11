@@ -5,13 +5,14 @@
 <form action="/delete_application/" method="POST"
       onsubmit="return confirm('Are you sure you want to delete these applications and all targets/results under this application?')">
       {% csrf_token %}
-<table id="application_table" class="table table-bordered table-striped table-hover table-nonfluid">
+<table style="table-layout: auto; width: 100%;" id="application_table" class="table table-bordered table-striped table-hover table-nonfluid">
     <caption><h4>Your Applications</h4></caption>
     <tr>
         <th><input type="checkbox" onClick="toggle(this, 'applications')" /></th>
         <th>Application Name</th>
         <th>Project Name</th>
         <th>Description</th>
+        <th>Hardware</th>
         <th>Last Update</th>
         <th>Creation Time</th>
     </tr>
@@ -21,6 +22,7 @@
             <td style="vertical-align:middle"><a href="/application/?id={{application.pk}}">{{ application.name }}</a></td>
             <td style="vertical-align:middle">{{ project.name }}</a></td>
             <td style="vertical-align:middle">{{ application.description|linebreaks }}</td>
+            <td style="vertical-align:middle">{{ application.hardware.name }}</td>
             <td style="vertical-align:middle">{{ application.creation_time }}</td>
             <td style="vertical-align:middle">{{ application.last_update }}</td>
         </tr>
