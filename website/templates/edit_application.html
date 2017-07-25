@@ -12,6 +12,11 @@
             <td valign="top" align="right"><label for="description">Description:</label></td>
             <td><textarea id="description" name="description" maxlength="500" rows="5">{{ application.description }}</textarea></td>
         </tr>
+        {{ form.as_table }}
+<!--         <tr>
+            <td valign="top" align="right"><label for="tuning_session">Tuning Session:</label></td>
+            <td><input type="checkbox" id="tuning_session" name="tuning_session" value="{{ application.tuning_session }}"></td>
+        </tr> -->
         {% if application %}
         <tr>
             <td align="right"><label for="project">Project:</label></td>

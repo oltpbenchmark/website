@@ -92,6 +92,7 @@ class Application(models.Model):
     last_update = models.DateTimeField()
 
     upload_code = models.CharField(max_length=30, unique=True)
+    tuning_session = models.BooleanField()
   
     def delete(self, using=None):
         targets = DBConf.objects.filter(application=self)
@@ -104,6 +105,9 @@ class Application(models.Model):
         for x in expconfs:
             x.delete()
         super(Application, self).delete(using)
+
+class TuningSessionCheckbox(forms.Form):
+    tuning_session = forms.BooleanField(required=False, label="Tuning Session:", widget=forms.CheckboxInput())
 
 
 class BenchmarkConfig(models.Model):

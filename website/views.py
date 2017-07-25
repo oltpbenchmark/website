@@ -248,6 +248,7 @@ def edit_application(request):
             context['project'] = project
     except Project.DoesNotExist:
         pass
+    context['form'] = TuningSessionCheckbox(request.POST or None)
     return render(request, 'edit_application.html', context)
 
 
@@ -339,6 +340,9 @@ def update_application(request):
     p.name = request.POST['name']
     p.description = request.POST['description']
     p.last_update = now()
+    tuning_form = TuningSessionCheckbox(request.POST or None)
+    if tuning_form.is_valid():
+        p.tuning_session = tuning_form.cleaned_data['tuning_session']
     p.save()
     return redirect('/application/?id=' + str(p.pk))
 
