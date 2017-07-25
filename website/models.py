@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from django.db import models
 from django.contrib.auth.models import User
-from django import forms
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_comma_separated_integer_list
 from website.types import DBMSType, MetricType, VarType, HardwareType
@@ -106,9 +105,6 @@ class Application(models.Model):
             x.delete()
         super(Application, self).delete(using)
 
-class TuningSessionCheckbox(forms.Form):
-    tuning_session = forms.BooleanField(required=False, label="Tuning Session:", widget=forms.CheckboxInput())
-
 
 class BenchmarkConfig(models.Model):
     application = models.ForeignKey(Application)
@@ -171,16 +167,6 @@ class Task(models.Model):
     status = models.CharField(max_length=64) 
     traceback =  models.TextField(null=True)
     result = models.TextField(null=True)
-
-
-class NewResultForm(forms.Form):
-    upload_code = forms.CharField(max_length=30)
-    sample_data = forms.FileField()
-    raw_data = forms.FileField()
-    db_parameters_data = forms.FileField()
-    db_metrics_data =forms.FileField()
-    benchmark_conf_data = forms.FileField()
-    summary_data = forms.FileField()
         
 
 class Result(models.Model):
