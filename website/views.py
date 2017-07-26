@@ -397,7 +397,7 @@ def new_result(request):
             log.warning("Wrong upload code: " + upload_code)
             return HttpResponse("wrong upload_code!")
 
-        return handle_result_files(application, request.FILES, 'store')
+        return handle_result_files(application, request.FILES)
     log.warning("Request type was not POST")
     return HttpResponse("POST please\n")
 
@@ -444,11 +444,9 @@ def process_config(cfg, knob_dict, summary):
     return row_x, row_y
 
 
-def handle_result_files(app, files, use="", hardware="hardware",
-                        cluster="cluster"):
+def handle_result_files(app, files):#, use="", hardware="hardware", cluster="cluster"):
     from .utils import DBMSUtil
     from celery import chain
-#     from djcelery.models import TaskMeta
     
     # Load summary file
     summary = JSONUtil.loads(''.join(files['summary_data'].chunks()))
@@ -463,7 +461,6 @@ def handle_result_files(app, files, use="", hardware="hardware",
         return HttpResponse('{} v{} is not yet supported.'.format(summary['DBMS Type'], dbms_version))
     
     # Load DB parameters file
-#     db_parameters = json.loads(''.join(files['db_parameters_data'].chunks()))
     db_parameters = JSONUtil.loads(''.join(files['db_parameters_data'].chunks()))
     
     # Load DB metrics file
@@ -504,14 +501,11 @@ def handle_result_files(app, files, use="", hardware="hardware",
                 '#' + str(benchmark_config.pk)
         benchmark_config.save()
 
-    db_conf_dict = DBMSUtil.parse_dbms_config(dbms_object.type,
-                                              db_parameters,
-                                              KnobCatalog.objects.filter(dbms=dbms_object))
-    db_conf_str = JSONUtil.dumps(db_conf_dict, pprint=True)
-    tunable_param_names = [re.compile(p.name, re.UNICODE | re.IGNORECASE) \
-                           for p in KnobCatalog.objects.filter(dbms=dbms_object, tunable=True)]
-    tunable_params = filter(lambda x: filter_db_var(x, tunable_param_names), list(db_conf_dict.iteritems()))
-    tunable_params = {k:v for k,v in tunable_params}
+    knob_catalog = KnobCatalog.objects.filter(dbms=dbms_object)
+    db_conf_dict, db_diffs = DBMSUtil.parse_dbms_config(dbms_object.type,
+                                                        db_parameters,
+                                                        knob_catalog)
+    db_conf_str = JSONUtil.dumps(db_conf_dict, pprint=True, sort=True)
 
     creation_time = now()
     db_confs = DBConf.objects.filter(configuration=db_conf_str, application=app)
@@ -522,8 +516,9 @@ def handle_result_files(app, files, use="", hardware="hardware",
         db_conf.creation_time = creation_time
         db_conf.name = ''
         db_conf.configuration = db_conf_str
-        db_conf.tuning_configuration = JSONUtil.dumps(tunable_params, pprint=True)
-        db_conf.raw_configuration = JSONUtil.dumps(db_parameters)
+        db_conf.orig_config_diffs = JSONUtil.dumps(db_diffs, pprint=True)
+#         db_conf.tuning_configuration = JSONUtil.dumps(tunable_params, pprint=True, sort=True)
+#         db_conf.raw_configuration = JSONUtil.dumps(db_parameters)
         db_conf.application = app
         db_conf.dbms = dbms_object
         db_conf.description = ''
@@ -532,15 +527,16 @@ def handle_result_files(app, files, use="", hardware="hardware",
         db_conf.save()
     
     
-    db_metrics_str = JSONUtil.dumps(DBMSUtil.parse_dbms_metrics(dbms_object.type,
-                                                                db_metrics,
-                                                                MetricCatalog.objects.filter(dbms=dbms_object)),
-                                    pprint=True)
+    db_metrics_catalog = MetricCatalog.objects.filter(dbms=dbms_object)
+    db_metrics_dict, met_diffs = DBMSUtil.parse_dbms_metrics(dbms_object.type,
+                                                             db_metrics,
+                                                             db_metrics_catalog)
     dbms_metrics = DBMSMetrics()
     dbms_metrics.creation_time = creation_time
     dbms_metrics.name = ''
-    dbms_metrics.configuration = db_metrics_str
-    dbms_metrics.raw_configuration = JSONUtil.dumps(db_metrics)
+    dbms_metrics.configuration = JSONUtil.dumps(db_metrics_dict, pprint=True, sort=True)
+    dbms_metrics.orig_config_diffs = JSONUtil.dumps(met_diffs, pprint=True)
+#     dbms_metrics.raw_configuration = JSONUtil.dumps(db_metrics)
     dbms_metrics.execution_time = benchmark_config.time
     dbms_metrics.application = app
     dbms_metrics.dbms = dbms_object
@@ -555,12 +551,12 @@ def handle_result_files(app, files, use="", hardware="hardware",
     result.dbms_metrics = dbms_metrics
     result.benchmark_config = benchmark_config
     
-    result.summary = JSONUtil.dumps(summary, pprint=True)
+    result.summary = JSONUtil.dumps(summary, pprint=True, sort=True)
     result.samples = samples
 
     result.timestamp = datetime.fromtimestamp(int(summary['Current Timestamp (milliseconds)']) / 1000, timezone("UTC"))
-    result.hardware = hardware
-    result.cluster = cluster
+    result.hardware = app.hardware
+    result.cluster = '' #cluster
 
     latencies = summary['Latency Distribution']
     result.avg_latency = float(latencies['Average Latency (microseconds)'])
@@ -608,6 +604,21 @@ def handle_result_files(app, files, use="", hardware="hardware",
         sta.p99_latency = float(nums[p99_idx])
         sta.max_latency = float(nums[max_idx])
         sta.save()
+
+    tunable_param_catalog = filter(lambda x: x.tunable == True, knob_catalog)
+    tunable_params = {p.name: db_conf_dict[p.name] for p in tunable_param_catalog}
+    param_data = DBMSUtil.preprocess_dbms_params(dbms_object.type, tunable_params, tunable_param_catalog)
+
+    numeric_metric_catalog = filter(lambda x: x.metric_type != MetricType.INFO, db_metrics_catalog)
+    numeric_metrics = {p.name: db_metrics_dict[p.name] for p in numeric_metric_catalog}
+    metric_data = DBMSUtil.preprocess_dbms_metrics(dbms_type, numeric_metrics, numeric_metric_catalog, int(benchmark_config.time))
+    
+    res_data = ResultData()
+    res_data.dbms = dbms_object
+    res_data.hardware = app.hardware
+    res_data.result = result
+    res_data.param_data = JSONUtil.dumps(param_data, pprint=True, sort=True)
+    res_data.metric_data = JSONUtil.dumps(metric_data, pprint=True, sort=True)
  
     app.project.last_update = now()
     app.last_update = now()
@@ -798,23 +809,30 @@ def dbms_metrics_view(request):
     dbms_metrics = get_object_or_404(DBMSMetrics, pk=request.GET['id'])
     if dbms_metrics.application.user != request.user:
         raise Http404()
-    metrics = JSONUtil.loads(dbms_metrics.configuration)
+    metric_dict = JSONUtil.loads(dbms_metrics.configuration)
+    normalized_dict = dbms_metrics.get_normalized_configuration(include_all=True)
 
-    normalized_metrics = []
-    for metric_info in MetricCatalog.objects.filter(dbms=dbms_metrics.dbms):
-        mname = metric_info.name
+    non_peer_pks = [dbms_metrics.pk]
+    if 'compare' in request.GET and request.GET['compare'] != 'none':
+        compare_obj = DBMSMetrics.objects.get(pk=request.GET['compare'])
+        compare_dict = JSONUtil.loads(compare_obj.configuration)
+        compare_norm_dict = compare_obj.get_normalized_configuration(include_all=True)
         
-        if metric_info.metric_type == MetricType.COUNTER:
-            mvalue = float(metrics[mname]) / dbms_metrics.execution_time
-        else:
-            mvalue = '-'
-        normalized_metrics.append((mname, mvalue))
+        metrics = [(k, v, compare_dict[k]) for k,v in metric_dict.iteritems()]
+        normalized_metrics = [(k, v, compare_norm_dict[k]) for k,v in normalized_dict.iteritems()]
+    else:
+        metrics = list(metric_dict.iteritems())
+        normalized_metrics = list(metric_dict.iteritems())
+    
+    peer_metrics = DBMSMetrics.objects.filter(dbms=dbms_metrics.dbms, application=dbms_metrics.application)
+    peer_metrics = filter(lambda x: x.pk != dbms_metrics.pk, peer_metrics)
+    
 
-    context = {'metrics': list(metrics.iteritems()),
+    context = {'metrics': metrics,
                'normalized_metrics': normalized_metrics,
                'dbms_metrics': dbms_metrics,
                'compare': request.GET.get('compare', 'none'),
-               'peer_dbms_metrics': []}
+               'peer_dbms_metrics': peer_metrics}
     return render(request, 'dbms_metrics.html', context)
 
 @login_required(login_url='/login/')
@@ -822,27 +840,27 @@ def db_conf_view(request):
     db_conf = get_object_or_404(DBConf, pk=request.GET['id'])
     if db_conf.application.user != request.user:
         raise Http404()
-    dbms_config = list(JSONUtil.loads(db_conf.configuration).iteritems())
-    tuning_config = list(JSONUtil.loads(db_conf.tuning_configuration).iteritems())
+    params_dict = JSONUtil.loads(db_conf.configuration)
+    tuning_dict = db_conf.get_tuning_configuration(include_all=True)
 
     if 'compare' in request.GET and request.GET['compare'] != 'none':
-        compare_conf = DBConf.objects.get(pk=request.GET['compare'])
-        compare_conf_list = JSONUtil.loads(compare_conf.configuration, encoding='UTF-8')
-        for a, b in zip(dbms_config, compare_conf_list):
-            a.extend(b[1:])
-        for a, b in zip(tuning_config, filter(lambda x: filter_db_var(x, [t[0] for t in tuning_config]),
-                        JSONUtil.loads(compare_conf.configuration, encoding='UTF-8'))):
-            a.extend(b[1:])
+        compare_obj = DBConf.objects.get(pk=request.GET['compare'])
+        compare_dict = JSONUtil.loads(compare_obj.configuration)
+        compare_tuning_dict = compare_obj.get_tuning_configuration(include_all=True)
+        
+        params = [(k, v, compare_dict[k]) for k,v in params_dict.iteritems()]
+        tuning_params = [(k, v, compare_tuning_dict[k]) for k,v in tuning_dict.iteritems()]
+    else:
+        params = list(params_dict.iteritems())
+        tuning_params = list(tuning_dict.iteritems())
+    peer_params = DBConf.objects.filter(dbms=db_conf.dbms, application=db_conf.application)
+    peer_params = filter(lambda x: x.pk != db_conf.pk, peer_params)
 
-#     peer = DBConf.objects.filter(dbms=db_conf.dbms, application=db_conf.application)
-#     peer_db_conf = [[c.name, c.pk] for c in peer if c.pk != db_conf.pk]
-    peer_db_conf = []
-
-    context = {'parameters': dbms_config,
-               'featured_par': tuning_config,
+    context = {'parameters': params,
+               'featured_par': tuning_params,
                'db_conf': db_conf,
                'compare': request.GET.get('compare', 'none'),
-               'peer_db_conf': peer_db_conf}
+               'peer_db_conf': peer_params}
     return render(request, 'db_conf.html', context)
 
 
@@ -960,8 +978,8 @@ def update_benchmark_conf(request):
 
 
 def result_similar(a, b):
-    db_conf_a = JSONUtil.loads(a.dbms_config.tuning_configuration)
-    db_conf_b = JSONUtil.loads(b.dbms_config.tuning_configuration)
+    db_conf_a = a.dbms_config.get_tuning_configuration()
+    db_conf_b = b.dbms_config.get_tuning_configuration()
     for k,v in db_conf_a.iteritems():
         if k not in db_conf_b or v != db_conf_b[k]:
             return False
