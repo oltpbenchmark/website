@@ -529,7 +529,7 @@ with open("settings.json", "w") as f:
 # print "maxlen: {}".format(maxlen)
 
 json_settings = []
-for pname, pinfo in params.iteritems():
+for pname, pinfo in sorted(params.iteritems()):
     entry = {}
     entry['model'] = 'website.KnobCatalog'
     fields = dict(pinfo)
@@ -538,8 +538,6 @@ for pname, pinfo in params.iteritems():
     else:
         fields['tunable'] = False
     for k,v in fields.iteritems():
-#         if v == '':
-#             fields[k] = None
         if v is not None and not isinstance(v, str) and not isinstance(v, bool):
             fields[k] = str(v)
     fields['dbms'] = 1

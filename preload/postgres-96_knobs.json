@@ -1,6 +1,63 @@
 [
     {
         "fields": {
+            "category": "Client Connection Defaults / Locale and Formatting", 
+            "maxval": null, 
+            "dbms": 1, 
+            "name": "DateStyle", 
+            "minval": null, 
+            "default": "ISO, MDY", 
+            "tunable": false, 
+            "enumvals": null, 
+            "vartype": "1", 
+            "context": "user", 
+            "scope": "global", 
+            "summary": "Sets the display format for date and time values.", 
+            "unit": "3", 
+            "description": "Also controls interpretation of ambiguous date inputs."
+        }, 
+        "model": "website.KnobCatalog"
+    }, 
+    {
+        "fields": {
+            "category": "Client Connection Defaults / Locale and Formatting", 
+            "maxval": null, 
+            "dbms": 1, 
+            "name": "IntervalStyle", 
+            "minval": null, 
+            "default": "postgres", 
+            "tunable": false, 
+            "enumvals": "postgres,postgres_verbose,sql_standard,iso_8601", 
+            "vartype": "5", 
+            "context": "user", 
+            "scope": "global", 
+            "summary": "Sets the display format for interval values.", 
+            "unit": "3", 
+            "description": ""
+        }, 
+        "model": "website.KnobCatalog"
+    }, 
+    {
+        "fields": {
+            "category": "Client Connection Defaults / Locale and Formatting", 
+            "maxval": null, 
+            "dbms": 1, 
+            "name": "TimeZone", 
+            "minval": null, 
+            "default": "GMT", 
+            "tunable": false, 
+            "enumvals": null, 
+            "vartype": "1", 
+            "context": "user", 
+            "scope": "global", 
+            "summary": "Sets the time zone for displaying and interpreting time stamps.", 
+            "unit": "3", 
+            "description": ""
+        }, 
+        "model": "website.KnobCatalog"
+    }, 
+    {
+        "fields": {
             "category": "Developer Options", 
             "maxval": null, 
             "dbms": 1, 
@@ -889,25 +946,6 @@
             "summary": "Sets the server's data directory.", 
             "unit": "3", 
             "description": ""
-        }, 
-        "model": "website.KnobCatalog"
-    }, 
-    {
-        "fields": {
-            "category": "Client Connection Defaults / Locale and Formatting", 
-            "maxval": null, 
-            "dbms": 1, 
-            "name": "DateStyle", 
-            "minval": null, 
-            "default": "ISO, MDY", 
-            "tunable": false, 
-            "enumvals": null, 
-            "vartype": "1", 
-            "context": "user", 
-            "scope": "global", 
-            "summary": "Sets the display format for date and time values.", 
-            "unit": "3", 
-            "description": "Also controls interpretation of ambiguous date inputs."
         }, 
         "model": "website.KnobCatalog"
     }, 
@@ -1970,25 +2008,6 @@
             "context": "internal", 
             "scope": "global", 
             "summary": "Datetimes are integer based.", 
-            "unit": "3", 
-            "description": ""
-        }, 
-        "model": "website.KnobCatalog"
-    }, 
-    {
-        "fields": {
-            "category": "Client Connection Defaults / Locale and Formatting", 
-            "maxval": null, 
-            "dbms": 1, 
-            "name": "IntervalStyle", 
-            "minval": null, 
-            "default": "postgres", 
-            "tunable": false, 
-            "enumvals": "postgres,postgres_verbose,sql_standard,iso_8601", 
-            "vartype": "5", 
-            "context": "user", 
-            "scope": "global", 
-            "summary": "Sets the display format for interval values.", 
             "unit": "3", 
             "description": ""
         }, 
@@ -4060,25 +4079,6 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the tablespace(s) to use for temporary tables and sort files.", 
-            "unit": "3", 
-            "description": ""
-        }, 
-        "model": "website.KnobCatalog"
-    }, 
-    {
-        "fields": {
-            "category": "Client Connection Defaults / Locale and Formatting", 
-            "maxval": null, 
-            "dbms": 1, 
-            "name": "TimeZone", 
-            "minval": null, 
-            "default": "GMT", 
-            "tunable": false, 
-            "enumvals": null, 
-            "vartype": "1", 
-            "context": "user", 
-            "scope": "global", 
-            "summary": "Sets the time zone for displaying and interpreting time stamps.", 
             "unit": "3", 
             "description": ""
         }, 

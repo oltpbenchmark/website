@@ -46,7 +46,7 @@ with open('metrics_sample.json', 'r') as f:
 
 final_metrics = []
 vartypes = set()
-for view_name, mets in metrics.iteritems():
+for view_name, mets in sorted(metrics.iteritems()):
     if 'database' in view_name:
         scope = 'database'
         stats = dbstats
