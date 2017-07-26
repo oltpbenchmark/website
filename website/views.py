@@ -444,7 +444,7 @@ def process_config(cfg, knob_dict, summary):
     return row_x, row_y
 
 
-def handle_result_files(app, files):#, use="", hardware="hardware", cluster="cluster"):
+def handle_result_files(app, files):
     from .utils import DBMSUtil
     from celery import chain
     
@@ -517,8 +517,6 @@ def handle_result_files(app, files):#, use="", hardware="hardware", cluster="clu
         db_conf.name = ''
         db_conf.configuration = db_conf_str
         db_conf.orig_config_diffs = JSONUtil.dumps(db_diffs, pprint=True)
-#         db_conf.tuning_configuration = JSONUtil.dumps(tunable_params, pprint=True, sort=True)
-#         db_conf.raw_configuration = JSONUtil.dumps(db_parameters)
         db_conf.application = app
         db_conf.dbms = dbms_object
         db_conf.description = ''
@@ -536,7 +534,6 @@ def handle_result_files(app, files):#, use="", hardware="hardware", cluster="clu
     dbms_metrics.name = ''
     dbms_metrics.configuration = JSONUtil.dumps(db_metrics_dict, pprint=True, sort=True)
     dbms_metrics.orig_config_diffs = JSONUtil.dumps(met_diffs, pprint=True)
-#     dbms_metrics.raw_configuration = JSONUtil.dumps(db_metrics)
     dbms_metrics.execution_time = benchmark_config.time
     dbms_metrics.application = app
     dbms_metrics.dbms = dbms_object
@@ -619,6 +616,7 @@ def handle_result_files(app, files):#, use="", hardware="hardware", cluster="clu
     res_data.result = result
     res_data.param_data = JSONUtil.dumps(param_data, pprint=True, sort=True)
     res_data.metric_data = JSONUtil.dumps(metric_data, pprint=True, sort=True)
+    res_data.save()
  
     app.project.last_update = now()
     app.last_update = now()
@@ -653,80 +651,7 @@ def handle_result_files(app, files):#, use="", hardware="hardware", cluster="clu
 
     if app.tuning_session == False:
         return HttpResponse( "Store Success !")
-    
-    
-#     knob_params = KNOB_PARAMS.objects.filter(db_type = dbms_type)
-#     knob_dict = {}
-#  
-#     for x in knob_params:
-#         name = x.params
-#         tmp = Knob_catalog.objects.filter(name=name)
-#         knob_dict[name] = tmp[0].valid_vals
-#     
-#     cfgs = Oltpbench_info.objects.filter(user=app.user)   
-#   
-#     target_Xs=[]
-#     target_Ys=[]
-#  
-#     for x in cfgs:
-#         target_x,target_y = process_config(x.cfg, knob_dict, x.summary)
-#         target_Xs.append(target_x)
-#         target_Ys.append(target_y)
-#  
-#     exps = Oltpbench_info.objects.filter(dbms_name=dbms_type,
-#                                          dbms_version=dbms_version,
-#                                          hardware = hardware)
-# 
-#     #print target_Xs
-#     #print target_Ys
-# 
-# 
-#     ### workload mapping 
-# 
-#     clusters_list= []
-#     for x in exps: 
-#         t = x.cluster
-#         if t not in clusters_list and t != 'unknown':
-#             clusters_list.append(t)
-# 
-# 
-# 
-#     
-#     workload_min = []
-#     X_min = []
-#     Y_min = []
-#     min_dist = 1000000
-# 
-#     for name in clusters_list:
-#         exps_ = Oltpbench_info.objects.filter(dbms_name=dbms_type,dbms_version=dbms_version,hardware = hardware,cluster = name )       
-#         
-#         X=[]
-#         Y=[]        
-#         for x_ in exps_:
-#             x,y = process_config(x_.cfg,knob_dict,x_.summary)
-#             X.append(x)
-#             Y.append(y)  
-#    
-#         sample_size = len(X)
-#         ridges = np.random.uniform(0,1,[sample_size])
-#         print "workload"
-#         y_gp = gp_workload(X,Y,target_Xs,ridges) 
-#         dist = np.sqrt(sum(pow(np.transpose(y_gp-target_Ys)[0],2)))
-#         if min_dist > dist:
-#             min_dist = dist
-#             X_min = X
-#             Y_min = Y
-#             workload_min = name
-# 
-#     bench.cluster = workload_min 
-#     bench.save()
-#     id = result.pk
-#     task = Task()
-#     task.id = id
-#     task.creation_time = now() 
-#     print "run_ml"
-#     response = run_ml.delay(1, 3, 7)
-#     response = run_ml.delay(X_min,Y_min,knob_dict.keys() )
+
     response = chain(preprocess.s(1, 2), run_wm.s(3), run_gpr.s(4)).apply_async()
     taskmeta_ids = [response.parent.parent.id, response.parent.id, response.id]
     task_ids = []
@@ -742,51 +667,6 @@ def handle_result_files(app, files):#, use="", hardware="hardware", cluster="clu
     result.save()
 
     return HttpResponse( "Store Success ! Running tuner... (status={})".format(response.status))
-#     time_limit = 300
-#     #time limits  default  300s 
-#     time_limit =  Website_Conf.objects.get(name = 'Time_Limit')
-#     time_limit = int(time_limit.value)
-#     
-#     for i in range(time_limit):
-#         time.sleep(1)
-#         if response.status != task.status:
-#             task.status = response.status
-#             task.save()
-#         if response.ready():
-#             task.finish_time = now()
-#             break
-# 
-#     print "FINISHED!! ({})".format(task.finish_time)
-#     print "RESPONSE MESSAGE: {}".format(task.status)
-#     if task.status == 'FAILURE':
-#         print "TRACEBACK: {}".format(response.traceback)
-#     print "RESULT: {}".format(response.result)
-    
-#     return HttpResponse("Completed!")
-
-#     response_message = task.status
-#     if task.status == "FAILURE":
-#         task.traceback = response.traceback
-#         task.running_time = (task.finish_time - task.creation_time).seconds
-#         response_message += ": " + response.traceback
-#     elif task.status == "SUCCESS":
-#         res = response.result
-#         with open(path_prefix + '_new_conf', 'wb') as dest:        
-#             dest.write(res)
-#             dest.close()
-#  
-#         task.running_time = (task.finish_time - task.creation_time).seconds
-#         task.result = res
-#         task.save()
-#         return HttpResponse(res) 
-#     else:
-#         task.status = "TIME OUT"
-#         task.traceback = response.traceback 
-#         task.running_time = time_limit
-#         response_message = "TIME OUT: " + response.traceback
-#     task.save()
-# #     return  HttpResponse(task.status)
-#     return  HttpResponse(response_message)
 
 
 def file_iterator(file_name, chunk_size=512):
@@ -806,30 +686,35 @@ def filter_db_var(kv_pair, key_filters):
 
 @login_required(login_url='/login/')
 def dbms_metrics_view(request):
+    
+    def combine_dicts(d1, d2):
+        d3 = dict(d1)
+        d3.update(d2)
+        return OrderedDict(sorted(d3.iteritems()))
+    
     dbms_metrics = get_object_or_404(DBMSMetrics, pk=request.GET['id'])
     if dbms_metrics.application.user != request.user:
         raise Http404()
-    metric_dict = JSONUtil.loads(dbms_metrics.configuration)
-    normalized_dict = dbms_metrics.get_normalized_configuration(include_all=True)
+    numeric_dict, other_dict = dbms_metrics.get_numeric_configuration(normalize=True, return_both=True)
+    metric_dict = combine_dicts(numeric_dict, other_dict)
 
-    non_peer_pks = [dbms_metrics.pk]
     if 'compare' in request.GET and request.GET['compare'] != 'none':
         compare_obj = DBMSMetrics.objects.get(pk=request.GET['compare'])
-        compare_dict = JSONUtil.loads(compare_obj.configuration)
-        compare_norm_dict = compare_obj.get_normalized_configuration(include_all=True)
+        comp_numeric_dict, comp_other_dict = compare_obj.get_numeric_configuration(normalize=True, return_both=True)
+        comp_dict = combine_dicts(comp_numeric_dict, comp_other_dict)
         
-        metrics = [(k, v, compare_dict[k]) for k,v in metric_dict.iteritems()]
-        normalized_metrics = [(k, v, compare_norm_dict[k]) for k,v in normalized_dict.iteritems()]
+        metrics = [(k, v, comp_dict[k]) for k,v in metric_dict.iteritems()]
+        numeric_metrics = [(k, v, comp_numeric_dict[k]) for k,v in numeric_dict.iteritems()]
     else:
         metrics = list(metric_dict.iteritems())
-        normalized_metrics = list(metric_dict.iteritems())
+        numeric_metrics = list(metric_dict.iteritems())
     
     peer_metrics = DBMSMetrics.objects.filter(dbms=dbms_metrics.dbms, application=dbms_metrics.application)
     peer_metrics = filter(lambda x: x.pk != dbms_metrics.pk, peer_metrics)
     
 
     context = {'metrics': metrics,
-               'normalized_metrics': normalized_metrics,
+               'numeric_metrics': numeric_metrics,
                'dbms_metrics': dbms_metrics,
                'compare': request.GET.get('compare', 'none'),
                'peer_dbms_metrics': peer_metrics}
@@ -837,19 +722,25 @@ def dbms_metrics_view(request):
 
 @login_required(login_url='/login/')
 def db_conf_view(request):
+
+    def combine_dicts(d1, d2):
+        d3 = dict(d1)
+        d3.update(d2)
+        return OrderedDict(sorted(d3.iteritems()))
+
     db_conf = get_object_or_404(DBConf, pk=request.GET['id'])
     if db_conf.application.user != request.user:
         raise Http404()
-    params_dict = JSONUtil.loads(db_conf.configuration)
-    tuning_dict = db_conf.get_tuning_configuration(include_all=True)
+    tuning_dict, other_dict = db_conf.get_tuning_configuration(return_both=True)
+    params_dict = combine_dicts(tuning_dict, other_dict)
 
     if 'compare' in request.GET and request.GET['compare'] != 'none':
         compare_obj = DBConf.objects.get(pk=request.GET['compare'])
-        compare_dict = JSONUtil.loads(compare_obj.configuration)
-        compare_tuning_dict = compare_obj.get_tuning_configuration(include_all=True)
+        comp_tuning_dict, comp_other_dict = compare_obj.get_tuning_configuration(return_both=True)
+        comp_dict = combine_dicts(comp_tuning_dict, comp_other_dict)
         
-        params = [(k, v, compare_dict[k]) for k,v in params_dict.iteritems()]
-        tuning_params = [(k, v, compare_tuning_dict[k]) for k,v in tuning_dict.iteritems()]
+        params = [(k, v, comp_dict[k]) for k,v in params_dict.iteritems()]
+        tuning_params = [(k, v, comp_tuning_dict[k]) for k,v in tuning_dict.iteritems()]
     else:
         params = list(params_dict.iteritems())
         tuning_params = list(tuning_dict.iteritems())

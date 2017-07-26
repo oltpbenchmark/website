@@ -101,6 +101,51 @@ class KnobUnitType(BaseType):
         OTHER: 'other',
     }
 
+class WorkloadCharacterizationTask(BaseType):
+    PRUNED_METRICS = 1  # Final output
+#     FACTOR_ANALYSIS = 2
+#     K_MEANS = 3
+
+    TYPE_NAMES = {
+        PRUNED_METRICS: "Pruned Metrics",
+#         FACTOR_ANALYSIS: "Factor Analysis",
+#         K_MEANS: "K-means",
+    }
+
+class KnobIdentificationTask(BaseType):
+    RANKED_KNOBS = 1  # Final output
+#     LASSO = 2
+
+    TYPE_NAMES = {
+        RANKED_KNOBS: "Ranked Knobs",
+#         LASSO: "Lasso"
+    }
+
+class AutomaticTunerTask(BaseType):
+#     MAPPED_WORKLOAD = 1  # Final output (workload mapping)
+#     CONFIG_RECOMMENDATION = 2  # Final output (next config to try)
+
+    TYPE_NAMES = {
+#         MAPPED_WORKLOAD: "Mapped Workload",
+#         CONFIG_RECOMMENDATION: "Configuration Recommendation",
+    }
+
+class PipelineComponentType(BaseType):
+    WORKLOAD_CHARACTERIZATION = 1
+    KNOB_IDENTIFICATION = 2
+    AUTOMATIC_TUNER = 3
+    
+    TYPE_NAMES = {
+        WORKLOAD_CHARACTERIZATION: "Workload Characterization",
+        KNOB_IDENTIFICATION: "Knob Identification",
+        AUTOMATIC_TUNER: "Automatic Tuner",
+    }
+    
+    TASK_TYPES = {
+        WORKLOAD_CHARACTERIZATION: WorkloadCharacterizationTask,
+        KNOB_IDENTIFICATION: KnobIdentificationTask,
+        AUTOMATIC_TUNER: AutomaticTunerTask,
+    }
 
 class HardwareType(BaseType):
 

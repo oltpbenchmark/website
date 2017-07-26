@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_comma_separated_integer_list
 
-from .types import DBMSType, MetricType, VarType, HardwareType, TaskType, KnobUnitType
+from .types import DBMSType, MetricType, VarType, HardwareType, TaskType, KnobUnitType, PipelineComponentType
 from .utils import JSONUtil
 
 class DBMSCatalog(models.Model):
@@ -143,21 +143,21 @@ class DBConf(models.Model):
     description = models.CharField(max_length=512)
     creation_time = models.DateTimeField()
     configuration = models.TextField()
-#     tuning_configuration = models.TextField()
     orig_config_diffs = models.TextField()
-#     raw_configuration = models.TextField()
     dbms = models.ForeignKey(DBMSCatalog)
 
-    def get_tuning_configuration(self, include_all=False):
+    def get_tuning_configuration(self, return_both=False):
         config = JSONUtil.loads(self.configuration)
         param_catalog = KnobCatalog.objects.filter(dbms=self.dbms)
-        params = {}
+        tunable_params = OrderedDict()
+        if return_both == True:
+            other_params = OrderedDict()
         for p in param_catalog:
             if p.tunable == True:
-                params[p.name] = config[p.name]
-            elif include_all == True:
-                params[p.name] = '--'
-        return params
+                tunable_params[p.name] = config[p.name]
+            elif return_both == True:
+                other_params[p.name] = config[p.name]
+        return tunable_params if return_both == False else (tunable_params, other_params)
 
 
 class DBMSMetrics(models.Model):
@@ -174,18 +174,20 @@ class DBMSMetrics(models.Model):
         super(DBMSMetrics, self).clean_fields(exclude=exclude)
         if self.execution_time <= 0:
             raise ValidationError('Execution time must be greater than 0.')
-
-    def get_normalized_configuration(self, include_all=False):
+    
+    def get_numeric_configuration(self, normalize=True, return_both=False):
         config = JSONUtil.loads(self.configuration)
         metric_catalog = MetricCatalog.objects.filter(dbms=self.dbms)
-        norm_metrics = OrderedDict()
+        numeric_metrics = OrderedDict()
+        if return_both == True:
+            other_metrics = OrderedDict()
         for m in metric_catalog:
             if m.metric_type == MetricType.COUNTER:
-                norm_metrics[m.name] = float(config[m.name]) / self.execution_time
-            elif include_all == True:
-                norm_metrics[m.name] = '--'
-        return norm_metrics
-    
+                numeric_metrics[m.name] = float(config[m.name]) / self.execution_time \
+                        if normalize == True else float(config[m.name])
+            elif return_both == True:
+                other_metrics[m.name] = config[m.name]
+        return numeric_metrics if return_both == False else (numeric_metrics, other_metrics)
 
 class Result(models.Model):
     application = models.ForeignKey(Application)
@@ -230,6 +232,23 @@ class Task(models.Model):
     result = models.ForeignKey(Result)
     type = models.IntegerField(choices=TaskType.choices())
 
+
+class PipelineResult(models.Model):
+    dbms = models.ForeignKey(DBMSCatalog)
+    hardware = models.ForeignKey(Hardware)
+    version_id = models.IntegerField()
+    component = models.IntegerField(choices=PipelineComponentType.choices())
+    task_type = models.IntegerField()
+    value = models.TextField()
+
+    def clean_fields(self, exclude=None):
+        super(PipelineResult, self).clean_fields(exclude=exclude)
+        if self.task_type not in PipelineComponentType.TASK_TYPES[self.component].choices():
+            raise ValidationError("Invalid task type for component {} ({})".format(self.get_component_display(),
+                                                                                   self.task_type))
+
+    class Meta:
+        unique_together = ("dbms", "hardware", "version_id", "component", "task_type")
 
 class Statistics(models.Model):
     result = models.ForeignKey(Result)
