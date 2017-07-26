@@ -3,7 +3,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_comma_separated_integer_list
-from website.types import DBMSType, MetricType, VarType, HardwareType
+from website.types import DBMSType, MetricType, VarType, HardwareType, TaskType
 
 class DBMSCatalog(models.Model):
     type = models.IntegerField(choices=DBMSType.choices())
@@ -159,15 +159,7 @@ class DBMSMetrics(models.Model):
         super(DBMSMetrics, self).clean_fields(exclude=exclude)
         if self.execution_time <= 0:
             raise ValidationError('Execution time must be greater than 0.')
-
-class Task(models.Model):
-    creation_time = models.DateTimeField()
-    finish_time = models.DateTimeField(null=True)
-    running_time = models.IntegerField(null=True)
-    status = models.CharField(max_length=64) 
-    traceback =  models.TextField(null=True)
-    result = models.TextField(null=True)
-        
+    
 
 class Result(models.Model):
     application = models.ForeignKey(Application)
@@ -179,6 +171,7 @@ class Result(models.Model):
     creation_time = models.DateTimeField()
     summary = models.TextField()
     samples = models.TextField()
+    task_ids = models.CharField(max_length=64, validators=[validate_comma_separated_integer_list], null=True)
 
     timestamp = models.DateTimeField()
     throughput = models.FloatField()
@@ -196,6 +189,12 @@ class Result(models.Model):
     def __unicode__(self):
         return unicode(self.pk)
 
+
+class Task(models.Model):
+    taskmeta_id = models.CharField(max_length=255)
+    start_time = models.DateTimeField(null=True)
+    result = models.ForeignKey(Result)
+    type = models.IntegerField(choices=TaskType.choices())
 
 
 class Statistics(models.Model):

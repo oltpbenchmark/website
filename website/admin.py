@@ -1,9 +1,11 @@
 from django.contrib import admin
+from djcelery.models import TaskMeta
+
 from website.models import *
 
 class DBMSCatalogAdmin(admin.ModelAdmin):
     list_display = ['dbms_info']
-    
+
     def dbms_info(self, obj):
         return obj.full_name
 
@@ -47,7 +49,7 @@ class BenchmarkConfigAdmin(admin.ModelAdmin):
 class DBConfAdmin(admin.ModelAdmin):
     list_display = [ 'name', 'dbms_info', 'creation_time']
     fields = ['application', 'name', 'creation_time', 'tuning_configuration', 'configuration', 'dbms']
-    
+
     def dbms_info(self, obj):
         return obj.dbms.full_name
 
@@ -61,20 +63,28 @@ class DBMSMetricsAdmin(admin.ModelAdmin):
 
 
 class TaskAdmin(admin.ModelAdmin):
-    list_display = ['result', 'status', 'creation_time', 'finish_time']
+    list_display = ['taskmeta_id', 'type', 'start_time', 'finish_time', 'status']
 
+    def finish_time(self, obj):
+        return TaskMeta.objects.get(task_id=obj.taskmeta_id).date_done
+    
+    def status(self, obj):
+        return TaskMeta.objects.get(task_id=obj.taskmeta_id).status
+
+class TaskMetaAdmin(admin.ModelAdmin):
+    list_display = ['task_id', 'date_done', 'status']
 
 class ResultAdmin(admin.ModelAdmin):
     list_display = ['result_id', 'dbms_info', 'benchmark', 'creation_time']
     list_filter = ['dbms__type', 'dbms__version', 'benchmark_config__benchmark_type']
     ordering = ['id']
-    
+
     def result_id(self, obj):
         return obj.id
 
     def dbms_info(self, obj):
         return obj.dbms.full_name
-    
+
     def benchmark(self, obj):
         return obj.benchmark_config.benchmark_type
 
@@ -88,4 +98,5 @@ admin.site.register(BenchmarkConfig, BenchmarkConfigAdmin)
 admin.site.register(DBConf, DBConfAdmin)
 admin.site.register(DBMSMetrics, DBMSMetricsAdmin)
 admin.site.register(Task, TaskAdmin)
+admin.site.register(TaskMeta, TaskMetaAdmin)
 admin.site.register(Result, ResultAdmin)

@@ -61,10 +61,10 @@
         <td><div class="text-right">Raw data</div></td>
         <td><a href="/get_result_data_file/?id={{ result.pk }}&type=raw">Download</a></td>
     </tr>
-    {% if task %}
+    {% if status %}
     <tr>
         <td><div class="text-right">Status:</div></td>
-        <td><a href="/status/?id={{ result.pk }}">{{task.status}}</td>
+        <td><a href="/status/?id={{ result.pk }}">{{ status }}</td>
     </tr>   
     {% endif %}
     </tbody>

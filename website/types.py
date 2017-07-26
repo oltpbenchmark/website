@@ -4,6 +4,8 @@ Created on Jul 9, 2017
 @author: dvanaken
 '''
 
+from collections import OrderedDict
+
 class BaseType(object):
     TYPE_NAMES = {}
     
@@ -66,6 +68,18 @@ class VarType(BaseType):
         ENUM:      'ENUM',
         TIMESTAMP: 'TIMESTAMP',
     }
+
+class TaskType(BaseType):
+    PREPROCESS = 1
+    RUN_WM = 2
+    RUN_GPR = 3
+    
+    # Should be in order of execution!!
+    TYPE_NAMES = OrderedDict([
+        (PREPROCESS, "Preprocess"),
+        (RUN_WM, "Workload Mapping"),
+        (RUN_GPR, "GPR"),
+    ])
 
 
 class HardwareType(BaseType):

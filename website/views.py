@@ -1,10 +1,6 @@
 import string
 import re
-import time
-#import json
-import math
 from random import choice
-import numpy as np
 from pytz import timezone, os
 from rexec import FileWrapper
 
@@ -19,6 +15,7 @@ from django.template.context_processors import csrf
 # from django.views.decorators.cache import cache_page
 #from django.core.context_processors import csrf
 from django.core.cache import cache
+from django.db.models import Q
 from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
@@ -30,11 +27,13 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.timezone import now
 
 from .utils import JSONUtil
-from models import * 
-from website.settings import UPLOAD_DIR
+from .models import *
+from .forms import *
+from .settings import UPLOAD_DIR
+# from .types import TaskType
 
-from tasks import run_ml
-from gp_workload import gp_workload
+from tasks import run_gpr, run_wm, preprocess
+from djcelery.models import TaskMeta
 
 # For the html template to access dict object
 @register.filter
@@ -123,20 +122,51 @@ def home(request):
 
 @login_required(login_url='/login/')
 def ml_info(request):
-#     id = request.GET['id'] 
+    from celery.states import precedence
+
+    id = request.GET['id'] 
     res = Result.objects.get(pk=id)
-    task = Task.objects.get(pk=id)
-    if task.running_time != None:
-        time = task.running_time
-    else:
-        time = now() - res.creation_time
-        time = time.seconds
-    
-    #limit = Website_Conf.objects.get(name = "Time_Limit")
-    context = {"id":id,
-               "result":res,
-               "time":time,
-               "task":task,
+    tasks = Task.objects.filter(result=res)
+    assert len(tasks) == 3
+    tasks = sorted(tasks, cmp=lambda x, y: x.type < y.type)
+    task_metas = TaskMeta.objects.filter(reduce(lambda x, y: x | y, [Q(task_id=obj.taskmeta_id) for obj in tasks]))
+    if len(task_metas) == 0:
+        raise Http404()
+
+    task_info = OrderedDict()
+    for task in tasks:
+        if task.start_time is None:
+            raise Http404()
+        task_dict = {}
+        task_meta = filter(lambda x: x.task_id == task.taskmeta_id, task_metas)
+        if len(task_meta) == 0:
+            continue
+        else:
+            assert len(task_meta) == 1
+            task_meta = task_meta[0]
+
+        task_dict['runtime'] = (task_meta.date_done - task.start_time).seconds
+        task_dict.update(task.__dict__)
+        task_dict.update(task_meta.__dict__)
+        task_info[TaskType.TYPE_NAMES[task.type]] = task_dict
+
+    overall_status = 'SUCCESS'
+    num_completed = 0
+    for entry in task_info.values():
+        status = entry['status']
+        if status == "SUCCESS":
+            num_completed += 1
+        elif status in ['FAILURE', 'REVOKED', 'RETRY']:
+            overall_status = status
+            break
+        else:
+            assert status in ['PENDING', 'RECEIVED', 'STARTED']
+            overall_status = status
+    context = {"id": id,
+               "result": res,
+               "overall_status": overall_status,
+               "num_completed": "{} / {}".format(num_completed, len(tasks)),
+               "tasks": task_info,
                "limit":"300"}
 
     return render(request,"ml_info.html",context) 
@@ -417,6 +447,8 @@ def process_config(cfg, knob_dict, summary):
 def handle_result_files(app, files, use="", hardware="hardware",
                         cluster="cluster"):
     from .utils import DBMSUtil
+    from celery import chain
+#     from djcelery.models import TaskMeta
     
     # Load summary file
     summary = JSONUtil.loads(''.join(files['summary_data'].chunks()))
@@ -608,7 +640,10 @@ def handle_result_files(app, files, use="", hardware="hardware",
             for chunk in files['raw_data'].chunks():
                 f.write(chunk)
 
-    return HttpResponse( "Store Success !") 
+    if app.tuning_session == False:
+        return HttpResponse( "Store Success !")
+    
+    
 #     knob_params = KNOB_PARAMS.objects.filter(db_type = dbms_type)
 #     knob_dict = {}
 #  
@@ -679,9 +714,24 @@ def handle_result_files(app, files, use="", hardware="hardware",
 #     task.id = id
 #     task.creation_time = now() 
 #     print "run_ml"
+#     response = run_ml.delay(1, 3, 7)
 #     response = run_ml.delay(X_min,Y_min,knob_dict.keys() )
-#     task.status = response.status
-#     task.save()
+    response = chain(preprocess.s(1, 2), run_wm.s(3), run_gpr.s(4)).apply_async()
+    taskmeta_ids = [response.parent.parent.id, response.parent.id, response.id]
+    task_ids = []
+    for i, tmid in enumerate(taskmeta_ids):
+        task = Task()
+        task.taskmeta_id = tmid
+        task.start_time = None
+        task.result = result
+        task.type = TaskType.TYPE_NAMES.keys()[i]
+        task.save()
+        task_ids.append(str(task.pk))
+    result.task_ids = ','.join(task_ids)
+    result.save()
+
+    return HttpResponse( "Store Success ! Running tuner... (status={})".format(response.status))
+#     time_limit = 300
 #     #time limits  default  300s 
 #     time_limit =  Website_Conf.objects.get(name = 'Time_Limit')
 #     time_limit = int(time_limit.value)
@@ -694,7 +744,15 @@ def handle_result_files(app, files, use="", hardware="hardware",
 #         if response.ready():
 #             task.finish_time = now()
 #             break
-#     
+# 
+#     print "FINISHED!! ({})".format(task.finish_time)
+#     print "RESPONSE MESSAGE: {}".format(task.status)
+#     if task.status == 'FAILURE':
+#         print "TRACEBACK: {}".format(response.traceback)
+#     print "RESULT: {}".format(response.result)
+    
+#     return HttpResponse("Completed!")
+
 #     response_message = task.status
 #     if task.status == "FAILURE":
 #         task.traceback = response.traceback
@@ -1000,6 +1058,7 @@ def update_similar(request):
 
 
 def result(request):
+
     target = get_object_or_404(Result, pk=request.GET['id'])
     #task = get_object_or_404(Task, id=request.GET['id'])
     data_package = {}
@@ -1052,6 +1111,17 @@ def result(request):
     default_metrics = {}
     for met in ['throughput', 'p99_latency']:
         default_metrics[met] = '{0:0.2f}'.format(getattr(target, met) * METRIC_META[met]['scale'])
+
+    status = None
+    if target.task_ids is not None:
+        tasks = Task.objects.filter(result=target)
+        for task in tasks[::-1]:
+            tm = TaskMeta.objects.filter(task_id=task.taskmeta_id).first()
+            if tm is not None:
+                status = tm.status
+                break
+        if status is None:
+            status = 'UNKNOWN'
     
     context = {
         'result': target, 
@@ -1060,7 +1130,7 @@ def result(request):
         'default_metrics': default_metrics,
         'data': JSONUtil.dumps(data_package),
         'same_runs': same_dbconf_results,
-        'task':'', #task,
+        'status': status,
         'similar_runs': similar_dbconf_results
     }
     return render(request, 'result.html', context)
