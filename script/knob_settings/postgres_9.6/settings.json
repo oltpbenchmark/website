@@ -11,7 +11,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Allows modifications of the structure of system tables.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "application_name": {
@@ -26,7 +26,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the application name to be reported in statistics and logs.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "archive_command": {
@@ -41,7 +41,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Sets the shell command that will be called to archive a WAL file.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "archive_mode": {
@@ -51,16 +51,12 @@
         "minval": null, 
         "default": "off", 
         "tunable": "no", 
-        "enumvals": [
-            "always", 
-            "on", 
-            "off"
-        ], 
+        "enumvals": "always,on,off", 
         "vartype": 5, 
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Allows archiving of WAL files using archive_command.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "archive_timeout": {
@@ -75,7 +71,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Forces a switch to the next xlog file if a new file has not been started within N seconds.", 
-        "unit": "milliseconds", 
+        "unit": 2, 
         "description": ""
     }, 
     "array_nulls": {
@@ -90,7 +86,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Enable input of NULL elements in arrays.", 
-        "unit": null, 
+        "unit": 3, 
         "description": "When turned on, unquoted NULL in an array input value means a null value; otherwise it is taken literally."
     }, 
     "authentication_timeout": {
@@ -105,7 +101,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Sets the maximum allowed time to complete client authentication.", 
-        "unit": "milliseconds", 
+        "unit": 2, 
         "description": ""
     }, 
     "autovacuum": {
@@ -120,7 +116,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Starts the autovacuum subprocess.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "autovacuum_analyze_scale_factor": {
@@ -135,7 +131,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Number of tuple inserts, updates, or deletes prior to analyze as a fraction of reltuples.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "autovacuum_analyze_threshold": {
@@ -150,7 +146,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Minimum number of tuple inserts, updates, or deletes prior to analyze.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "autovacuum_freeze_max_age": {
@@ -165,7 +161,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Age at which to autovacuum a table to prevent transaction ID wraparound.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "autovacuum_max_workers": {
@@ -180,7 +176,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Sets the maximum number of simultaneously running autovacuum worker processes.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "autovacuum_multixact_freeze_max_age": {
@@ -195,7 +191,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Multixact age at which to autovacuum a table to prevent multixact wraparound.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "autovacuum_naptime": {
@@ -210,7 +206,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Time to sleep between autovacuum runs.", 
-        "unit": "milliseconds", 
+        "unit": 2, 
         "description": ""
     }, 
     "autovacuum_vacuum_cost_delay": {
@@ -225,7 +221,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Vacuum cost delay in milliseconds, for autovacuum.", 
-        "unit": "milliseconds", 
+        "unit": 2, 
         "description": ""
     }, 
     "autovacuum_vacuum_cost_limit": {
@@ -240,7 +236,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Vacuum cost amount available before napping, for autovacuum.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "autovacuum_vacuum_scale_factor": {
@@ -255,7 +251,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Number of tuple updates or deletes prior to vacuum as a fraction of reltuples.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "autovacuum_vacuum_threshold": {
@@ -270,7 +266,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Minimum number of tuple updates or deletes prior to vacuum.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "autovacuum_work_mem": {
@@ -285,7 +281,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Sets the maximum memory to be used by each autovacuum worker process.", 
-        "unit": "bytes", 
+        "unit": 1, 
         "description": ""
     }, 
     "backend_flush_after": {
@@ -300,7 +296,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Number of pages after which previously performed writes are flushed to disk.", 
-        "unit": "bytes", 
+        "unit": 1, 
         "description": ""
     }, 
     "backslash_quote": {
@@ -310,16 +306,12 @@
         "minval": null, 
         "default": "safe_encoding", 
         "tunable": "no", 
-        "enumvals": [
-            "safe_encoding", 
-            "on", 
-            "off"
-        ], 
+        "enumvals": "safe_encoding,on,off", 
         "vartype": 5, 
         "context": "user", 
         "scope": "global", 
         "summary": "Sets whether \"\\'\" is allowed in string literals.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "bgwriter_delay": {
@@ -334,7 +326,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Background writer sleep time between rounds.", 
-        "unit": "milliseconds", 
+        "unit": 2, 
         "description": ""
     }, 
     "bgwriter_flush_after": {
@@ -349,7 +341,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Number of pages after which previously performed writes are flushed to disk.", 
-        "unit": "bytes", 
+        "unit": 1, 
         "description": ""
     }, 
     "bgwriter_lru_maxpages": {
@@ -364,7 +356,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Background writer maximum number of LRU pages to flush per round.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "bgwriter_lru_multiplier": {
@@ -379,7 +371,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Multiple of the average buffer usage to free per round.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "block_size": {
@@ -394,7 +386,7 @@
         "context": "internal", 
         "scope": "global", 
         "summary": "Shows the size of a disk block.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "bonjour": {
@@ -409,7 +401,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Enables advertising the server via Bonjour.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "bonjour_name": {
@@ -424,7 +416,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Sets the Bonjour service name.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "bytea_output": {
@@ -434,15 +426,12 @@
         "minval": null, 
         "default": "hex", 
         "tunable": "no", 
-        "enumvals": [
-            "escape", 
-            "hex"
-        ], 
+        "enumvals": "escape,hex", 
         "vartype": 5, 
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the output format for bytea.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "check_function_bodies": {
@@ -457,7 +446,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Check function bodies during CREATE FUNCTION.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "checkpoint_completion_target": {
@@ -472,7 +461,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Time spent flushing dirty buffers during checkpoint, as fraction of checkpoint interval.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "checkpoint_flush_after": {
@@ -487,7 +476,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Number of pages after which previously performed writes are flushed to disk.", 
-        "unit": "bytes", 
+        "unit": 1, 
         "description": ""
     }, 
     "checkpoint_timeout": {
@@ -502,7 +491,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Sets the maximum time between automatic WAL checkpoints.", 
-        "unit": "milliseconds", 
+        "unit": 2, 
         "description": ""
     }, 
     "checkpoint_warning": {
@@ -517,7 +506,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Enables warnings if checkpoint segments are filled more frequently than this.", 
-        "unit": "milliseconds", 
+        "unit": 2, 
         "description": "Write a message to the server log if checkpoints caused by the filling of checkpoint segment files happens more frequently than this number of seconds. Zero turns off the warning."
     }, 
     "client_encoding": {
@@ -532,7 +521,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the client's character set encoding.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "client_min_messages": {
@@ -542,22 +531,12 @@
         "minval": null, 
         "default": "notice", 
         "tunable": "no", 
-        "enumvals": [
-            "debug5", 
-            "debug4", 
-            "debug3", 
-            "debug2", 
-            "debug1", 
-            "log", 
-            "notice", 
-            "warning", 
-            "error"
-        ], 
+        "enumvals": "debug5,debug4,debug3,debug2,debug1,log,notice,warning,error", 
         "vartype": 5, 
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the message levels that are sent to the client.", 
-        "unit": null, 
+        "unit": 3, 
         "description": "Each level includes all the levels that follow it. The later the level, the fewer messages are sent."
     }, 
     "cluster_name": {
@@ -572,7 +551,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Sets the name of the cluster, which is included in the process title.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "commit_delay": {
@@ -587,7 +566,7 @@
         "context": "superuser", 
         "scope": "global", 
         "summary": "Sets the delay in microseconds between transaction commit and flushing WAL to disk.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "commit_siblings": {
@@ -602,7 +581,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the minimum concurrent open transactions before performing commit_delay.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "config_file": {
@@ -617,7 +596,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Sets the server's main configuration file.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "constraint_exclusion": {
@@ -627,16 +606,12 @@
         "minval": null, 
         "default": "partition", 
         "tunable": "no", 
-        "enumvals": [
-            "partition", 
-            "on", 
-            "off"
-        ], 
+        "enumvals": "partition,on,off", 
         "vartype": 5, 
         "context": "user", 
         "scope": "global", 
         "summary": "Enables the planner to use constraints to optimize queries.", 
-        "unit": null, 
+        "unit": 3, 
         "description": "Table scans will be skipped if their constraints guarantee that no rows match the query."
     }, 
     "cpu_index_tuple_cost": {
@@ -651,7 +626,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the planner's estimate of the cost of processing each index entry during an index scan.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "cpu_operator_cost": {
@@ -666,7 +641,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the planner's estimate of the cost of processing each operator or function call.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "cpu_tuple_cost": {
@@ -681,7 +656,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the planner's estimate of the cost of processing each tuple (row).", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "cursor_tuple_fraction": {
@@ -696,7 +671,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the planner's estimate of the fraction of a cursor's rows that will be retrieved.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "data_checksums": {
@@ -711,7 +686,7 @@
         "context": "internal", 
         "scope": "global", 
         "summary": "Shows whether data checksums are turned on for this cluster.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "data_directory": {
@@ -726,7 +701,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Sets the server's data directory.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "DateStyle": {
@@ -741,7 +716,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the display format for date and time values.", 
-        "unit": null, 
+        "unit": 3, 
         "description": "Also controls interpretation of ambiguous date inputs."
     }, 
     "db_user_namespace": {
@@ -756,7 +731,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Enables per-database user names.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "deadlock_timeout": {
@@ -771,7 +746,7 @@
         "context": "superuser", 
         "scope": "global", 
         "summary": "Sets the time to wait on a lock before checking for deadlock.", 
-        "unit": "milliseconds", 
+        "unit": 2, 
         "description": ""
     }, 
     "debug_assertions": {
@@ -786,7 +761,7 @@
         "context": "internal", 
         "scope": "global", 
         "summary": "Shows whether the running server has assertion checks enabled.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "debug_pretty_print": {
@@ -801,7 +776,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Indents parse and plan tree displays.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "debug_print_parse": {
@@ -816,7 +791,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Logs each query's parse tree.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "debug_print_plan": {
@@ -831,7 +806,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Logs each query's execution plan.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "debug_print_rewritten": {
@@ -846,7 +821,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Logs each query's rewritten parse tree.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "default_statistics_target": {
@@ -861,7 +836,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the default statistics target.", 
-        "unit": null, 
+        "unit": 3, 
         "description": "This applies to table columns that have not had a column-specific target set via ALTER TABLE SET STATISTICS."
     }, 
     "default_tablespace": {
@@ -876,7 +851,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the default tablespace to create tables and indexes in.", 
-        "unit": null, 
+        "unit": 3, 
         "description": "An empty string selects the database's default tablespace."
     }, 
     "default_text_search_config": {
@@ -891,7 +866,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets default text search configuration.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "default_transaction_deferrable": {
@@ -906,7 +881,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the default deferrable status of new transactions.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "default_transaction_isolation": {
@@ -916,17 +891,12 @@
         "minval": null, 
         "default": "read committed", 
         "tunable": "no", 
-        "enumvals": [
-            "serializable", 
-            "repeatable read", 
-            "read committed", 
-            "read uncommitted"
-        ], 
+        "enumvals": "serializable,repeatable read,read committed,read uncommitted", 
         "vartype": 5, 
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the transaction isolation level of each new transaction.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "default_transaction_read_only": {
@@ -941,7 +911,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the default read-only status of new transactions.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "default_with_oids": {
@@ -956,7 +926,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Create new tables with OIDs by default.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "dynamic_library_path": {
@@ -971,7 +941,7 @@
         "context": "superuser", 
         "scope": "global", 
         "summary": "Sets the path for dynamically loadable modules.", 
-        "unit": null, 
+        "unit": 3, 
         "description": "If a dynamically loadable module needs to be opened and the specified name does not have a directory component (i.e., the name does not contain a slash), the system will search this path for the specified file."
     }, 
     "dynamic_shared_memory_type": {
@@ -981,17 +951,12 @@
         "minval": null, 
         "default": "posix", 
         "tunable": "no", 
-        "enumvals": [
-            "posix", 
-            "sysv", 
-            "mmap", 
-            "none"
-        ], 
+        "enumvals": "posix,sysv,mmap,none", 
         "vartype": 5, 
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Selects the dynamic shared memory implementation used.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "effective_cache_size": {
@@ -1006,7 +971,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the planner's assumption about the size of the disk cache.", 
-        "unit": "bytes", 
+        "unit": 1, 
         "description": "That is, the portion of the kernel's disk cache that will be used for PostgreSQL data files. This is measured in disk pages, which are normally 8 kB each."
     }, 
     "effective_io_concurrency": {
@@ -1021,7 +986,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Number of simultaneous requests that can be handled efficiently by the disk subsystem.", 
-        "unit": null, 
+        "unit": 3, 
         "description": "For RAID arrays, this should be approximately the number of drive spindles in the array."
     }, 
     "enable_bitmapscan": {
@@ -1036,7 +1001,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Enables the planner's use of bitmap-scan plans.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "enable_hashagg": {
@@ -1051,7 +1016,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Enables the planner's use of hashed aggregation plans.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "enable_hashjoin": {
@@ -1066,7 +1031,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Enables the planner's use of hash join plans.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "enable_indexonlyscan": {
@@ -1081,7 +1046,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Enables the planner's use of index-only-scan plans.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "enable_indexscan": {
@@ -1096,7 +1061,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Enables the planner's use of index-scan plans.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "enable_material": {
@@ -1111,7 +1076,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Enables the planner's use of materialization.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "enable_mergejoin": {
@@ -1126,7 +1091,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Enables the planner's use of merge join plans.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "enable_nestloop": {
@@ -1141,7 +1106,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Enables the planner's use of nested-loop join plans.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "enable_seqscan": {
@@ -1156,7 +1121,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Enables the planner's use of sequential-scan plans.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "enable_sort": {
@@ -1171,7 +1136,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Enables the planner's use of explicit sort steps.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "enable_tidscan": {
@@ -1186,7 +1151,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Enables the planner's use of TID scan plans.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "escape_string_warning": {
@@ -1201,7 +1166,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Warn about backslash escapes in ordinary string literals.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "event_source": {
@@ -1216,7 +1181,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Sets the application name used to identify PostgreSQL messages in the event log.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "exit_on_error": {
@@ -1231,7 +1196,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Terminate session on any error.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "external_pid_file": {
@@ -1246,7 +1211,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Writes the postmaster PID to the specified file.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "extra_float_digits": {
@@ -1261,7 +1226,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the number of digits displayed for floating-point values.", 
-        "unit": null, 
+        "unit": 3, 
         "description": "This affects real, double precision, and geometric data types. The parameter value is added to the standard number of digits (FLT_DIG or DBL_DIG as appropriate)."
     }, 
     "force_parallel_mode": {
@@ -1271,16 +1236,12 @@
         "minval": null, 
         "default": "off", 
         "tunable": "no", 
-        "enumvals": [
-            "off", 
-            "on", 
-            "regress"
-        ], 
+        "enumvals": "off,on,regress", 
         "vartype": 5, 
         "context": "user", 
         "scope": "global", 
         "summary": "Forces use of parallel query facilities.", 
-        "unit": null, 
+        "unit": 3, 
         "description": "If possible, run query using a parallel worker and with parallel restrictions."
     }, 
     "from_collapse_limit": {
@@ -1295,7 +1256,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the FROM-list size beyond which subqueries are not collapsed.", 
-        "unit": null, 
+        "unit": 3, 
         "description": "The planner will merge subqueries into upper queries if the resulting FROM list would have no more than this many items."
     }, 
     "fsync": {
@@ -1310,7 +1271,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Forces synchronization of updates to disk.", 
-        "unit": null, 
+        "unit": 3, 
         "description": "The server will use the fsync() system call in several places to make sure that updates are physically written to disk. This insures that a database cluster will recover to a consistent state after an operating system or hardware crash."
     }, 
     "full_page_writes": {
@@ -1325,7 +1286,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Writes full pages to WAL when first modified after a checkpoint.", 
-        "unit": null, 
+        "unit": 3, 
         "description": "A page write in process during an operating system crash might be only partially written to disk.  During recovery, the row changes stored in WAL are not enough to recover.  This option writes pages when first modified after a checkpoint to WAL so full recovery is possible."
     }, 
     "geqo": {
@@ -1340,7 +1301,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Enables genetic query optimization.", 
-        "unit": null, 
+        "unit": 3, 
         "description": "This algorithm attempts to do planning without exhaustive searching."
     }, 
     "geqo_effort": {
@@ -1355,7 +1316,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "GEQO: effort is used to set the default for other GEQO parameters.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "geqo_generations": {
@@ -1370,7 +1331,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "GEQO: number of iterations of the algorithm.", 
-        "unit": null, 
+        "unit": 3, 
         "description": "Zero selects a suitable default value."
     }, 
     "geqo_pool_size": {
@@ -1385,7 +1346,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "GEQO: number of individuals in the population.", 
-        "unit": null, 
+        "unit": 3, 
         "description": "Zero selects a suitable default value."
     }, 
     "geqo_seed": {
@@ -1400,7 +1361,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "GEQO: seed for random path selection.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "geqo_selection_bias": {
@@ -1415,7 +1376,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "GEQO: selective pressure within the population.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "geqo_threshold": {
@@ -1430,7 +1391,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the threshold of FROM items beyond which GEQO is used.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "gin_fuzzy_search_limit": {
@@ -1445,7 +1406,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the maximum allowed result for exact search by GIN.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "gin_pending_list_limit": {
@@ -1460,7 +1421,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the maximum size of the pending list for GIN index.", 
-        "unit": "bytes", 
+        "unit": 1, 
         "description": ""
     }, 
     "hba_file": {
@@ -1475,7 +1436,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Sets the server's \"hba\" configuration file.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "hot_standby": {
@@ -1490,7 +1451,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Allows connections and queries during recovery.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "hot_standby_feedback": {
@@ -1505,7 +1466,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Allows feedback from a hot standby to the primary that will avoid query conflicts.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "huge_pages": {
@@ -1515,16 +1476,12 @@
         "minval": null, 
         "default": "try", 
         "tunable": "no", 
-        "enumvals": [
-            "off", 
-            "on", 
-            "try"
-        ], 
+        "enumvals": "off,on,try", 
         "vartype": 5, 
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Use of huge pages on Linux.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "ident_file": {
@@ -1539,7 +1496,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Sets the server's \"ident\" configuration file.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "idle_in_transaction_session_timeout": {
@@ -1554,7 +1511,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the maximum allowed duration of any idling transaction.", 
-        "unit": "milliseconds", 
+        "unit": 2, 
         "description": "A value of 0 turns off the timeout."
     }, 
     "ignore_checksum_failure": {
@@ -1569,7 +1526,7 @@
         "context": "superuser", 
         "scope": "global", 
         "summary": "Continues processing after a checksum failure.", 
-        "unit": null, 
+        "unit": 3, 
         "description": "Detection of a checksum failure normally causes PostgreSQL to report an error, aborting the current transaction. Setting ignore_checksum_failure to true causes the system to ignore the failure (but still report a warning), and continue processing. This behavior could cause crashes or other serious problems. Only has an effect if checksums are enabled."
     }, 
     "ignore_system_indexes": {
@@ -1584,7 +1541,7 @@
         "context": "backend", 
         "scope": "global", 
         "summary": "Disables reading from system indexes.", 
-        "unit": null, 
+        "unit": 3, 
         "description": "It does not prevent updating the indexes, so it is safe to use.  The worst consequence is slowness."
     }, 
     "integer_datetimes": {
@@ -1599,7 +1556,7 @@
         "context": "internal", 
         "scope": "global", 
         "summary": "Datetimes are integer based.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "IntervalStyle": {
@@ -1609,17 +1566,12 @@
         "minval": null, 
         "default": "postgres", 
         "tunable": "no", 
-        "enumvals": [
-            "postgres", 
-            "postgres_verbose", 
-            "sql_standard", 
-            "iso_8601"
-        ], 
+        "enumvals": "postgres,postgres_verbose,sql_standard,iso_8601", 
         "vartype": 5, 
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the display format for interval values.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "join_collapse_limit": {
@@ -1634,7 +1586,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the FROM-list size beyond which JOIN constructs are not flattened.", 
-        "unit": null, 
+        "unit": 3, 
         "description": "The planner will flatten explicit JOIN constructs into lists of FROM items whenever a list of no more than this many items would result."
     }, 
     "krb_caseins_users": {
@@ -1649,7 +1601,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Sets whether Kerberos and GSSAPI user names should be treated as case-insensitive.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "krb_server_keyfile": {
@@ -1664,7 +1616,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Sets the location of the Kerberos server key file.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "lc_collate": {
@@ -1679,7 +1631,7 @@
         "context": "internal", 
         "scope": "global", 
         "summary": "Shows the collation order locale.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "lc_ctype": {
@@ -1694,7 +1646,7 @@
         "context": "internal", 
         "scope": "global", 
         "summary": "Shows the character classification and case conversion locale.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "lc_messages": {
@@ -1709,7 +1661,7 @@
         "context": "superuser", 
         "scope": "global", 
         "summary": "Sets the language in which messages are displayed.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "lc_monetary": {
@@ -1724,7 +1676,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the locale for formatting monetary amounts.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "lc_numeric": {
@@ -1739,7 +1691,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the locale for formatting numbers.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "lc_time": {
@@ -1754,7 +1706,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the locale for formatting date and time values.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "listen_addresses": {
@@ -1769,7 +1721,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Sets the host name or IP address(es) to listen to.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "lo_compat_privileges": {
@@ -1784,7 +1736,7 @@
         "context": "superuser", 
         "scope": "global", 
         "summary": "Enables backward compatibility mode for privilege checks on large objects.", 
-        "unit": null, 
+        "unit": 3, 
         "description": "Skips privilege checks when reading or modifying large objects, for compatibility with PostgreSQL releases prior to 9.0."
     }, 
     "local_preload_libraries": {
@@ -1799,7 +1751,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Lists unprivileged shared libraries to preload into each backend.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "lock_timeout": {
@@ -1814,7 +1766,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the maximum allowed duration of any wait for a lock.", 
-        "unit": "milliseconds", 
+        "unit": 2, 
         "description": "A value of 0 turns off the timeout."
     }, 
     "log_autovacuum_min_duration": {
@@ -1829,7 +1781,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Sets the minimum execution time above which autovacuum actions will be logged.", 
-        "unit": "milliseconds", 
+        "unit": 2, 
         "description": "Zero prints all actions. -1 turns autovacuum logging off."
     }, 
     "log_checkpoints": {
@@ -1844,7 +1796,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Logs each checkpoint.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "log_connections": {
@@ -1859,7 +1811,7 @@
         "context": "superuser-backend", 
         "scope": "global", 
         "summary": "Logs each successful connection.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "log_destination": {
@@ -1874,7 +1826,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Sets the destination for server log output.", 
-        "unit": null, 
+        "unit": 3, 
         "description": "Valid values are combinations of \"stderr\", \"syslog\", \"csvlog\", and \"eventlog\", depending on the platform."
     }, 
     "log_directory": {
@@ -1889,7 +1841,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Sets the destination directory for log files.", 
-        "unit": null, 
+        "unit": 3, 
         "description": "Can be specified as relative to the data directory or as absolute path."
     }, 
     "log_disconnections": {
@@ -1904,7 +1856,7 @@
         "context": "superuser-backend", 
         "scope": "global", 
         "summary": "Logs end of a session, including duration.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "log_duration": {
@@ -1919,7 +1871,7 @@
         "context": "superuser", 
         "scope": "global", 
         "summary": "Logs the duration of each completed SQL statement.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "log_error_verbosity": {
@@ -1929,16 +1881,12 @@
         "minval": null, 
         "default": "default", 
         "tunable": "no", 
-        "enumvals": [
-            "terse", 
-            "default", 
-            "verbose"
-        ], 
+        "enumvals": "terse,default,verbose", 
         "vartype": 5, 
         "context": "superuser", 
         "scope": "global", 
         "summary": "Sets the verbosity of logged messages.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "log_executor_stats": {
@@ -1953,7 +1901,7 @@
         "context": "superuser", 
         "scope": "global", 
         "summary": "Writes executor performance statistics to the server log.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "log_file_mode": {
@@ -1968,7 +1916,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Sets the file permissions for log files.", 
-        "unit": null, 
+        "unit": 3, 
         "description": "The parameter value is expected to be a numeric mode specification in the form accepted by the chmod and umask system calls. (To use the customary octal format the number must start with a 0 (zero).)"
     }, 
     "log_filename": {
@@ -1983,7 +1931,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Sets the file name pattern for log files.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "log_hostname": {
@@ -1998,7 +1946,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Logs the host name in the connection logs.", 
-        "unit": null, 
+        "unit": 3, 
         "description": "By default, connection logs only show the IP address of the connecting host. If you want them to show the host name you can turn this on, but depending on your host name resolution setup it might impose a non-negligible performance penalty."
     }, 
     "log_line_prefix": {
@@ -2013,7 +1961,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Controls information prefixed to each log line.", 
-        "unit": null, 
+        "unit": 3, 
         "description": "If blank, no prefix is used."
     }, 
     "log_lock_waits": {
@@ -2028,7 +1976,7 @@
         "context": "superuser", 
         "scope": "global", 
         "summary": "Logs long lock waits.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "log_min_duration_statement": {
@@ -2043,7 +1991,7 @@
         "context": "superuser", 
         "scope": "global", 
         "summary": "Sets the minimum execution time above which statements will be logged.", 
-        "unit": "milliseconds", 
+        "unit": 2, 
         "description": "Zero prints all queries. -1 turns this feature off."
     }, 
     "log_min_error_statement": {
@@ -2053,25 +2001,12 @@
         "minval": null, 
         "default": "error", 
         "tunable": "no", 
-        "enumvals": [
-            "debug5", 
-            "debug4", 
-            "debug3", 
-            "debug2", 
-            "debug1", 
-            "info", 
-            "notice", 
-            "warning", 
-            "error", 
-            "log", 
-            "fatal", 
-            "panic"
-        ], 
+        "enumvals": "debug5,debug4,debug3,debug2,debug1,info,notice,warning,error,log,fatal,panic", 
         "vartype": 5, 
         "context": "superuser", 
         "scope": "global", 
         "summary": "Causes all statements generating error at or above this level to be logged.", 
-        "unit": null, 
+        "unit": 3, 
         "description": "Each level includes all the levels that follow it. The later the level, the fewer messages are sent."
     }, 
     "log_min_messages": {
@@ -2081,25 +2016,12 @@
         "minval": null, 
         "default": "warning", 
         "tunable": "no", 
-        "enumvals": [
-            "debug5", 
-            "debug4", 
-            "debug3", 
-            "debug2", 
-            "debug1", 
-            "info", 
-            "notice", 
-            "warning", 
-            "error", 
-            "log", 
-            "fatal", 
-            "panic"
-        ], 
+        "enumvals": "debug5,debug4,debug3,debug2,debug1,info,notice,warning,error,log,fatal,panic", 
         "vartype": 5, 
         "context": "superuser", 
         "scope": "global", 
         "summary": "Sets the message levels that are logged.", 
-        "unit": null, 
+        "unit": 3, 
         "description": "Each level includes all the levels that follow it. The later the level, the fewer messages are sent."
     }, 
     "log_parser_stats": {
@@ -2114,7 +2036,7 @@
         "context": "superuser", 
         "scope": "global", 
         "summary": "Writes parser performance statistics to the server log.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "log_planner_stats": {
@@ -2129,7 +2051,7 @@
         "context": "superuser", 
         "scope": "global", 
         "summary": "Writes planner performance statistics to the server log.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "log_replication_commands": {
@@ -2144,7 +2066,7 @@
         "context": "superuser", 
         "scope": "global", 
         "summary": "Logs each replication command.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "log_rotation_age": {
@@ -2159,7 +2081,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Automatic log file rotation will occur after N minutes.", 
-        "unit": "milliseconds", 
+        "unit": 2, 
         "description": ""
     }, 
     "log_rotation_size": {
@@ -2174,7 +2096,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Automatic log file rotation will occur after N kilobytes.", 
-        "unit": "bytes", 
+        "unit": 1, 
         "description": ""
     }, 
     "log_statement": {
@@ -2184,17 +2106,12 @@
         "minval": null, 
         "default": "none", 
         "tunable": "no", 
-        "enumvals": [
-            "none", 
-            "ddl", 
-            "mod", 
-            "all"
-        ], 
+        "enumvals": "none,ddl,mod,all", 
         "vartype": 5, 
         "context": "superuser", 
         "scope": "global", 
         "summary": "Sets the type of statements logged.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "log_statement_stats": {
@@ -2209,7 +2126,7 @@
         "context": "superuser", 
         "scope": "global", 
         "summary": "Writes cumulative performance statistics to the server log.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "log_temp_files": {
@@ -2224,7 +2141,7 @@
         "context": "superuser", 
         "scope": "global", 
         "summary": "Log the use of temporary files larger than this number of kilobytes.", 
-        "unit": "bytes", 
+        "unit": 1, 
         "description": "Zero logs all files. The default is -1 (turning this feature off)."
     }, 
     "log_timezone": {
@@ -2239,7 +2156,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Sets the time zone to use in log messages.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "log_truncate_on_rotation": {
@@ -2254,7 +2171,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Truncate existing log files of same name during log rotation.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "logging_collector": {
@@ -2269,7 +2186,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Start a subprocess to capture stderr output and/or csvlogs into log files.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "maintenance_work_mem": {
@@ -2284,7 +2201,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the maximum memory to be used for maintenance operations.", 
-        "unit": "bytes", 
+        "unit": 1, 
         "description": "This includes operations such as VACUUM and CREATE INDEX."
     }, 
     "max_connections": {
@@ -2299,7 +2216,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Sets the maximum number of concurrent connections.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "max_files_per_process": {
@@ -2314,7 +2231,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Sets the maximum number of simultaneously open files for each server process.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "max_function_args": {
@@ -2329,7 +2246,7 @@
         "context": "internal", 
         "scope": "global", 
         "summary": "Shows the maximum number of function arguments.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "max_identifier_length": {
@@ -2344,7 +2261,7 @@
         "context": "internal", 
         "scope": "global", 
         "summary": "Shows the maximum identifier length.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "max_index_keys": {
@@ -2359,7 +2276,7 @@
         "context": "internal", 
         "scope": "global", 
         "summary": "Shows the maximum number of index keys.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "max_locks_per_transaction": {
@@ -2374,7 +2291,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Sets the maximum number of locks per transaction.", 
-        "unit": null, 
+        "unit": 3, 
         "description": "The shared lock table is sized on the assumption that at most max_locks_per_transaction * max_connections distinct objects will need to be locked at any one time."
     }, 
     "max_parallel_workers_per_gather": {
@@ -2389,7 +2306,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the maximum number of parallel processes per executor node.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "max_pred_locks_per_transaction": {
@@ -2404,7 +2321,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Sets the maximum number of predicate locks per transaction.", 
-        "unit": null, 
+        "unit": 3, 
         "description": "The shared predicate lock table is sized on the assumption that at most max_pred_locks_per_transaction * max_connections distinct objects will need to be locked at any one time."
     }, 
     "max_prepared_transactions": {
@@ -2419,7 +2336,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Sets the maximum number of simultaneously prepared transactions.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "max_replication_slots": {
@@ -2434,7 +2351,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Sets the maximum number of simultaneously defined replication slots.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "max_stack_depth": {
@@ -2449,7 +2366,7 @@
         "context": "superuser", 
         "scope": "global", 
         "summary": "Sets the maximum stack depth, in kilobytes.", 
-        "unit": "bytes", 
+        "unit": 1, 
         "description": ""
     }, 
     "max_standby_archive_delay": {
@@ -2464,7 +2381,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Sets the maximum delay before canceling queries when a hot standby server is processing archived WAL data.", 
-        "unit": "milliseconds", 
+        "unit": 2, 
         "description": ""
     }, 
     "max_standby_streaming_delay": {
@@ -2479,7 +2396,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Sets the maximum delay before canceling queries when a hot standby server is processing streamed WAL data.", 
-        "unit": "milliseconds", 
+        "unit": 2, 
         "description": ""
     }, 
     "max_wal_senders": {
@@ -2494,7 +2411,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Sets the maximum number of simultaneously running WAL sender processes.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "max_wal_size": {
@@ -2509,7 +2426,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Sets the WAL size that triggers a checkpoint.", 
-        "unit": "bytes", 
+        "unit": 1, 
         "description": ""
     }, 
     "max_worker_processes": {
@@ -2524,7 +2441,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Maximum number of concurrent worker processes.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "min_parallel_relation_size": {
@@ -2539,7 +2456,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the minimum size of relations to be considered for parallel scan.", 
-        "unit": "bytes", 
+        "unit": 1, 
         "description": ""
     }, 
     "min_wal_size": {
@@ -2554,7 +2471,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Sets the minimum size to shrink the WAL to.", 
-        "unit": "bytes", 
+        "unit": 1, 
         "description": ""
     }, 
     "old_snapshot_threshold": {
@@ -2569,7 +2486,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Time before a snapshot is too old to read pages changed after the snapshot was taken.", 
-        "unit": "milliseconds", 
+        "unit": 2, 
         "description": "A value of -1 disables this feature."
     }, 
     "operator_precedence_warning": {
@@ -2584,7 +2501,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Emit a warning for constructs that changed meaning since PostgreSQL 9.4.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "parallel_setup_cost": {
@@ -2599,7 +2516,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the planner's estimate of the cost of starting up worker processes for parallel query.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "parallel_tuple_cost": {
@@ -2614,7 +2531,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the planner's estimate of the cost of passing each tuple (row) from worker to master backend.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "password_encryption": {
@@ -2629,7 +2546,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Encrypt passwords.", 
-        "unit": null, 
+        "unit": 3, 
         "description": "When a password is specified in CREATE USER or ALTER USER without writing either ENCRYPTED or UNENCRYPTED, this parameter determines whether the password is to be encrypted."
     }, 
     "port": {
@@ -2644,7 +2561,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Sets the TCP port the server listens on.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "post_auth_delay": {
@@ -2659,7 +2576,7 @@
         "context": "backend", 
         "scope": "global", 
         "summary": "Waits N seconds on connection startup after authentication.", 
-        "unit": "milliseconds", 
+        "unit": 2, 
         "description": "This allows attaching a debugger to the process."
     }, 
     "pre_auth_delay": {
@@ -2674,7 +2591,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Waits N seconds on connection startup before authentication.", 
-        "unit": "milliseconds", 
+        "unit": 2, 
         "description": "This allows attaching a debugger to the process."
     }, 
     "quote_all_identifiers": {
@@ -2689,7 +2606,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "When generating SQL fragments, quote all identifiers.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "random_page_cost": {
@@ -2704,7 +2621,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the planner's estimate of the cost of a nonsequentially fetched disk page.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "replacement_sort_tuples": {
@@ -2719,7 +2636,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the maximum number of tuples to be sorted using replacement selection.", 
-        "unit": null, 
+        "unit": 3, 
         "description": "When more tuples than this are present, quicksort will be used."
     }, 
     "restart_after_crash": {
@@ -2734,7 +2651,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Reinitialize server after backend crash.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "row_security": {
@@ -2749,7 +2666,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Enable row security.", 
-        "unit": null, 
+        "unit": 3, 
         "description": "When enabled, row security will be applied to all users."
     }, 
     "search_path": {
@@ -2764,7 +2681,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the schema search order for names that are not schema-qualified.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "segment_size": {
@@ -2779,7 +2696,7 @@
         "context": "internal", 
         "scope": "global", 
         "summary": "Shows the number of pages per disk file.", 
-        "unit": "bytes", 
+        "unit": 1, 
         "description": ""
     }, 
     "seq_page_cost": {
@@ -2794,7 +2711,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the planner's estimate of the cost of a sequentially fetched disk page.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "server_encoding": {
@@ -2809,7 +2726,7 @@
         "context": "internal", 
         "scope": "global", 
         "summary": "Sets the server (database) character set encoding.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "server_version": {
@@ -2824,7 +2741,7 @@
         "context": "internal", 
         "scope": "global", 
         "summary": "Shows the server version.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "server_version_num": {
@@ -2839,7 +2756,7 @@
         "context": "internal", 
         "scope": "global", 
         "summary": "Shows the server version as an integer.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "session_preload_libraries": {
@@ -2854,7 +2771,7 @@
         "context": "superuser", 
         "scope": "global", 
         "summary": "Lists shared libraries to preload into each backend.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "session_replication_role": {
@@ -2864,16 +2781,12 @@
         "minval": null, 
         "default": "origin", 
         "tunable": "no", 
-        "enumvals": [
-            "origin", 
-            "replica", 
-            "local"
-        ], 
+        "enumvals": "origin,replica,local", 
         "vartype": 5, 
         "context": "superuser", 
         "scope": "global", 
         "summary": "Sets the session's behavior for triggers and rewrite rules.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "shared_buffers": {
@@ -2888,7 +2801,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Sets the number of shared memory buffers used by the server.", 
-        "unit": "bytes", 
+        "unit": 1, 
         "description": ""
     }, 
     "shared_preload_libraries": {
@@ -2903,7 +2816,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Lists shared libraries to preload into server.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "sql_inheritance": {
@@ -2918,7 +2831,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Causes subtables to be included by default in various commands.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "ssl": {
@@ -2933,7 +2846,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Enables SSL connections.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "ssl_ca_file": {
@@ -2948,7 +2861,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Location of the SSL certificate authority file.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "ssl_cert_file": {
@@ -2963,7 +2876,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Location of the SSL server certificate file.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "ssl_ciphers": {
@@ -2978,7 +2891,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Sets the list of allowed SSL ciphers.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "ssl_crl_file": {
@@ -2993,7 +2906,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Location of the SSL certificate revocation list file.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "ssl_ecdh_curve": {
@@ -3008,7 +2921,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Sets the curve to use for ECDH.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "ssl_key_file": {
@@ -3023,7 +2936,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Location of the SSL server private key file.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "ssl_prefer_server_ciphers": {
@@ -3038,7 +2951,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Give priority to server ciphersuite order.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "standard_conforming_strings": {
@@ -3053,7 +2966,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Causes '...' strings to treat backslashes literally.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "statement_timeout": {
@@ -3068,7 +2981,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the maximum allowed duration of any statement.", 
-        "unit": "milliseconds", 
+        "unit": 2, 
         "description": "A value of 0 turns off the timeout."
     }, 
     "stats_temp_directory": {
@@ -3083,7 +2996,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Writes temporary statistics files to the specified directory.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "superuser_reserved_connections": {
@@ -3098,7 +3011,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Sets the number of connection slots reserved for superusers.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "synchronize_seqscans": {
@@ -3113,7 +3026,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Enable synchronized sequential scans.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "synchronous_commit": {
@@ -3123,18 +3036,12 @@
         "minval": null, 
         "default": "on", 
         "tunable": "no", 
-        "enumvals": [
-            "local", 
-            "remote_write", 
-            "remote_apply", 
-            "on", 
-            "off"
-        ], 
+        "enumvals": "local,remote_write,remote_apply,on,off", 
         "vartype": 5, 
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the current transaction's synchronization level.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "synchronous_standby_names": {
@@ -3149,7 +3056,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Number of synchronous standbys and list of names of potential synchronous ones.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "syslog_facility": {
@@ -3159,21 +3066,12 @@
         "minval": null, 
         "default": "local0", 
         "tunable": "no", 
-        "enumvals": [
-            "local0", 
-            "local1", 
-            "local2", 
-            "local3", 
-            "local4", 
-            "local5", 
-            "local6", 
-            "local7"
-        ], 
+        "enumvals": "local0,local1,local2,local3,local4,local5,local6,local7", 
         "vartype": 5, 
         "context": "sighup", 
         "scope": "global", 
         "summary": "Sets the syslog \"facility\" to be used when syslog enabled.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "syslog_ident": {
@@ -3188,7 +3086,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Sets the program name used to identify PostgreSQL messages in syslog.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "syslog_sequence_numbers": {
@@ -3203,7 +3101,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Add sequence number to syslog messages to avoid duplicate suppression.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "syslog_split_messages": {
@@ -3218,7 +3116,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Split messages sent to syslog by lines and to fit into 1024 bytes.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "tcp_keepalives_count": {
@@ -3233,7 +3131,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Maximum number of TCP keepalive retransmits.", 
-        "unit": null, 
+        "unit": 3, 
         "description": "This controls the number of consecutive keepalive retransmits that can be lost before a connection is considered dead. A value of 0 uses the system default."
     }, 
     "tcp_keepalives_idle": {
@@ -3248,7 +3146,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Time between issuing TCP keepalives.", 
-        "unit": "milliseconds", 
+        "unit": 2, 
         "description": "A value of 0 uses the system default."
     }, 
     "tcp_keepalives_interval": {
@@ -3263,7 +3161,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Time between TCP keepalive retransmits.", 
-        "unit": "milliseconds", 
+        "unit": 2, 
         "description": "A value of 0 uses the system default."
     }, 
     "temp_buffers": {
@@ -3278,7 +3176,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the maximum number of temporary buffers used by each session.", 
-        "unit": "bytes", 
+        "unit": 1, 
         "description": ""
     }, 
     "temp_file_limit": {
@@ -3293,7 +3191,7 @@
         "context": "superuser", 
         "scope": "global", 
         "summary": "Limits the total size of all temporary files used by each process.", 
-        "unit": "bytes", 
+        "unit": 1, 
         "description": "-1 means no limit."
     }, 
     "temp_tablespaces": {
@@ -3308,7 +3206,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the tablespace(s) to use for temporary tables and sort files.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "TimeZone": {
@@ -3323,7 +3221,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the time zone for displaying and interpreting time stamps.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "timezone_abbreviations": {
@@ -3338,7 +3236,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Selects a file of time zone abbreviations.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "trace_notify": {
@@ -3353,7 +3251,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Generates debugging output for LISTEN and NOTIFY.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "trace_recovery_messages": {
@@ -3363,22 +3261,12 @@
         "minval": null, 
         "default": "log", 
         "tunable": "no", 
-        "enumvals": [
-            "debug5", 
-            "debug4", 
-            "debug3", 
-            "debug2", 
-            "debug1", 
-            "log", 
-            "notice", 
-            "warning", 
-            "error"
-        ], 
+        "enumvals": "debug5,debug4,debug3,debug2,debug1,log,notice,warning,error", 
         "vartype": 5, 
         "context": "sighup", 
         "scope": "global", 
         "summary": "Enables logging of recovery-related debugging information.", 
-        "unit": null, 
+        "unit": 3, 
         "description": "Each level includes all the levels that follow it. The later the level, the fewer messages are sent."
     }, 
     "trace_sort": {
@@ -3393,7 +3281,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Emit information about resource usage in sorting.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "track_activities": {
@@ -3408,7 +3296,7 @@
         "context": "superuser", 
         "scope": "global", 
         "summary": "Collects information about executing commands.", 
-        "unit": null, 
+        "unit": 3, 
         "description": "Enables the collection of information on the currently executing command of each session, along with the time at which that command began execution."
     }, 
     "track_activity_query_size": {
@@ -3423,7 +3311,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Sets the size reserved for pg_stat_activity.query, in bytes.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "track_commit_timestamp": {
@@ -3438,7 +3326,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Collects transaction commit time.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "track_counts": {
@@ -3453,7 +3341,7 @@
         "context": "superuser", 
         "scope": "global", 
         "summary": "Collects statistics on database activity.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "track_functions": {
@@ -3463,16 +3351,12 @@
         "minval": null, 
         "default": "none", 
         "tunable": "no", 
-        "enumvals": [
-            "none", 
-            "pl", 
-            "all"
-        ], 
+        "enumvals": "none,pl,all", 
         "vartype": 5, 
         "context": "superuser", 
         "scope": "global", 
         "summary": "Collects function-level statistics on database activity.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "track_io_timing": {
@@ -3487,7 +3371,7 @@
         "context": "superuser", 
         "scope": "global", 
         "summary": "Collects timing statistics for database I/O activity.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "transaction_deferrable": {
@@ -3502,7 +3386,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Whether to defer a read-only serializable transaction until it can be executed with no possible serialization failures.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "transaction_isolation": {
@@ -3517,7 +3401,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the current transaction's isolation level.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "transaction_read_only": {
@@ -3532,7 +3416,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the current transaction's read-only status.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "transform_null_equals": {
@@ -3547,7 +3431,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Treats \"expr=NULL\" as \"expr IS NULL\".", 
-        "unit": null, 
+        "unit": 3, 
         "description": "When turned on, expressions of the form expr = NULL (or NULL = expr) are treated as expr IS NULL, that is, they return true if expr evaluates to the null value, and false otherwise. The correct behavior of expr = NULL is to always return null (unknown)."
     }, 
     "unix_socket_directories": {
@@ -3562,7 +3446,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Sets the directories where Unix-domain sockets will be created.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "unix_socket_group": {
@@ -3577,7 +3461,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Sets the owning group of the Unix-domain socket.", 
-        "unit": null, 
+        "unit": 3, 
         "description": "The owning user of the socket is always the user that starts the server."
     }, 
     "unix_socket_permissions": {
@@ -3592,7 +3476,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Sets the access permissions of the Unix-domain socket.", 
-        "unit": null, 
+        "unit": 3, 
         "description": "Unix-domain sockets use the usual Unix file system permission set. The parameter value is expected to be a numeric mode specification in the form accepted by the chmod and umask system calls. (To use the customary octal format the number must start with a 0 (zero).)"
     }, 
     "update_process_title": {
@@ -3607,7 +3491,7 @@
         "context": "superuser", 
         "scope": "global", 
         "summary": "Updates the process title to show the active SQL command.", 
-        "unit": null, 
+        "unit": 3, 
         "description": "Enables updating of the process title every time a new SQL command is received by the server."
     }, 
     "vacuum_cost_delay": {
@@ -3622,7 +3506,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Vacuum cost delay in milliseconds.", 
-        "unit": "milliseconds", 
+        "unit": 2, 
         "description": ""
     }, 
     "vacuum_cost_limit": {
@@ -3637,7 +3521,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Vacuum cost amount available before napping.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "vacuum_cost_page_dirty": {
@@ -3652,7 +3536,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Vacuum cost for a page dirtied by vacuum.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "vacuum_cost_page_hit": {
@@ -3667,7 +3551,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Vacuum cost for a page found in the buffer cache.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "vacuum_cost_page_miss": {
@@ -3682,7 +3566,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Vacuum cost for a page not found in the buffer cache.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "vacuum_defer_cleanup_age": {
@@ -3697,7 +3581,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Number of transactions by which VACUUM and HOT cleanup should be deferred, if any.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "vacuum_freeze_min_age": {
@@ -3712,7 +3596,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Minimum age at which VACUUM should freeze a table row.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "vacuum_freeze_table_age": {
@@ -3727,7 +3611,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Age at which VACUUM should scan whole table to freeze tuples.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "vacuum_multixact_freeze_min_age": {
@@ -3742,7 +3626,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Minimum age at which VACUUM should freeze a MultiXactId in a table row.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "vacuum_multixact_freeze_table_age": {
@@ -3757,7 +3641,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Multixact age at which VACUUM should scan whole table to freeze tuples.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "wal_block_size": {
@@ -3772,7 +3656,7 @@
         "context": "internal", 
         "scope": "global", 
         "summary": "Shows the block size in the write ahead log.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "wal_buffers": {
@@ -3787,7 +3671,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Sets the number of disk-page buffers in shared memory for WAL.", 
-        "unit": "bytes", 
+        "unit": 1, 
         "description": ""
     }, 
     "wal_compression": {
@@ -3802,7 +3686,7 @@
         "context": "superuser", 
         "scope": "global", 
         "summary": "Compresses full-page writes written in WAL file.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "wal_keep_segments": {
@@ -3817,7 +3701,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Sets the number of WAL files held for standby servers.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "wal_level": {
@@ -3827,16 +3711,12 @@
         "minval": null, 
         "default": "minimal", 
         "tunable": "no", 
-        "enumvals": [
-            "minimal", 
-            "replica", 
-            "logical"
-        ], 
+        "enumvals": "minimal,replica,logical", 
         "vartype": 5, 
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Set the level of information written to the WAL.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "wal_log_hints": {
@@ -3851,7 +3731,7 @@
         "context": "postmaster", 
         "scope": "global", 
         "summary": "Writes full pages to WAL when first modified after a checkpoint, even for a non-critical modifications.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "wal_receiver_status_interval": {
@@ -3866,7 +3746,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Sets the maximum interval between WAL receiver status reports to the primary.", 
-        "unit": "milliseconds", 
+        "unit": 2, 
         "description": ""
     }, 
     "wal_receiver_timeout": {
@@ -3881,7 +3761,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Sets the maximum wait time to receive data from the primary.", 
-        "unit": "milliseconds", 
+        "unit": 2, 
         "description": ""
     }, 
     "wal_retrieve_retry_interval": {
@@ -3896,7 +3776,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Sets the time to wait before retrying to retrieve WAL after a failed attempt.", 
-        "unit": "milliseconds", 
+        "unit": 2, 
         "description": ""
     }, 
     "wal_segment_size": {
@@ -3911,7 +3791,7 @@
         "context": "internal", 
         "scope": "global", 
         "summary": "Shows the number of pages per write ahead log segment.", 
-        "unit": "bytes", 
+        "unit": 1, 
         "description": ""
     }, 
     "wal_sender_timeout": {
@@ -3926,7 +3806,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Sets the maximum time to wait for WAL replication.", 
-        "unit": "milliseconds", 
+        "unit": 2, 
         "description": ""
     }, 
     "wal_sync_method": {
@@ -3936,17 +3816,12 @@
         "minval": null, 
         "default": "fdatasync", 
         "tunable": "yes", 
-        "enumvals": [
-            "fsync", 
-            "fdatasync", 
-            "open_sync", 
-            "open_datasync"
-        ], 
+        "enumvals": "fsync,fdatasync,open_sync,open_datasync", 
         "vartype": 5, 
         "context": "sighup", 
         "scope": "global", 
         "summary": "Selects the method used for forcing WAL updates to disk.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "wal_writer_delay": {
@@ -3961,7 +3836,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Time between WAL flushes performed in the WAL writer.", 
-        "unit": "milliseconds", 
+        "unit": 2, 
         "description": ""
     }, 
     "wal_writer_flush_after": {
@@ -3976,7 +3851,7 @@
         "context": "sighup", 
         "scope": "global", 
         "summary": "Amount of WAL written out by WAL writer that triggers a flush.", 
-        "unit": "bytes", 
+        "unit": 1, 
         "description": ""
     }, 
     "work_mem": {
@@ -3991,7 +3866,7 @@
         "context": "user", 
         "scope": "global", 
         "summary": "Sets the maximum memory to be used for query workspaces.", 
-        "unit": "bytes", 
+        "unit": 1, 
         "description": "This much memory can be used by each internal sort operation and hash table before switching to temporary disk files."
     }, 
     "xmlbinary": {
@@ -4001,15 +3876,12 @@
         "minval": null, 
         "default": "base64", 
         "tunable": "no", 
-        "enumvals": [
-            "base64", 
-            "hex"
-        ], 
+        "enumvals": "base64,hex", 
         "vartype": 5, 
         "context": "user", 
         "scope": "global", 
         "summary": "Sets how binary values are to be encoded in XML.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "xmloption": {
@@ -4019,15 +3891,12 @@
         "minval": null, 
         "default": "content", 
         "tunable": "no", 
-        "enumvals": [
-            "content", 
-            "document"
-        ], 
+        "enumvals": "content,document", 
         "vartype": 5, 
         "context": "user", 
         "scope": "global", 
         "summary": "Sets whether XML data in implicit parsing and serialization operations is to be considered as documents or content fragments.", 
-        "unit": null, 
+        "unit": 3, 
         "description": ""
     }, 
     "zero_damaged_pages": {
@@ -4042,7 +3911,7 @@
         "context": "superuser", 
         "scope": "global", 
         "summary": "Continues processing past damaged page headers.", 
-        "unit": null, 
+        "unit": 3, 
         "description": "Detection of a damaged page header normally causes PostgreSQL to report an error, aborting the current transaction. Setting zero_damaged_pages to true causes the system to instead report a warning, zero out the damaged page, and continue processing. This behavior will destroy data, namely all the rows on the damaged page."
     }
 }

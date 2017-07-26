@@ -1,9 +1,12 @@
-# -*- coding: utf-8 -*-
+from collections import OrderedDict
+
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_comma_separated_integer_list
-from website.types import DBMSType, MetricType, VarType, HardwareType, TaskType
+
+from .types import DBMSType, MetricType, VarType, HardwareType, TaskType, KnobUnitType
+from .utils import JSONUtil
 
 class DBMSCatalog(models.Model):
     type = models.IntegerField(choices=DBMSType.choices())
@@ -26,7 +29,7 @@ class KnobCatalog(models.Model):
     dbms = models.ForeignKey(DBMSCatalog) 
     name = models.CharField(max_length=64)
     vartype = models.IntegerField(choices=VarType.choices())
-    unit = models.CharField(max_length=16, null=True)
+    unit = models.IntegerField(choices=KnobUnitType.choices())
     category = models.TextField(null=True)
     summary = models.TextField(null=True)
     description = models.TextField(null=True)
@@ -140,10 +143,22 @@ class DBConf(models.Model):
     description = models.CharField(max_length=512)
     creation_time = models.DateTimeField()
     configuration = models.TextField()
-    tuning_configuration = models.TextField()
-    raw_configuration = models.TextField()
+#     tuning_configuration = models.TextField()
+    orig_config_diffs = models.TextField()
+#     raw_configuration = models.TextField()
     dbms = models.ForeignKey(DBMSCatalog)
-        
+
+    def get_tuning_configuration(self, include_all=False):
+        config = JSONUtil.loads(self.configuration)
+        param_catalog = KnobCatalog.objects.filter(dbms=self.dbms)
+        params = {}
+        for p in param_catalog:
+            if p.tunable == True:
+                params[p.name] = config[p.name]
+            elif include_all == True:
+                params[p.name] = '--'
+        return params
+
 
 class DBMSMetrics(models.Model):
     application = models.ForeignKey(Application)
@@ -152,13 +167,24 @@ class DBMSMetrics(models.Model):
     creation_time = models.DateTimeField()
     execution_time = models.IntegerField()
     configuration = models.TextField()
-    raw_configuration = models.TextField()
+    orig_config_diffs = models.TextField()
     dbms = models.ForeignKey(DBMSCatalog)
 
     def clean_fields(self, exclude=None):
         super(DBMSMetrics, self).clean_fields(exclude=exclude)
         if self.execution_time <= 0:
             raise ValidationError('Execution time must be greater than 0.')
+
+    def get_normalized_configuration(self, include_all=False):
+        config = JSONUtil.loads(self.configuration)
+        metric_catalog = MetricCatalog.objects.filter(dbms=self.dbms)
+        norm_metrics = OrderedDict()
+        for m in metric_catalog:
+            if m.metric_type == MetricType.COUNTER:
+                norm_metrics[m.name] = float(config[m.name]) / self.execution_time
+            elif include_all == True:
+                norm_metrics[m.name] = '--'
+        return norm_metrics
     
 
 class Result(models.Model):
@@ -190,8 +216,16 @@ class Result(models.Model):
         return unicode(self.pk)
 
 
+class ResultData(models.Model):
+    dbms = models.ForeignKey(DBMSCatalog)
+    hardware = models.ForeignKey(Hardware)
+    result = models.ForeignKey(Result)
+    param_data = models.TextField()
+    metric_data = models.TextField()
+
+
 class Task(models.Model):
-    taskmeta_id = models.CharField(max_length=255)
+    taskmeta_id = models.CharField(max_length=255, unique=True)
     start_time = models.DateTimeField(null=True)
     result = models.ForeignKey(Result)
     type = models.IntegerField(choices=TaskType.choices())

@@ -81,6 +81,26 @@ class TaskType(BaseType):
         (RUN_GPR, "GPR"),
     ])
 
+class BooleanType(BaseType):
+    TRUE = int(True)
+    FALSE = int(False)
+    
+    TYPE_NAMES = {
+        TRUE: str(True),
+        FALSE: str(False),
+    }
+
+class KnobUnitType(BaseType):
+    BYTES = 1
+    MILLISECONDS = 2
+    OTHER = 3
+    
+    TYPE_NAMES = {
+        BYTES: 'bytes',
+        MILLISECONDS: 'milliseconds',
+        OTHER: 'other',
+    }
+
 
 class HardwareType(BaseType):
 

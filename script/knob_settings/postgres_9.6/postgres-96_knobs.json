@@ -13,7 +13,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Allows modifications of the structure of system tables.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -32,7 +32,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the application name to be reported in statistics and logs.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -51,7 +51,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Sets the shell command that will be called to archive a WAL file.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -65,12 +65,12 @@
             "minval": null, 
             "default": "off", 
             "tunable": false, 
-            "enumvals": "['always', 'on', 'off']", 
+            "enumvals": "always,on,off", 
             "vartype": "5", 
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Allows archiving of WAL files using archive_command.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -89,7 +89,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Forces a switch to the next xlog file if a new file has not been started within N seconds.", 
-            "unit": "milliseconds", 
+            "unit": "2", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -108,7 +108,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Enable input of NULL elements in arrays.", 
-            "unit": null, 
+            "unit": "3", 
             "description": "When turned on, unquoted NULL in an array input value means a null value; otherwise it is taken literally."
         }, 
         "model": "website.KnobCatalog"
@@ -127,7 +127,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Sets the maximum allowed time to complete client authentication.", 
-            "unit": "milliseconds", 
+            "unit": "2", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -146,7 +146,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Starts the autovacuum subprocess.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -165,7 +165,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Number of tuple inserts, updates, or deletes prior to analyze as a fraction of reltuples.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -184,7 +184,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Minimum number of tuple inserts, updates, or deletes prior to analyze.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -203,7 +203,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Age at which to autovacuum a table to prevent transaction ID wraparound.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -222,7 +222,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Sets the maximum number of simultaneously running autovacuum worker processes.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -241,7 +241,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Multixact age at which to autovacuum a table to prevent multixact wraparound.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -260,7 +260,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Time to sleep between autovacuum runs.", 
-            "unit": "milliseconds", 
+            "unit": "2", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -279,7 +279,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Vacuum cost delay in milliseconds, for autovacuum.", 
-            "unit": "milliseconds", 
+            "unit": "2", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -298,7 +298,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Vacuum cost amount available before napping, for autovacuum.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -317,7 +317,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Number of tuple updates or deletes prior to vacuum as a fraction of reltuples.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -336,7 +336,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Minimum number of tuple updates or deletes prior to vacuum.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -355,7 +355,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Sets the maximum memory to be used by each autovacuum worker process.", 
-            "unit": "bytes", 
+            "unit": "1", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -374,7 +374,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Number of pages after which previously performed writes are flushed to disk.", 
-            "unit": "bytes", 
+            "unit": "1", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -388,12 +388,12 @@
             "minval": null, 
             "default": "safe_encoding", 
             "tunable": false, 
-            "enumvals": "['safe_encoding', 'on', 'off']", 
+            "enumvals": "safe_encoding,on,off", 
             "vartype": "5", 
             "context": "user", 
             "scope": "global", 
             "summary": "Sets whether \"\\'\" is allowed in string literals.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -412,7 +412,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Background writer sleep time between rounds.", 
-            "unit": "milliseconds", 
+            "unit": "2", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -431,7 +431,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Number of pages after which previously performed writes are flushed to disk.", 
-            "unit": "bytes", 
+            "unit": "1", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -450,7 +450,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Background writer maximum number of LRU pages to flush per round.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -469,7 +469,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Multiple of the average buffer usage to free per round.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -488,7 +488,7 @@
             "context": "internal", 
             "scope": "global", 
             "summary": "Shows the size of a disk block.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -507,7 +507,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Enables advertising the server via Bonjour.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -526,7 +526,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Sets the Bonjour service name.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -540,12 +540,12 @@
             "minval": null, 
             "default": "hex", 
             "tunable": false, 
-            "enumvals": "['escape', 'hex']", 
+            "enumvals": "escape,hex", 
             "vartype": "5", 
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the output format for bytea.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -564,7 +564,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Check function bodies during CREATE FUNCTION.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -583,7 +583,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Time spent flushing dirty buffers during checkpoint, as fraction of checkpoint interval.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -602,7 +602,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Number of pages after which previously performed writes are flushed to disk.", 
-            "unit": "bytes", 
+            "unit": "1", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -621,7 +621,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Sets the maximum time between automatic WAL checkpoints.", 
-            "unit": "milliseconds", 
+            "unit": "2", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -640,7 +640,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Enables warnings if checkpoint segments are filled more frequently than this.", 
-            "unit": "milliseconds", 
+            "unit": "2", 
             "description": "Write a message to the server log if checkpoints caused by the filling of checkpoint segment files happens more frequently than this number of seconds. Zero turns off the warning."
         }, 
         "model": "website.KnobCatalog"
@@ -659,7 +659,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the client's character set encoding.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -673,12 +673,12 @@
             "minval": null, 
             "default": "notice", 
             "tunable": false, 
-            "enumvals": "['debug5', 'debug4', 'debug3', 'debug2', 'debug1', 'log', 'notice', 'warning', 'error']", 
+            "enumvals": "debug5,debug4,debug3,debug2,debug1,log,notice,warning,error", 
             "vartype": "5", 
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the message levels that are sent to the client.", 
-            "unit": null, 
+            "unit": "3", 
             "description": "Each level includes all the levels that follow it. The later the level, the fewer messages are sent."
         }, 
         "model": "website.KnobCatalog"
@@ -697,7 +697,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Sets the name of the cluster, which is included in the process title.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -716,7 +716,7 @@
             "context": "superuser", 
             "scope": "global", 
             "summary": "Sets the delay in microseconds between transaction commit and flushing WAL to disk.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -735,7 +735,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the minimum concurrent open transactions before performing commit_delay.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -754,7 +754,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Sets the server's main configuration file.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -768,12 +768,12 @@
             "minval": null, 
             "default": "partition", 
             "tunable": false, 
-            "enumvals": "['partition', 'on', 'off']", 
+            "enumvals": "partition,on,off", 
             "vartype": "5", 
             "context": "user", 
             "scope": "global", 
             "summary": "Enables the planner to use constraints to optimize queries.", 
-            "unit": null, 
+            "unit": "3", 
             "description": "Table scans will be skipped if their constraints guarantee that no rows match the query."
         }, 
         "model": "website.KnobCatalog"
@@ -792,7 +792,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the planner's estimate of the cost of processing each index entry during an index scan.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -811,7 +811,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the planner's estimate of the cost of processing each operator or function call.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -830,7 +830,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the planner's estimate of the cost of processing each tuple (row).", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -849,7 +849,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the planner's estimate of the fraction of a cursor's rows that will be retrieved.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -868,7 +868,7 @@
             "context": "internal", 
             "scope": "global", 
             "summary": "Shows whether data checksums are turned on for this cluster.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -887,7 +887,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Sets the server's data directory.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -906,7 +906,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the display format for date and time values.", 
-            "unit": null, 
+            "unit": "3", 
             "description": "Also controls interpretation of ambiguous date inputs."
         }, 
         "model": "website.KnobCatalog"
@@ -925,7 +925,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Enables per-database user names.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -944,7 +944,7 @@
             "context": "superuser", 
             "scope": "global", 
             "summary": "Sets the time to wait on a lock before checking for deadlock.", 
-            "unit": "milliseconds", 
+            "unit": "2", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -963,7 +963,7 @@
             "context": "internal", 
             "scope": "global", 
             "summary": "Shows whether the running server has assertion checks enabled.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -982,7 +982,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Indents parse and plan tree displays.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -1001,7 +1001,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Logs each query's parse tree.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -1020,7 +1020,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Logs each query's execution plan.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -1039,7 +1039,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Logs each query's rewritten parse tree.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -1058,7 +1058,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the default statistics target.", 
-            "unit": null, 
+            "unit": "3", 
             "description": "This applies to table columns that have not had a column-specific target set via ALTER TABLE SET STATISTICS."
         }, 
         "model": "website.KnobCatalog"
@@ -1077,7 +1077,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the default tablespace to create tables and indexes in.", 
-            "unit": null, 
+            "unit": "3", 
             "description": "An empty string selects the database's default tablespace."
         }, 
         "model": "website.KnobCatalog"
@@ -1096,7 +1096,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets default text search configuration.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -1115,7 +1115,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the default deferrable status of new transactions.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -1129,12 +1129,12 @@
             "minval": null, 
             "default": "read committed", 
             "tunable": false, 
-            "enumvals": "['serializable', 'repeatable read', 'read committed', 'read uncommitted']", 
+            "enumvals": "serializable,repeatable read,read committed,read uncommitted", 
             "vartype": "5", 
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the transaction isolation level of each new transaction.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -1153,7 +1153,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the default read-only status of new transactions.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -1172,7 +1172,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Create new tables with OIDs by default.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -1191,7 +1191,7 @@
             "context": "superuser", 
             "scope": "global", 
             "summary": "Sets the path for dynamically loadable modules.", 
-            "unit": null, 
+            "unit": "3", 
             "description": "If a dynamically loadable module needs to be opened and the specified name does not have a directory component (i.e., the name does not contain a slash), the system will search this path for the specified file."
         }, 
         "model": "website.KnobCatalog"
@@ -1205,12 +1205,12 @@
             "minval": null, 
             "default": "posix", 
             "tunable": false, 
-            "enumvals": "['posix', 'sysv', 'mmap', 'none']", 
+            "enumvals": "posix,sysv,mmap,none", 
             "vartype": "5", 
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Selects the dynamic shared memory implementation used.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -1229,7 +1229,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the planner's assumption about the size of the disk cache.", 
-            "unit": "bytes", 
+            "unit": "1", 
             "description": "That is, the portion of the kernel's disk cache that will be used for PostgreSQL data files. This is measured in disk pages, which are normally 8 kB each."
         }, 
         "model": "website.KnobCatalog"
@@ -1248,7 +1248,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Number of simultaneous requests that can be handled efficiently by the disk subsystem.", 
-            "unit": null, 
+            "unit": "3", 
             "description": "For RAID arrays, this should be approximately the number of drive spindles in the array."
         }, 
         "model": "website.KnobCatalog"
@@ -1267,7 +1267,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Enables the planner's use of bitmap-scan plans.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -1286,7 +1286,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Enables the planner's use of hashed aggregation plans.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -1305,7 +1305,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Enables the planner's use of hash join plans.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -1324,7 +1324,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Enables the planner's use of index-only-scan plans.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -1343,7 +1343,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Enables the planner's use of index-scan plans.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -1362,7 +1362,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Enables the planner's use of materialization.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -1381,7 +1381,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Enables the planner's use of merge join plans.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -1400,7 +1400,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Enables the planner's use of nested-loop join plans.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -1419,7 +1419,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Enables the planner's use of sequential-scan plans.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -1438,7 +1438,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Enables the planner's use of explicit sort steps.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -1457,7 +1457,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Enables the planner's use of TID scan plans.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -1476,7 +1476,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Warn about backslash escapes in ordinary string literals.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -1495,7 +1495,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Sets the application name used to identify PostgreSQL messages in the event log.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -1514,7 +1514,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Terminate session on any error.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -1533,7 +1533,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Writes the postmaster PID to the specified file.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -1552,7 +1552,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the number of digits displayed for floating-point values.", 
-            "unit": null, 
+            "unit": "3", 
             "description": "This affects real, double precision, and geometric data types. The parameter value is added to the standard number of digits (FLT_DIG or DBL_DIG as appropriate)."
         }, 
         "model": "website.KnobCatalog"
@@ -1566,12 +1566,12 @@
             "minval": null, 
             "default": "off", 
             "tunable": false, 
-            "enumvals": "['off', 'on', 'regress']", 
+            "enumvals": "off,on,regress", 
             "vartype": "5", 
             "context": "user", 
             "scope": "global", 
             "summary": "Forces use of parallel query facilities.", 
-            "unit": null, 
+            "unit": "3", 
             "description": "If possible, run query using a parallel worker and with parallel restrictions."
         }, 
         "model": "website.KnobCatalog"
@@ -1590,7 +1590,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the FROM-list size beyond which subqueries are not collapsed.", 
-            "unit": null, 
+            "unit": "3", 
             "description": "The planner will merge subqueries into upper queries if the resulting FROM list would have no more than this many items."
         }, 
         "model": "website.KnobCatalog"
@@ -1609,7 +1609,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Forces synchronization of updates to disk.", 
-            "unit": null, 
+            "unit": "3", 
             "description": "The server will use the fsync() system call in several places to make sure that updates are physically written to disk. This insures that a database cluster will recover to a consistent state after an operating system or hardware crash."
         }, 
         "model": "website.KnobCatalog"
@@ -1628,7 +1628,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Writes full pages to WAL when first modified after a checkpoint.", 
-            "unit": null, 
+            "unit": "3", 
             "description": "A page write in process during an operating system crash might be only partially written to disk.  During recovery, the row changes stored in WAL are not enough to recover.  This option writes pages when first modified after a checkpoint to WAL so full recovery is possible."
         }, 
         "model": "website.KnobCatalog"
@@ -1647,7 +1647,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Enables genetic query optimization.", 
-            "unit": null, 
+            "unit": "3", 
             "description": "This algorithm attempts to do planning without exhaustive searching."
         }, 
         "model": "website.KnobCatalog"
@@ -1666,7 +1666,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "GEQO: effort is used to set the default for other GEQO parameters.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -1685,7 +1685,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "GEQO: number of iterations of the algorithm.", 
-            "unit": null, 
+            "unit": "3", 
             "description": "Zero selects a suitable default value."
         }, 
         "model": "website.KnobCatalog"
@@ -1704,7 +1704,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "GEQO: number of individuals in the population.", 
-            "unit": null, 
+            "unit": "3", 
             "description": "Zero selects a suitable default value."
         }, 
         "model": "website.KnobCatalog"
@@ -1723,7 +1723,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "GEQO: seed for random path selection.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -1742,7 +1742,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "GEQO: selective pressure within the population.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -1761,7 +1761,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the threshold of FROM items beyond which GEQO is used.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -1780,7 +1780,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the maximum allowed result for exact search by GIN.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -1799,7 +1799,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the maximum size of the pending list for GIN index.", 
-            "unit": "bytes", 
+            "unit": "1", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -1818,7 +1818,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Sets the server's \"hba\" configuration file.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -1837,7 +1837,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Allows connections and queries during recovery.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -1856,7 +1856,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Allows feedback from a hot standby to the primary that will avoid query conflicts.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -1870,12 +1870,12 @@
             "minval": null, 
             "default": "try", 
             "tunable": false, 
-            "enumvals": "['off', 'on', 'try']", 
+            "enumvals": "off,on,try", 
             "vartype": "5", 
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Use of huge pages on Linux.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -1894,7 +1894,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Sets the server's \"ident\" configuration file.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -1913,7 +1913,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the maximum allowed duration of any idling transaction.", 
-            "unit": "milliseconds", 
+            "unit": "2", 
             "description": "A value of 0 turns off the timeout."
         }, 
         "model": "website.KnobCatalog"
@@ -1932,7 +1932,7 @@
             "context": "superuser", 
             "scope": "global", 
             "summary": "Continues processing after a checksum failure.", 
-            "unit": null, 
+            "unit": "3", 
             "description": "Detection of a checksum failure normally causes PostgreSQL to report an error, aborting the current transaction. Setting ignore_checksum_failure to true causes the system to ignore the failure (but still report a warning), and continue processing. This behavior could cause crashes or other serious problems. Only has an effect if checksums are enabled."
         }, 
         "model": "website.KnobCatalog"
@@ -1951,7 +1951,7 @@
             "context": "backend", 
             "scope": "global", 
             "summary": "Disables reading from system indexes.", 
-            "unit": null, 
+            "unit": "3", 
             "description": "It does not prevent updating the indexes, so it is safe to use.  The worst consequence is slowness."
         }, 
         "model": "website.KnobCatalog"
@@ -1970,7 +1970,7 @@
             "context": "internal", 
             "scope": "global", 
             "summary": "Datetimes are integer based.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -1984,12 +1984,12 @@
             "minval": null, 
             "default": "postgres", 
             "tunable": false, 
-            "enumvals": "['postgres', 'postgres_verbose', 'sql_standard', 'iso_8601']", 
+            "enumvals": "postgres,postgres_verbose,sql_standard,iso_8601", 
             "vartype": "5", 
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the display format for interval values.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -2008,7 +2008,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the FROM-list size beyond which JOIN constructs are not flattened.", 
-            "unit": null, 
+            "unit": "3", 
             "description": "The planner will flatten explicit JOIN constructs into lists of FROM items whenever a list of no more than this many items would result."
         }, 
         "model": "website.KnobCatalog"
@@ -2027,7 +2027,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Sets whether Kerberos and GSSAPI user names should be treated as case-insensitive.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -2046,7 +2046,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Sets the location of the Kerberos server key file.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -2065,7 +2065,7 @@
             "context": "internal", 
             "scope": "global", 
             "summary": "Shows the collation order locale.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -2084,7 +2084,7 @@
             "context": "internal", 
             "scope": "global", 
             "summary": "Shows the character classification and case conversion locale.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -2103,7 +2103,7 @@
             "context": "superuser", 
             "scope": "global", 
             "summary": "Sets the language in which messages are displayed.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -2122,7 +2122,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the locale for formatting monetary amounts.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -2141,7 +2141,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the locale for formatting numbers.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -2160,7 +2160,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the locale for formatting date and time values.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -2179,7 +2179,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Sets the host name or IP address(es) to listen to.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -2198,7 +2198,7 @@
             "context": "superuser", 
             "scope": "global", 
             "summary": "Enables backward compatibility mode for privilege checks on large objects.", 
-            "unit": null, 
+            "unit": "3", 
             "description": "Skips privilege checks when reading or modifying large objects, for compatibility with PostgreSQL releases prior to 9.0."
         }, 
         "model": "website.KnobCatalog"
@@ -2217,7 +2217,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Lists unprivileged shared libraries to preload into each backend.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -2236,7 +2236,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the maximum allowed duration of any wait for a lock.", 
-            "unit": "milliseconds", 
+            "unit": "2", 
             "description": "A value of 0 turns off the timeout."
         }, 
         "model": "website.KnobCatalog"
@@ -2255,7 +2255,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Sets the minimum execution time above which autovacuum actions will be logged.", 
-            "unit": "milliseconds", 
+            "unit": "2", 
             "description": "Zero prints all actions. -1 turns autovacuum logging off."
         }, 
         "model": "website.KnobCatalog"
@@ -2274,7 +2274,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Logs each checkpoint.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -2293,7 +2293,7 @@
             "context": "superuser-backend", 
             "scope": "global", 
             "summary": "Logs each successful connection.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -2312,7 +2312,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Sets the destination for server log output.", 
-            "unit": null, 
+            "unit": "3", 
             "description": "Valid values are combinations of \"stderr\", \"syslog\", \"csvlog\", and \"eventlog\", depending on the platform."
         }, 
         "model": "website.KnobCatalog"
@@ -2331,7 +2331,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Sets the destination directory for log files.", 
-            "unit": null, 
+            "unit": "3", 
             "description": "Can be specified as relative to the data directory or as absolute path."
         }, 
         "model": "website.KnobCatalog"
@@ -2350,7 +2350,7 @@
             "context": "superuser-backend", 
             "scope": "global", 
             "summary": "Logs end of a session, including duration.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -2369,7 +2369,7 @@
             "context": "superuser", 
             "scope": "global", 
             "summary": "Logs the duration of each completed SQL statement.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -2383,12 +2383,12 @@
             "minval": null, 
             "default": "default", 
             "tunable": false, 
-            "enumvals": "['terse', 'default', 'verbose']", 
+            "enumvals": "terse,default,verbose", 
             "vartype": "5", 
             "context": "superuser", 
             "scope": "global", 
             "summary": "Sets the verbosity of logged messages.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -2407,7 +2407,7 @@
             "context": "superuser", 
             "scope": "global", 
             "summary": "Writes executor performance statistics to the server log.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -2426,7 +2426,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Sets the file permissions for log files.", 
-            "unit": null, 
+            "unit": "3", 
             "description": "The parameter value is expected to be a numeric mode specification in the form accepted by the chmod and umask system calls. (To use the customary octal format the number must start with a 0 (zero).)"
         }, 
         "model": "website.KnobCatalog"
@@ -2445,7 +2445,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Sets the file name pattern for log files.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -2464,7 +2464,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Logs the host name in the connection logs.", 
-            "unit": null, 
+            "unit": "3", 
             "description": "By default, connection logs only show the IP address of the connecting host. If you want them to show the host name you can turn this on, but depending on your host name resolution setup it might impose a non-negligible performance penalty."
         }, 
         "model": "website.KnobCatalog"
@@ -2483,7 +2483,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Controls information prefixed to each log line.", 
-            "unit": null, 
+            "unit": "3", 
             "description": "If blank, no prefix is used."
         }, 
         "model": "website.KnobCatalog"
@@ -2502,7 +2502,7 @@
             "context": "superuser", 
             "scope": "global", 
             "summary": "Logs long lock waits.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -2521,7 +2521,7 @@
             "context": "superuser", 
             "scope": "global", 
             "summary": "Sets the minimum execution time above which statements will be logged.", 
-            "unit": "milliseconds", 
+            "unit": "2", 
             "description": "Zero prints all queries. -1 turns this feature off."
         }, 
         "model": "website.KnobCatalog"
@@ -2535,12 +2535,12 @@
             "minval": null, 
             "default": "error", 
             "tunable": false, 
-            "enumvals": "['debug5', 'debug4', 'debug3', 'debug2', 'debug1', 'info', 'notice', 'warning', 'error', 'log', 'fatal', 'panic']", 
+            "enumvals": "debug5,debug4,debug3,debug2,debug1,info,notice,warning,error,log,fatal,panic", 
             "vartype": "5", 
             "context": "superuser", 
             "scope": "global", 
             "summary": "Causes all statements generating error at or above this level to be logged.", 
-            "unit": null, 
+            "unit": "3", 
             "description": "Each level includes all the levels that follow it. The later the level, the fewer messages are sent."
         }, 
         "model": "website.KnobCatalog"
@@ -2554,12 +2554,12 @@
             "minval": null, 
             "default": "warning", 
             "tunable": false, 
-            "enumvals": "['debug5', 'debug4', 'debug3', 'debug2', 'debug1', 'info', 'notice', 'warning', 'error', 'log', 'fatal', 'panic']", 
+            "enumvals": "debug5,debug4,debug3,debug2,debug1,info,notice,warning,error,log,fatal,panic", 
             "vartype": "5", 
             "context": "superuser", 
             "scope": "global", 
             "summary": "Sets the message levels that are logged.", 
-            "unit": null, 
+            "unit": "3", 
             "description": "Each level includes all the levels that follow it. The later the level, the fewer messages are sent."
         }, 
         "model": "website.KnobCatalog"
@@ -2578,7 +2578,7 @@
             "context": "superuser", 
             "scope": "global", 
             "summary": "Writes parser performance statistics to the server log.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -2597,7 +2597,7 @@
             "context": "superuser", 
             "scope": "global", 
             "summary": "Writes planner performance statistics to the server log.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -2616,7 +2616,7 @@
             "context": "superuser", 
             "scope": "global", 
             "summary": "Logs each replication command.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -2635,7 +2635,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Automatic log file rotation will occur after N minutes.", 
-            "unit": "milliseconds", 
+            "unit": "2", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -2654,7 +2654,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Automatic log file rotation will occur after N kilobytes.", 
-            "unit": "bytes", 
+            "unit": "1", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -2668,12 +2668,12 @@
             "minval": null, 
             "default": "none", 
             "tunable": false, 
-            "enumvals": "['none', 'ddl', 'mod', 'all']", 
+            "enumvals": "none,ddl,mod,all", 
             "vartype": "5", 
             "context": "superuser", 
             "scope": "global", 
             "summary": "Sets the type of statements logged.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -2692,7 +2692,7 @@
             "context": "superuser", 
             "scope": "global", 
             "summary": "Writes cumulative performance statistics to the server log.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -2711,7 +2711,7 @@
             "context": "superuser", 
             "scope": "global", 
             "summary": "Log the use of temporary files larger than this number of kilobytes.", 
-            "unit": "bytes", 
+            "unit": "1", 
             "description": "Zero logs all files. The default is -1 (turning this feature off)."
         }, 
         "model": "website.KnobCatalog"
@@ -2730,7 +2730,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Sets the time zone to use in log messages.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -2749,7 +2749,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Truncate existing log files of same name during log rotation.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -2768,7 +2768,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Start a subprocess to capture stderr output and/or csvlogs into log files.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -2787,7 +2787,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the maximum memory to be used for maintenance operations.", 
-            "unit": "bytes", 
+            "unit": "1", 
             "description": "This includes operations such as VACUUM and CREATE INDEX."
         }, 
         "model": "website.KnobCatalog"
@@ -2806,7 +2806,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Sets the maximum number of concurrent connections.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -2825,7 +2825,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Sets the maximum number of simultaneously open files for each server process.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -2844,7 +2844,7 @@
             "context": "internal", 
             "scope": "global", 
             "summary": "Shows the maximum number of function arguments.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -2863,7 +2863,7 @@
             "context": "internal", 
             "scope": "global", 
             "summary": "Shows the maximum identifier length.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -2882,7 +2882,7 @@
             "context": "internal", 
             "scope": "global", 
             "summary": "Shows the maximum number of index keys.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -2901,7 +2901,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Sets the maximum number of locks per transaction.", 
-            "unit": null, 
+            "unit": "3", 
             "description": "The shared lock table is sized on the assumption that at most max_locks_per_transaction * max_connections distinct objects will need to be locked at any one time."
         }, 
         "model": "website.KnobCatalog"
@@ -2920,7 +2920,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the maximum number of parallel processes per executor node.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -2939,7 +2939,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Sets the maximum number of predicate locks per transaction.", 
-            "unit": null, 
+            "unit": "3", 
             "description": "The shared predicate lock table is sized on the assumption that at most max_pred_locks_per_transaction * max_connections distinct objects will need to be locked at any one time."
         }, 
         "model": "website.KnobCatalog"
@@ -2958,7 +2958,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Sets the maximum number of simultaneously prepared transactions.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -2977,7 +2977,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Sets the maximum number of simultaneously defined replication slots.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -2996,7 +2996,7 @@
             "context": "superuser", 
             "scope": "global", 
             "summary": "Sets the maximum stack depth, in kilobytes.", 
-            "unit": "bytes", 
+            "unit": "1", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3015,7 +3015,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Sets the maximum delay before canceling queries when a hot standby server is processing archived WAL data.", 
-            "unit": "milliseconds", 
+            "unit": "2", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3034,7 +3034,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Sets the maximum delay before canceling queries when a hot standby server is processing streamed WAL data.", 
-            "unit": "milliseconds", 
+            "unit": "2", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3053,7 +3053,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Sets the maximum number of simultaneously running WAL sender processes.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3072,7 +3072,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Sets the WAL size that triggers a checkpoint.", 
-            "unit": "bytes", 
+            "unit": "1", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3091,7 +3091,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Maximum number of concurrent worker processes.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3110,7 +3110,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the minimum size of relations to be considered for parallel scan.", 
-            "unit": "bytes", 
+            "unit": "1", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3129,7 +3129,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Sets the minimum size to shrink the WAL to.", 
-            "unit": "bytes", 
+            "unit": "1", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3148,7 +3148,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Time before a snapshot is too old to read pages changed after the snapshot was taken.", 
-            "unit": "milliseconds", 
+            "unit": "2", 
             "description": "A value of -1 disables this feature."
         }, 
         "model": "website.KnobCatalog"
@@ -3167,7 +3167,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Emit a warning for constructs that changed meaning since PostgreSQL 9.4.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3186,7 +3186,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the planner's estimate of the cost of starting up worker processes for parallel query.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3205,7 +3205,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the planner's estimate of the cost of passing each tuple (row) from worker to master backend.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3224,7 +3224,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Encrypt passwords.", 
-            "unit": null, 
+            "unit": "3", 
             "description": "When a password is specified in CREATE USER or ALTER USER without writing either ENCRYPTED or UNENCRYPTED, this parameter determines whether the password is to be encrypted."
         }, 
         "model": "website.KnobCatalog"
@@ -3243,7 +3243,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Sets the TCP port the server listens on.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3262,7 +3262,7 @@
             "context": "backend", 
             "scope": "global", 
             "summary": "Waits N seconds on connection startup after authentication.", 
-            "unit": "milliseconds", 
+            "unit": "2", 
             "description": "This allows attaching a debugger to the process."
         }, 
         "model": "website.KnobCatalog"
@@ -3281,7 +3281,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Waits N seconds on connection startup before authentication.", 
-            "unit": "milliseconds", 
+            "unit": "2", 
             "description": "This allows attaching a debugger to the process."
         }, 
         "model": "website.KnobCatalog"
@@ -3300,7 +3300,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "When generating SQL fragments, quote all identifiers.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3319,7 +3319,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the planner's estimate of the cost of a nonsequentially fetched disk page.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3338,7 +3338,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the maximum number of tuples to be sorted using replacement selection.", 
-            "unit": null, 
+            "unit": "3", 
             "description": "When more tuples than this are present, quicksort will be used."
         }, 
         "model": "website.KnobCatalog"
@@ -3357,7 +3357,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Reinitialize server after backend crash.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3376,7 +3376,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Enable row security.", 
-            "unit": null, 
+            "unit": "3", 
             "description": "When enabled, row security will be applied to all users."
         }, 
         "model": "website.KnobCatalog"
@@ -3395,7 +3395,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the schema search order for names that are not schema-qualified.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3414,7 +3414,7 @@
             "context": "internal", 
             "scope": "global", 
             "summary": "Shows the number of pages per disk file.", 
-            "unit": "bytes", 
+            "unit": "1", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3433,7 +3433,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the planner's estimate of the cost of a sequentially fetched disk page.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3452,7 +3452,7 @@
             "context": "internal", 
             "scope": "global", 
             "summary": "Sets the server (database) character set encoding.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3471,7 +3471,7 @@
             "context": "internal", 
             "scope": "global", 
             "summary": "Shows the server version.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3490,7 +3490,7 @@
             "context": "internal", 
             "scope": "global", 
             "summary": "Shows the server version as an integer.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3509,7 +3509,7 @@
             "context": "superuser", 
             "scope": "global", 
             "summary": "Lists shared libraries to preload into each backend.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3523,12 +3523,12 @@
             "minval": null, 
             "default": "origin", 
             "tunable": false, 
-            "enumvals": "['origin', 'replica', 'local']", 
+            "enumvals": "origin,replica,local", 
             "vartype": "5", 
             "context": "superuser", 
             "scope": "global", 
             "summary": "Sets the session's behavior for triggers and rewrite rules.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3547,7 +3547,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Sets the number of shared memory buffers used by the server.", 
-            "unit": "bytes", 
+            "unit": "1", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3566,7 +3566,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Lists shared libraries to preload into server.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3585,7 +3585,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Causes subtables to be included by default in various commands.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3604,7 +3604,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Enables SSL connections.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3623,7 +3623,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Location of the SSL certificate authority file.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3642,7 +3642,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Location of the SSL server certificate file.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3661,7 +3661,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Sets the list of allowed SSL ciphers.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3680,7 +3680,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Location of the SSL certificate revocation list file.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3699,7 +3699,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Sets the curve to use for ECDH.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3718,7 +3718,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Location of the SSL server private key file.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3737,7 +3737,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Give priority to server ciphersuite order.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3756,7 +3756,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Causes '...' strings to treat backslashes literally.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3775,7 +3775,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the maximum allowed duration of any statement.", 
-            "unit": "milliseconds", 
+            "unit": "2", 
             "description": "A value of 0 turns off the timeout."
         }, 
         "model": "website.KnobCatalog"
@@ -3794,7 +3794,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Writes temporary statistics files to the specified directory.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3813,7 +3813,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Sets the number of connection slots reserved for superusers.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3832,7 +3832,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Enable synchronized sequential scans.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3846,12 +3846,12 @@
             "minval": null, 
             "default": "on", 
             "tunable": false, 
-            "enumvals": "['local', 'remote_write', 'remote_apply', 'on', 'off']", 
+            "enumvals": "local,remote_write,remote_apply,on,off", 
             "vartype": "5", 
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the current transaction's synchronization level.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3870,7 +3870,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Number of synchronous standbys and list of names of potential synchronous ones.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3884,12 +3884,12 @@
             "minval": null, 
             "default": "local0", 
             "tunable": false, 
-            "enumvals": "['local0', 'local1', 'local2', 'local3', 'local4', 'local5', 'local6', 'local7']", 
+            "enumvals": "local0,local1,local2,local3,local4,local5,local6,local7", 
             "vartype": "5", 
             "context": "sighup", 
             "scope": "global", 
             "summary": "Sets the syslog \"facility\" to be used when syslog enabled.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3908,7 +3908,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Sets the program name used to identify PostgreSQL messages in syslog.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3927,7 +3927,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Add sequence number to syslog messages to avoid duplicate suppression.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3946,7 +3946,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Split messages sent to syslog by lines and to fit into 1024 bytes.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -3965,7 +3965,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Maximum number of TCP keepalive retransmits.", 
-            "unit": null, 
+            "unit": "3", 
             "description": "This controls the number of consecutive keepalive retransmits that can be lost before a connection is considered dead. A value of 0 uses the system default."
         }, 
         "model": "website.KnobCatalog"
@@ -3984,7 +3984,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Time between issuing TCP keepalives.", 
-            "unit": "milliseconds", 
+            "unit": "2", 
             "description": "A value of 0 uses the system default."
         }, 
         "model": "website.KnobCatalog"
@@ -4003,7 +4003,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Time between TCP keepalive retransmits.", 
-            "unit": "milliseconds", 
+            "unit": "2", 
             "description": "A value of 0 uses the system default."
         }, 
         "model": "website.KnobCatalog"
@@ -4022,7 +4022,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the maximum number of temporary buffers used by each session.", 
-            "unit": "bytes", 
+            "unit": "1", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4041,7 +4041,7 @@
             "context": "superuser", 
             "scope": "global", 
             "summary": "Limits the total size of all temporary files used by each process.", 
-            "unit": "bytes", 
+            "unit": "1", 
             "description": "-1 means no limit."
         }, 
         "model": "website.KnobCatalog"
@@ -4060,7 +4060,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the tablespace(s) to use for temporary tables and sort files.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4079,7 +4079,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the time zone for displaying and interpreting time stamps.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4098,7 +4098,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Selects a file of time zone abbreviations.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4117,7 +4117,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Generates debugging output for LISTEN and NOTIFY.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4131,12 +4131,12 @@
             "minval": null, 
             "default": "log", 
             "tunable": false, 
-            "enumvals": "['debug5', 'debug4', 'debug3', 'debug2', 'debug1', 'log', 'notice', 'warning', 'error']", 
+            "enumvals": "debug5,debug4,debug3,debug2,debug1,log,notice,warning,error", 
             "vartype": "5", 
             "context": "sighup", 
             "scope": "global", 
             "summary": "Enables logging of recovery-related debugging information.", 
-            "unit": null, 
+            "unit": "3", 
             "description": "Each level includes all the levels that follow it. The later the level, the fewer messages are sent."
         }, 
         "model": "website.KnobCatalog"
@@ -4155,7 +4155,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Emit information about resource usage in sorting.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4174,7 +4174,7 @@
             "context": "superuser", 
             "scope": "global", 
             "summary": "Collects information about executing commands.", 
-            "unit": null, 
+            "unit": "3", 
             "description": "Enables the collection of information on the currently executing command of each session, along with the time at which that command began execution."
         }, 
         "model": "website.KnobCatalog"
@@ -4193,7 +4193,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Sets the size reserved for pg_stat_activity.query, in bytes.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4212,7 +4212,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Collects transaction commit time.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4231,7 +4231,7 @@
             "context": "superuser", 
             "scope": "global", 
             "summary": "Collects statistics on database activity.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4245,12 +4245,12 @@
             "minval": null, 
             "default": "none", 
             "tunable": false, 
-            "enumvals": "['none', 'pl', 'all']", 
+            "enumvals": "none,pl,all", 
             "vartype": "5", 
             "context": "superuser", 
             "scope": "global", 
             "summary": "Collects function-level statistics on database activity.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4269,7 +4269,7 @@
             "context": "superuser", 
             "scope": "global", 
             "summary": "Collects timing statistics for database I/O activity.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4288,7 +4288,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Whether to defer a read-only serializable transaction until it can be executed with no possible serialization failures.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4307,7 +4307,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the current transaction's isolation level.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4326,7 +4326,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the current transaction's read-only status.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4345,7 +4345,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Treats \"expr=NULL\" as \"expr IS NULL\".", 
-            "unit": null, 
+            "unit": "3", 
             "description": "When turned on, expressions of the form expr = NULL (or NULL = expr) are treated as expr IS NULL, that is, they return true if expr evaluates to the null value, and false otherwise. The correct behavior of expr = NULL is to always return null (unknown)."
         }, 
         "model": "website.KnobCatalog"
@@ -4364,7 +4364,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Sets the directories where Unix-domain sockets will be created.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4383,7 +4383,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Sets the owning group of the Unix-domain socket.", 
-            "unit": null, 
+            "unit": "3", 
             "description": "The owning user of the socket is always the user that starts the server."
         }, 
         "model": "website.KnobCatalog"
@@ -4402,7 +4402,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Sets the access permissions of the Unix-domain socket.", 
-            "unit": null, 
+            "unit": "3", 
             "description": "Unix-domain sockets use the usual Unix file system permission set. The parameter value is expected to be a numeric mode specification in the form accepted by the chmod and umask system calls. (To use the customary octal format the number must start with a 0 (zero).)"
         }, 
         "model": "website.KnobCatalog"
@@ -4421,7 +4421,7 @@
             "context": "superuser", 
             "scope": "global", 
             "summary": "Updates the process title to show the active SQL command.", 
-            "unit": null, 
+            "unit": "3", 
             "description": "Enables updating of the process title every time a new SQL command is received by the server."
         }, 
         "model": "website.KnobCatalog"
@@ -4440,7 +4440,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Vacuum cost delay in milliseconds.", 
-            "unit": "milliseconds", 
+            "unit": "2", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4459,7 +4459,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Vacuum cost amount available before napping.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4478,7 +4478,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Vacuum cost for a page dirtied by vacuum.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4497,7 +4497,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Vacuum cost for a page found in the buffer cache.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4516,7 +4516,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Vacuum cost for a page not found in the buffer cache.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4535,7 +4535,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Number of transactions by which VACUUM and HOT cleanup should be deferred, if any.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4554,7 +4554,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Minimum age at which VACUUM should freeze a table row.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4573,7 +4573,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Age at which VACUUM should scan whole table to freeze tuples.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4592,7 +4592,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Minimum age at which VACUUM should freeze a MultiXactId in a table row.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4611,7 +4611,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Multixact age at which VACUUM should scan whole table to freeze tuples.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4630,7 +4630,7 @@
             "context": "internal", 
             "scope": "global", 
             "summary": "Shows the block size in the write ahead log.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4649,7 +4649,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Sets the number of disk-page buffers in shared memory for WAL.", 
-            "unit": "bytes", 
+            "unit": "1", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4668,7 +4668,7 @@
             "context": "superuser", 
             "scope": "global", 
             "summary": "Compresses full-page writes written in WAL file.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4687,7 +4687,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Sets the number of WAL files held for standby servers.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4701,12 +4701,12 @@
             "minval": null, 
             "default": "minimal", 
             "tunable": false, 
-            "enumvals": "['minimal', 'replica', 'logical']", 
+            "enumvals": "minimal,replica,logical", 
             "vartype": "5", 
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Set the level of information written to the WAL.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4725,7 +4725,7 @@
             "context": "postmaster", 
             "scope": "global", 
             "summary": "Writes full pages to WAL when first modified after a checkpoint, even for a non-critical modifications.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4744,7 +4744,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Sets the maximum interval between WAL receiver status reports to the primary.", 
-            "unit": "milliseconds", 
+            "unit": "2", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4763,7 +4763,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Sets the maximum wait time to receive data from the primary.", 
-            "unit": "milliseconds", 
+            "unit": "2", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4782,7 +4782,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Sets the time to wait before retrying to retrieve WAL after a failed attempt.", 
-            "unit": "milliseconds", 
+            "unit": "2", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4801,7 +4801,7 @@
             "context": "internal", 
             "scope": "global", 
             "summary": "Shows the number of pages per write ahead log segment.", 
-            "unit": "bytes", 
+            "unit": "1", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4820,7 +4820,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Sets the maximum time to wait for WAL replication.", 
-            "unit": "milliseconds", 
+            "unit": "2", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4834,12 +4834,12 @@
             "minval": null, 
             "default": "fdatasync", 
             "tunable": true, 
-            "enumvals": "['fsync', 'fdatasync', 'open_sync', 'open_datasync']", 
+            "enumvals": "fsync,fdatasync,open_sync,open_datasync", 
             "vartype": "5", 
             "context": "sighup", 
             "scope": "global", 
             "summary": "Selects the method used for forcing WAL updates to disk.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4858,7 +4858,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Time between WAL flushes performed in the WAL writer.", 
-            "unit": "milliseconds", 
+            "unit": "2", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4877,7 +4877,7 @@
             "context": "sighup", 
             "scope": "global", 
             "summary": "Amount of WAL written out by WAL writer that triggers a flush.", 
-            "unit": "bytes", 
+            "unit": "1", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4896,7 +4896,7 @@
             "context": "user", 
             "scope": "global", 
             "summary": "Sets the maximum memory to be used for query workspaces.", 
-            "unit": "bytes", 
+            "unit": "1", 
             "description": "This much memory can be used by each internal sort operation and hash table before switching to temporary disk files."
         }, 
         "model": "website.KnobCatalog"
@@ -4910,12 +4910,12 @@
             "minval": null, 
             "default": "base64", 
             "tunable": false, 
-            "enumvals": "['base64', 'hex']", 
+            "enumvals": "base64,hex", 
             "vartype": "5", 
             "context": "user", 
             "scope": "global", 
             "summary": "Sets how binary values are to be encoded in XML.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4929,12 +4929,12 @@
             "minval": null, 
             "default": "content", 
             "tunable": false, 
-            "enumvals": "['content', 'document']", 
+            "enumvals": "content,document", 
             "vartype": "5", 
             "context": "user", 
             "scope": "global", 
             "summary": "Sets whether XML data in implicit parsing and serialization operations is to be considered as documents or content fragments.", 
-            "unit": null, 
+            "unit": "3", 
             "description": ""
         }, 
         "model": "website.KnobCatalog"
@@ -4953,7 +4953,7 @@
             "context": "superuser", 
             "scope": "global", 
             "summary": "Continues processing past damaged page headers.", 
-            "unit": null, 
+            "unit": "3", 
             "description": "Detection of a damaged page header normally causes PostgreSQL to report an error, aborting the current transaction. Setting zero_damaged_pages to true causes the system to instead report a warning, zero out the damaged page, and continue processing. This behavior will destroy data, namely all the rows on the damaged page."
         }, 
         "model": "website.KnobCatalog"

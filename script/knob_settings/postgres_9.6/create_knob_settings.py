@@ -47,15 +47,6 @@ BOOL      = 4
 ENUM      = 5
 TIMESTAMP = 6
 
-# TYPE_NAMES = {
-#     STRING:    'string',
-#     INTEGER:   'integer',
-#     REAL:      'real',
-#     BOOL:      'bool',
-#     ENUM:      'enum',
-#     TIMESTAMP: 'timestamp',
-# }
-
 TYPE_NAMES = {
     'string': STRING,
     'integer': INTEGER,
@@ -64,6 +55,10 @@ TYPE_NAMES = {
     'enum': ENUM,
     'timestamp': TIMESTAMP
 }
+
+UNIT_BYTES = 1
+UNIT_MS = 2
+UNIT_OTHER = 3
 
 def convert(size, system=pg_system):
     for factor, suffix in system:
@@ -124,7 +119,7 @@ with open("settings.csv", "r") as f:
                 for i, enumval in enumerate(enumvals):
                     if enumval.startswith('\"') and enumval.endswith('\"'):
                         enumvals[i] = enumval[1:-1]
-                param['enumvals'] = enumvals
+                param['enumvals'] = ','.join(enumvals)
             else:
                 param['enumvals'] = None
 
@@ -134,9 +129,9 @@ with open("settings.csv", "r") as f:
                 if factor is None:
                     factor = convert(pg_unit, system=pg_time)
                     assert factor is not None
-                    param['unit'] = 'milliseconds'
+                    param['unit'] = UNIT_MS
                 else:
-                    param['unit'] = 'bytes'
+                    param['unit'] = UNIT_BYTES
                 
                 if param['default'] > 0:
                     param['default'] = param['default'] * factor
@@ -144,6 +139,8 @@ with open("settings.csv", "r") as f:
                     param['minval'] = param['minval'] * factor
                 if param['maxval'] > 0:
                     param['maxval'] = param['maxval'] * factor
+            else:
+                param['unit'] = UNIT_OTHER
 
             # Internal params are read-only
             if param['context'] == 'internal':
