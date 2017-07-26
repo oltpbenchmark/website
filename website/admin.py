@@ -48,7 +48,7 @@ class BenchmarkConfigAdmin(admin.ModelAdmin):
 
 class DBConfAdmin(admin.ModelAdmin):
     list_display = [ 'name', 'dbms_info', 'creation_time']
-    fields = ['application', 'name', 'creation_time', 'tuning_configuration', 'configuration', 'dbms']
+    fields = ['application', 'name', 'creation_time', 'configuration', 'orig_config_diffs', 'dbms']
 
     def dbms_info(self, obj):
         return obj.dbms.full_name
@@ -56,7 +56,7 @@ class DBConfAdmin(admin.ModelAdmin):
 
 class DBMSMetricsAdmin(admin.ModelAdmin):
     list_display = ['name', 'dbms_info', 'creation_time']
-    fields = ['application', 'name', 'creation_time', 'execution_time', 'configuration', 'dbms']
+    fields = ['application', 'name', 'creation_time', 'execution_time', 'configuration', 'orig_config_diffs', 'dbms']
 
     def dbms_info(self, obj):
         return obj.dbms.full_name
@@ -70,9 +70,6 @@ class TaskAdmin(admin.ModelAdmin):
     
     def status(self, obj):
         return TaskMeta.objects.get(task_id=obj.taskmeta_id).status
-
-class TaskMetaAdmin(admin.ModelAdmin):
-    list_display = ['task_id', 'date_done', 'status']
 
 class ResultAdmin(admin.ModelAdmin):
     list_display = ['result_id', 'dbms_info', 'benchmark', 'creation_time']
@@ -88,6 +85,15 @@ class ResultAdmin(admin.ModelAdmin):
     def benchmark(self, obj):
         return obj.benchmark_config.benchmark_type
 
+class ResultDataAdmin(admin.ModelAdmin):
+    list_display = ['id', 'dbms_info', 'hardware_info']
+
+    def dbms_info(self, obj):
+        return obj.dbms.full_name
+    
+    def hardware_info(self, obj):
+        return obj.hardware.name
+
 
 admin.site.register(DBMSCatalog, DBMSCatalogAdmin)
 admin.site.register(KnobCatalog, KnobCatalogAdmin)
@@ -98,5 +104,6 @@ admin.site.register(BenchmarkConfig, BenchmarkConfigAdmin)
 admin.site.register(DBConf, DBConfAdmin)
 admin.site.register(DBMSMetrics, DBMSMetricsAdmin)
 admin.site.register(Task, TaskAdmin)
-admin.site.register(TaskMeta, TaskMetaAdmin)
 admin.site.register(Result, ResultAdmin)
+admin.site.register(ResultData, ResultDataAdmin)
+
