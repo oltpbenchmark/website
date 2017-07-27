@@ -218,12 +218,22 @@ class Result(models.Model):
         return unicode(self.pk)
 
 
+class WorkloadCluster(models.Model):
+    DEFAULT_CLUSTER_NAME = 'UNKNOWN'
+    cluster_name = models.CharField(max_length=128)
+
+    @staticmethod
+    def get_default_cluster():
+        return WorkloadCluster.objects.get(cluster_name=WorkloadCluster.DEFAULT_CLUSTER_NAME)
+
+
 class ResultData(models.Model):
     dbms = models.ForeignKey(DBMSCatalog)
     hardware = models.ForeignKey(Hardware)
     result = models.ForeignKey(Result)
     param_data = models.TextField()
     metric_data = models.TextField()
+    cluster = models.ForeignKey(WorkloadCluster)
 
 
 class Task(models.Model):
@@ -241,6 +251,11 @@ class PipelineResult(models.Model):
     task_type = models.IntegerField()
     value = models.TextField()
 
+    @property
+    def result_type(self):
+        type_name = PipelineComponentType.get_task_type(self.component, self.task_type)
+        return '{}@{}'.format(PipelineComponentType.TYPE_NAMES[self.component], type_name)
+
     def clean_fields(self, exclude=None):
         super(PipelineResult, self).clean_fields(exclude=exclude)
         if self.task_type not in PipelineComponentType.TASK_TYPES[self.component].choices():
@@ -249,6 +264,7 @@ class PipelineResult(models.Model):
 
     class Meta:
         unique_together = ("dbms", "hardware", "version_id", "component", "task_type")
+
 
 class Statistics(models.Model):
     result = models.ForeignKey(Result)

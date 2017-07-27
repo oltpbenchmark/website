@@ -1,7 +1,7 @@
 from django.contrib import admin
 from djcelery.models import TaskMeta
 
-from website.models import *
+from .models import *
 
 class DBMSCatalogAdmin(admin.ModelAdmin):
     list_display = ['dbms_info']
@@ -90,9 +90,27 @@ class ResultDataAdmin(admin.ModelAdmin):
 
     def dbms_info(self, obj):
         return obj.dbms.full_name
-    
+
     def hardware_info(self, obj):
         return obj.hardware.name
+
+class PipelineResultAdmin(admin.ModelAdmin):
+    list_display = ['result_type', 'dbms_info', 'hardware_info', 'version_id']
+
+    def dbms_info(self, obj):
+        return obj.dbms.full_name
+
+    def hardware_info(self, obj):
+        return obj.hardware.name
+
+    def result_type(self, obj):
+        return obj.result_type
+
+class WorkloadClusterAdmin(admin.ModelAdmin):
+    list_display = ['cluster_id', 'cluster_name']
+
+    def cluster_id(self, obj):
+        return obj.pk
 
 
 admin.site.register(DBMSCatalog, DBMSCatalogAdmin)
@@ -106,4 +124,6 @@ admin.site.register(DBMSMetrics, DBMSMetricsAdmin)
 admin.site.register(Task, TaskAdmin)
 admin.site.register(Result, ResultAdmin)
 admin.site.register(ResultData, ResultDataAdmin)
+admin.site.register(PipelineResult, PipelineResultAdmin)
+admin.site.register(WorkloadCluster, WorkloadClusterAdmin)
 

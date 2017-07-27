@@ -87,7 +87,7 @@ class DBMSUtilImpl(object):
         raise NotImplementedError('Implement me!')
 
     def preprocess_dbms_params(self, tunable_params, tunable_param_catalog):
-        param_data = {} #OrderedDict()
+        param_data = {}
         for pinfo in tunable_param_catalog:
             # These tunable_params should all be tunable
             assert pinfo.tunable == True, "All tunable_params should be tunable ({} is not)".format(pinfo.name)
@@ -114,7 +114,7 @@ class DBMSUtilImpl(object):
         return param_data
 
     def preprocess_dbms_metrics(self, numeric_metrics, numeric_metric_catalog, execution_time):
-        metric_data = {} #OrderedDict()
+        metric_data = {}
         for minfo in numeric_metric_catalog:
             assert minfo.metric_type != MetricType.INFO
             mvalue = numeric_metrics[minfo.name]
@@ -126,36 +126,37 @@ class DBMSUtilImpl(object):
         return metric_data
 
     @staticmethod
-    def extract_valid_keys(idict, keys):
+    def extract_valid_keys(idict, official_config, default=None):
         valid_dict = {}
         diffs = []
-        lowercase_dict = {k.lower():k for k in keys}
+        lowercase_dict = {k.name.lower(): k for k in official_config}
         for k, v in idict.iteritems():
             lower_k2 = k.lower()
             if lower_k2 in lowercase_dict:
-                true_k = lowercase_dict[lower_k2]
+                true_k = lowercase_dict[lower_k2].name
                 if k != true_k:
                     diffs.append(('miscapitalized_key', true_k, k, v))
                 valid_dict[true_k] = v
             else:
-                diffs.append('extra_key', None, k, v)
-        if len(idict) < len(keys):
+                diffs.append(('extra_key', None, k, v))
+        if len(idict) > len(lowercase_dict):
             assert len(diffs) > 0
-        elif len(idict) > len(keys):
+        elif len(idict) < len(lowercase_dict):
             lowercase_idict = {k.lower(): v for k, v in idict.iteritems()}
-            for k in keys:
-                if k.lower() not in lowercase_idict:
-                    diffs.append('missing_key', k, None, None)
+            for k, v in lowercase_dict.iteritems():
+                if k not in lowercase_idict:
+                    # Set missing keys to a default value
+                    diffs.append(('missing_key', v.name, None, None))
+                    valid_dict[v.name] = default if default is not None else v.default
+        assert len(valid_dict) == len(official_config)
         return valid_dict, diffs
 
 
     def parse_dbms_config(self, config, official_config):
-        config_names = [c.name for c in official_config]
-        return DBMSUtilImpl.extract_valid_keys(config, config_names)
+        return DBMSUtilImpl.extract_valid_keys(config, official_config)
 
     def parse_dbms_metrics(self, metrics, official_metrics):
-        metric_names = [m.name for m in official_metrics]
-        return DBMSUtilImpl.extract_valid_keys(metrics, metric_names)
+        return DBMSUtilImpl.extract_valid_keys(metrics, official_metrics, default='0')
 
 
 class PostgresUtilImpl(DBMSUtilImpl):
@@ -212,12 +213,12 @@ class PostgresUtilImpl(DBMSUtilImpl):
                     valid_metrics[key].append(mvalue)
 
         # Extract all valid metrics
-        official_metric_names = [m.name for m in official_metrics]
-        valid_metrics, diffs = DBMSUtilImpl.extract_valid_keys(valid_metrics, official_metric_names)
+        official_metric_map = {m.name: m for m in official_metrics}
+        valid_metrics, diffs = DBMSUtilImpl.extract_valid_keys(valid_metrics, official_metrics, default='0')
 
         # Combine values
-        for metric in official_metrics:
-            mname = metric.name
+        for mname, mvalues in valid_metrics.iteritems():
+            metric = official_metric_map[mname]
             mvalues = valid_metrics[mname]
             if metric.metric_type == MetricType.INFO or len(mvalues) == 1:
                 valid_metrics[mname] = mvalues[0]

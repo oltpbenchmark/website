@@ -1,0 +1,8 @@
+[
+    {
+        "fields": {
+            "cluster_name": "UNKNOWN"
+        },
+        "model": "website.WorkloadCluster"
+    }
+]

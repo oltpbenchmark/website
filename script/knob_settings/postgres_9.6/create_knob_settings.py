@@ -91,7 +91,6 @@ with open("settings.csv", "r") as f:
             param['scope'] = 'global'
             param['summary'] = row[header.index('short_desc')]
             param['description'] = row[header.index('extra_desc')]
-#             param['tuning_config'] = None
             
             default = row[header.index('boot_val')]
             minval = row[header.index('min_val')]

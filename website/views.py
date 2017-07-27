@@ -7,6 +7,7 @@ from rexec import FileWrapper
 import logging
 from django.core.exceptions import ObjectDoesNotExist
 from collections import OrderedDict
+from scipy import cluster
 log = logging.getLogger(__name__)
 
 import xml.dom.minidom
@@ -122,8 +123,6 @@ def home(request):
 
 @login_required(login_url='/login/')
 def ml_info(request):
-    from celery.states import precedence
-
     id = request.GET['id'] 
     res = Result.objects.get(pk=id)
     tasks = Task.objects.filter(result=res)
@@ -391,13 +390,14 @@ def new_result(request):
             log.warning("Form is not valid:\n"  + str(form))
             return HttpResponse("Form is not valid\n"  + str(form))
         upload_code = form.cleaned_data['upload_code']
+        cluster_name = form.cleaned_data['cluster_name']
         try:   
             application = Application.objects.get(upload_code=upload_code)
         except Application.DoesNotExist:
             log.warning("Wrong upload code: " + upload_code)
             return HttpResponse("wrong upload_code!")
 
-        return handle_result_files(application, request.FILES)
+        return handle_result_files(application, request.FILES, cluster_name)
     log.warning("Request type was not POST")
     return HttpResponse("POST please\n")
 
@@ -411,40 +411,7 @@ def get_result_data_dir(result_id):
     return os.path.join(result_path, str(int(result_id) / 100l))
 
 
-def process_config(cfg, knob_dict, summary):
-    db_conf_lines = JSONUtil.loads(cfg)
-    db_globals = db_conf_lines['global'][0]
-    db_cnf_names = db_globals['variable_names']
-    db_cnf_values = db_globals['variable_values']
-    row_x = []
-    row_y = []
-    for knob in knob_dict:
-        # TODO (DVA): fixme
-        if knob not in db_cnf_names:
-            continue
-        j = db_cnf_names.index(knob)
-        value = str(db_cnf_values[j])
-        value = value.lower().replace(".","")
-        value = value.replace("-","")
-        if value.isdigit() == False:
-            s = knob_dict[knob]
-            s = s.lower().split(',')
-            s = sorted(s)
-            #### NULL VALUE #####
-            if value == "":
-                value = -1
-            else:
-                value = s.index(value)
-        row_x.append(float(value))
-
-    summary_lines = JSONUtil.loads(summary)
-    sum_names = summary_lines['variable_names']
-    sum_values = summary_lines['variable_values']
-    row_y.append(float(sum_values[sum_names.index("99th_lat_ms")]))
-    return row_x, row_y
-
-
-def handle_result_files(app, files):
+def handle_result_files(app, files, cluster_name=None):
     from .utils import DBMSUtil
     from celery import chain
     
@@ -453,7 +420,9 @@ def handle_result_files(app, files):
 
     # Verify that the database/version is supported
     dbms_type = DBMSType.type(summary['DBMS Type'])
-    dbms_version = DBMSUtil.parse_version_string(dbms_type, summary['DBMS Version'])
+    # FIXME! bad hack until I have time to get the PG 9.3 metric/knob data in the same form
+    dbms_version = "9.6"
+#     dbms_version = DBMSUtil.parse_version_string(dbms_type, summary['DBMS Version'])
     
     try:
         dbms_object = DBMSCatalog.objects.get(type=dbms_type, version=dbms_version)
@@ -553,7 +522,6 @@ def handle_result_files(app, files):
 
     result.timestamp = datetime.fromtimestamp(int(summary['Current Timestamp (milliseconds)']) / 1000, timezone("UTC"))
     result.hardware = app.hardware
-    result.cluster = '' #cluster
 
     latencies = summary['Latency Distribution']
     result.avg_latency = float(latencies['Average Latency (microseconds)'])
@@ -570,7 +538,7 @@ def handle_result_files(app, files):
     result.save()
 
     sample_lines = samples.split('\n')
-    header = sample_lines[0].split(',')
+    header = [h.strip() for h in sample_lines[0].split(',')]
     
     time_idx = header.index('Time (seconds)')
     tput_idx = header.index('Throughput (requests/second)')
@@ -616,6 +584,16 @@ def handle_result_files(app, files):
     res_data.result = result
     res_data.param_data = JSONUtil.dumps(param_data, pprint=True, sort=True)
     res_data.metric_data = JSONUtil.dumps(metric_data, pprint=True, sort=True)
+
+    if cluster_name is not None:
+        wkld_cluster = WorkloadCluster.objects.filter(cluster_name=cluster_name).first()
+        if wkld_cluster is None:
+            wkld_cluster = WorkloadCluster()
+            wkld_cluster.cluster_name = cluster_name
+            wkld_cluster.save()
+    else:
+        wkld_cluster = WorkloadCluster.get_default_cluster()
+    res_data.cluster = wkld_cluster
     res_data.save()
  
     app.project.last_update = now()
