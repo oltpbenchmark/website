@@ -8,11 +8,11 @@ from celery.task import task, Task
 from django.utils.timezone import now
 from sklearn.preprocessing import StandardScaler
 
-from website.models import DBMSCatalog, Hardware, Result, ResultData, WorkloadCluster, PipelineResult
+from website.models import DBMSCatalog, Hardware, KnobCatalog, Result, ResultData, WorkloadCluster, PipelineResult
 from website.models import Task as TaskModel
 from website.settings import PIPELINE_DIR
-from website.types import PipelineTaskType
-from website.utils import DataUtil, JSONUtil
+from website.types import KnobUnitType, PipelineTaskType
+from website.utils import ConversionUtil, DataUtil, JSONUtil, PostgresUtilImpl
 
 
 class UpdateTask(Task):
@@ -186,6 +186,20 @@ def configuration_recommendation(target_data):
     best_idx = np.argmin(res.minL.ravel())
     best_conf = res.minL_conf[best_idx, :]
     best_conf = X_scaler.inverse_transform(best_conf)
+
+    conf_map = {}
+    for i, knob_name in enumerate(X_columnlabels):
+        knob_value = best_conf[i]
+        knob_info = KnobCatalog.objects.get(dbms__pk=dbms_id, name=knob_name)
+        if knob_info.unit != KnobUnitType.OTHER and knob_value > 0:
+            if knob_info.unit == KnobUnitType.BYTES:
+                knob_value = ConversionUtil.get_human_readable(knob_value, PostgresUtilImpl.POSTGRES_BYTES_SYSTEM)
+            elif knob_info.unit == KnobUnitType.MILLISECONDS:
+                knob_value = ConversionUtil.get_human_readable(knob_value, PostgresUtilImpl.POSTGRES_TIME_SYSTEM)
+            else:
+                raise Exception('Invalid knob unit type: {}'.format(knob_info.unit))
+        conf_map[knob_name] = knob_value
+    print conf_map
 
 @task(name='map_workload')
 def map_workload(target_data):
