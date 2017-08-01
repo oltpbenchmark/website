@@ -8,19 +8,19 @@ from collections import OrderedDict
 
 class BaseType(object):
     TYPE_NAMES = {}
-    
+
     @classmethod
     def choices(cls):
         return list(cls.TYPE_NAMES.iteritems())
-    
+
     @classmethod
     def name(cls, ctype):
         return cls.TYPE_NAMES[ctype]
-    
+
     @classmethod
     def type(cls, name):
         return [k for k,v in cls.TYPE_NAMES.iteritems() if v.lower() == name.lower()][0]
-    
+
 
 class DBMSType(BaseType):
     MYSQL     = 1
@@ -46,7 +46,7 @@ class DBMSType(BaseType):
 class MetricType(BaseType):
     COUNTER = 1
     INFO    = 2
-    
+
     TYPE_NAMES = {
         COUNTER: 'COUNTER',
         INFO:    'INFO',
@@ -73,7 +73,7 @@ class TaskType(BaseType):
     PREPROCESS = 1
     RUN_WM = 2
     RUN_GPR = 3
-    
+
     # Should be in order of execution!!
     TYPE_NAMES = OrderedDict([
         (PREPROCESS, "Preprocess"),
@@ -84,7 +84,7 @@ class TaskType(BaseType):
 class BooleanType(BaseType):
     TRUE = int(True)
     FALSE = int(False)
-    
+
     TYPE_NAMES = {
         TRUE: str(True),
         FALSE: str(False),
@@ -94,72 +94,30 @@ class KnobUnitType(BaseType):
     BYTES = 1
     MILLISECONDS = 2
     OTHER = 3
-    
+
     TYPE_NAMES = {
         BYTES: 'bytes',
         MILLISECONDS: 'milliseconds',
         OTHER: 'other',
     }
 
-class WorkloadCharacterizationTask(BaseType):
-    PRUNED_METRICS = 1  # Final output
-#     FACTOR_ANALYSIS = 2
-#     K_MEANS = 3
+class PipelineTaskType(BaseType):
+    PRUNED_METRICS = 1
+    RANKED_KNOBS = 2
+    AGGREGATED_DATA = 3
+    WORKLOAD_MAPPING_DATA = 4
 
     TYPE_NAMES = {
         PRUNED_METRICS: "Pruned Metrics",
-#         FACTOR_ANALYSIS: "Factor Analysis",
-#         K_MEANS: "K-means",
-    }
-
-class KnobIdentificationTask(BaseType):
-    RANKED_KNOBS = 1  # Final output
-#     LASSO = 2
-
-    TYPE_NAMES = {
         RANKED_KNOBS: "Ranked Knobs",
-#         LASSO: "Lasso"
+        AGGREGATED_DATA: "Aggregated Data",
+        WORKLOAD_MAPPING_DATA: "Workload Mapping Data",
     }
-
-class AutomaticTunerTask(BaseType):
-#     MAPPED_WORKLOAD = 1  # Final output (workload mapping)
-#     CONFIG_RECOMMENDATION = 2  # Final output (next config to try)
-
-    TYPE_NAMES = {
-#         MAPPED_WORKLOAD: "Mapped Workload",
-#         CONFIG_RECOMMENDATION: "Configuration Recommendation",
-    }
-
-class PipelineComponentType(BaseType):
-    WORKLOAD_CHARACTERIZATION = 1
-    KNOB_IDENTIFICATION = 2
-    AUTOMATIC_TUNER = 3
-    
-    TYPE_NAMES = {
-        WORKLOAD_CHARACTERIZATION: "Workload Characterization",
-        KNOB_IDENTIFICATION: "Knob Identification",
-        AUTOMATIC_TUNER: "Automatic Tuner",
-    }
-    
-    TASK_TYPES = {
-        WORKLOAD_CHARACTERIZATION: WorkloadCharacterizationTask,
-        KNOB_IDENTIFICATION: KnobIdentificationTask,
-        AUTOMATIC_TUNER: AutomaticTunerTask,
-    }
-
-    @staticmethod
-    def get_task_type(component_id, task_id):
-        return PipelineComponentType.TASK_TYPES[component_id].TYPE_NAMES[task_id]
 
 class HardwareType(BaseType):
 
-    TYPE_NAMES = {1: 'GENERIC', 2: 't2.nano', 3: 't2.micro', 4: 't2.small', 5: 't2.medium', 6: 't2.large', 7: 't2.xlarge', 8: 't2.2xlarge', 9: 'm4.large', 10: 'm4.xlarge', 11: 'm4.2xlarge', 12: 'm4.4xlarge', 13: 'm4.10xlarge', 14: 'm4.16xlarge', 15: 'm3.medium', 16: 'm3.large', 17: 'm3.xlarge', 18: 'm3.2xlarge', 19: 'c4.large', 20: 'c4.xlarge', 21: 'c4.2xlarge', 22: 'c4.4xlarge', 23: 'c4.8xlarge', 24: 'c3.large', 25: 'c3.xlarge', 26: 'c3.2xlarge', 27: 'c3.4xlarge', 28: 'c3.8xlarge', 29: 'p2.xlarge', 30: 'p2.8xlarge', 31: 'p2.16xlarge', 32: 'g2.2xlarge', 33: 'g2.8xlarge', 34: 'x1.16large', 35: 'x1.32xlarge', 36: 'r4.large', 37: 'r4.xlarge', 38: 'r4.2xlarge', 39: 'r4.4xlarge', 40: 'r4.8xlarge', 41: 'r4.16xlarge', 42: 'r3.large', 43: 'r3.xlarge', 44: 'r3.2xlarge', 45: 'r3.4xlarge', 46: 'r3.8xlarge', 47: 'i3.large', 48: 'i3.xlarge', 49: 'i3.2xlarge', 50: 'i3.4xlarge', 51: 'i3.8xlarge', 52: 'i3.16large', 53: 'd2.xlarge', 54: 'd2.2xlarge', 55: 'd2.4xlarge', 56: 'd2.8xlarge', 57: 'f1.2xlarge', 58: 'f1.16xlarge'}
+    GENERIC = 1; EC2_T2NANO = 2; EC2_T2MICRO = 3; EC2_T2SMALL = 4; EC2_T2MEDIUM = 5; EC2_T2LARGE = 6; EC2_T2XLARGE = 7; EC2_T22XLARGE = 8; EC2_M4LARGE = 9; EC2_M4XLARGE = 10; EC2_M42XLARGE = 11; EC2_M44XLARGE = 12; EC2_M410XLARGE = 13; EC2_M416XLARGE = 14; EC2_M3MEDIUM = 15; EC2_M3LARGE = 16; EC2_M3XLARGE = 17; EC2_M32XLARGE = 18; EC2_C4LARGE = 19; EC2_C4XLARGE = 20; EC2_C42XLARGE = 21; EC2_C44XLARGE = 22; EC2_C48XLARGE = 23; EC2_C3LARGE = 24; EC2_C3XLARGE = 25; EC2_C32XLARGE = 26; EC2_C34XLARGE = 27; EC2_C38XLARGE = 28; EC2_P2XLARGE = 29; EC2_P28XLARGE = 30; EC2_P216XLARGE = 31; EC2_G22XLARGE = 32; EC2_G28XLARGE = 33; EC2_X116LARGE = 34; EC2_X132XLARGE = 35; EC2_R4LARGE = 36; EC2_R4XLARGE = 37; EC2_R42XLARGE = 38; EC2_R44XLARGE = 39; EC2_R48XLARGE = 40; EC2_R416XLARGE = 41; EC2_R3LARGE = 42; EC2_R3XLARGE = 43; EC2_R32XLARGE = 44; EC2_R34XLARGE = 45; EC2_R38XLARGE = 46; EC2_I3LARGE = 47; EC2_I3XLARGE = 48; EC2_I32XLARGE = 49; EC2_I34XLARGE = 50; EC2_I38XLARGE = 51; EC2_I316LARGE = 52; EC2_D2XLARGE = 53; EC2_D22XLARGE = 54; EC2_D24XLARGE = 55; EC2_D28XLARGE = 56; EC2_F12XLARGE = 57; EC2_F116XLARGE = 58;
 
-for k,v in HardwareType.TYPE_NAMES.iteritems():
-    if v == 'GENERIC':
-        attr_name = v
-    else:
-        attr_name = 'EC2_{}'.format(v.upper().replace('.', ''))
-    setattr(HardwareType, attr_name, k)
+    TYPE_NAMES = {GENERIC: 'generic', EC2_T2NANO: 't2.nano', EC2_T2MICRO: 't2.micro', EC2_T2SMALL: 't2.small', EC2_T2MEDIUM: 't2.medium', EC2_T2LARGE: 't2.large', EC2_T2XLARGE: 't2.xlarge', EC2_T22XLARGE: 't2.2xlarge', EC2_M4LARGE: 'm4.large', EC2_M4XLARGE: 'm4.xlarge', EC2_M42XLARGE: 'm4.2xlarge', EC2_M44XLARGE: 'm4.4xlarge', EC2_M410XLARGE: 'm4.10xlarge', EC2_M416XLARGE: 'm4.16xlarge', EC2_M3MEDIUM: 'm3.medium', EC2_M3LARGE: 'm3.large', EC2_M3XLARGE: 'm3.xlarge', EC2_M32XLARGE: 'm3.2xlarge', EC2_C4LARGE: 'c4.large', EC2_C4XLARGE: 'c4.xlarge', EC2_C42XLARGE: 'c4.2xlarge', EC2_C44XLARGE: 'c4.4xlarge', EC2_C48XLARGE: 'c4.8xlarge', EC2_C3LARGE: 'c3.large', EC2_C3XLARGE: 'c3.xlarge', EC2_C32XLARGE: 'c3.2xlarge', EC2_C34XLARGE: 'c3.4xlarge', EC2_C38XLARGE: 'c3.8xlarge', EC2_P2XLARGE: 'p2.xlarge', EC2_P28XLARGE: 'p2.8xlarge', EC2_P216XLARGE: 'p2.16xlarge', EC2_G22XLARGE: 'g2.2xlarge', EC2_G28XLARGE: 'g2.8xlarge', EC2_X116LARGE: 'x1.16large', EC2_X132XLARGE: 'x1.32xlarge', EC2_R4LARGE: 'r4.large', EC2_R4XLARGE: 'r4.xlarge', EC2_R42XLARGE: 'r4.2xlarge', EC2_R44XLARGE: 'r4.4xlarge', EC2_R48XLARGE: 'r4.8xlarge', EC2_R416XLARGE: 'r4.16xlarge', EC2_R3LARGE: 'r3.large', EC2_R3XLARGE: 'r3.xlarge', EC2_R32XLARGE: 'r3.2xlarge', EC2_R34XLARGE: 'r3.4xlarge', EC2_R38XLARGE: 'r3.8xlarge', EC2_I3LARGE: 'i3.large', EC2_I3XLARGE: 'i3.xlarge', EC2_I32XLARGE: 'i3.2xlarge', EC2_I34XLARGE: 'i3.4xlarge', EC2_I38XLARGE: 'i3.8xlarge', EC2_I316LARGE: 'i3.16large', EC2_D2XLARGE: 'd2.xlarge', EC2_D22XLARGE: 'd2.2xlarge', EC2_D24XLARGE: 'd2.4xlarge', EC2_D28XLARGE: 'd2.8xlarge', EC2_F12XLARGE: 'f1.2xlarge', EC2_F116XLARGE: 'f1.16xlarge'}
 
     

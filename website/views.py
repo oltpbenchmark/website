@@ -1,40 +1,36 @@
+import logging
 import string
-import re
-from random import choice
+from collections import OrderedDict
 from pytz import timezone, os
+from random import choice
 from rexec import FileWrapper
 
-import logging
-from django.core.exceptions import ObjectDoesNotExist
-from collections import OrderedDict
-from scipy import cluster
-log = logging.getLogger(__name__)
-
 import xml.dom.minidom
-from django.template.context_processors import csrf
-# from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-# from django.views.decorators.cache import cache_page
-#from django.core.context_processors import csrf
 from django.core.cache import cache
-from django.db.models import Q
-from django.shortcuts import redirect, render, get_object_or_404
+from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth import login, logout
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.db.models import Q
 from django.http import HttpResponse, QueryDict, Http404
+from django.shortcuts import redirect, render, get_object_or_404
+from django.template.context_processors import csrf
 from django.template.defaultfilters import register
 from django.utils.datetime_safe import datetime
-from django.views.decorators.csrf import csrf_exempt
 from django.utils.timezone import now
+from django.views.decorators.csrf import csrf_exempt
+from djcelery.models import TaskMeta
 
 from .utils import JSONUtil
-from .models import *
-from .forms import *
+from .models import (Application, BenchmarkConfig, DBConf, DBMSCatalog, DBMSMetrics, Hardware, KnobCatalog, MetricCatalog,
+    Project, Result, ResultData, Statistics, Task, WorkloadCluster, METRIC_META, PLOTTABLE_FIELDS)
+from .forms import NewResultForm, TuningSessionCheckbox
+from .types import DBMSType, HardwareType, MetricType, TaskType
 from .settings import UPLOAD_DIR
-# from .types import TaskType
+# from tasks import run_gpr, run_wm, preprocess, process_result_data
 
-from tasks import run_gpr, run_wm, preprocess
-from djcelery.models import TaskMeta
+log = logging.getLogger(__name__)
+
 
 # For the html template to access dict object
 @register.filter
@@ -123,8 +119,8 @@ def home(request):
 
 @login_required(login_url='/login/')
 def ml_info(request):
-    id = request.GET['id'] 
-    res = Result.objects.get(pk=id)
+    result_id = request.GET['id']
+    res = Result.objects.get(pk=result_id)
     tasks = Task.objects.filter(result=res)
     assert len(tasks) == 3
     tasks = sorted(tasks, cmp=lambda x, y: x.type < y.type)
@@ -161,7 +157,7 @@ def ml_info(request):
         else:
             assert status in ['PENDING', 'RECEIVED', 'STARTED']
             overall_status = status
-    context = {"id": id,
+    context = {"id": result_id,
                "result": res,
                "overall_status": overall_status,
                "num_completed": "{} / {}".format(num_completed, len(tasks)),
@@ -296,8 +292,7 @@ def delete_application(request):
         application = Application.objects.get(pk=pk)
         if application.user == request.user:
             application.delete()
-    id = request.POST['id'] 
-    return redirect('/project/?id=' + id)
+    return redirect('/project/?id=' + request.POST['id'])
 
 
 @login_required(login_url='/login/')
@@ -348,7 +343,7 @@ def update_application(request):
         p = Application()
         p.creation_time = now()
         p.user = request.user
-        # TODO (dva): FIXME
+        # FIXME (dva): hardware type is hardcoded for now
         hardware_type = HardwareType.EC2_M3XLARGE
         if hardware_type == HardwareType.GENERIC:
             raise NotImplementedError('Implement me!')
@@ -363,8 +358,6 @@ def update_application(request):
 
     if gen_upload_code:
         p.upload_code = upload_code_generator(size=20)
-#     if 'id_new_code' in request.POST:
-#         p.upload_code = upload_code_generator(size=20)
 
     p.name = request.POST['name']
     p.description = request.POST['description']
@@ -411,7 +404,7 @@ def get_result_data_dir(result_id):
     return os.path.join(result_path, str(int(result_id) / 100l))
 
 
-def handle_result_files(app, files, cluster_name=None):
+def handle_result_files(app, files, cluster_name):
     from .utils import DBMSUtil
     from celery import chain
     
@@ -523,16 +516,16 @@ def handle_result_files(app, files, cluster_name=None):
     result.timestamp = datetime.fromtimestamp(int(summary['Current Timestamp (milliseconds)']) / 1000, timezone("UTC"))
     result.hardware = app.hardware
 
-    latencies = summary['Latency Distribution']
-    result.avg_latency = float(latencies['Average Latency (microseconds)'])
-    result.min_latency = float(latencies['Minimum Latency (microseconds)'])
-    result.p25_latency = float(latencies['25th Percentile Latency (microseconds)'])
-    result.p50_latency = float(latencies['Median Latency (microseconds)'])
-    result.p75_latency = float(latencies['75th Percentile Latency (microseconds)'])
-    result.p90_latency = float(latencies['90th Percentile Latency (microseconds)'])
-    result.p95_latency = float(latencies['95th Percentile Latency (microseconds)'])
-    result.p99_latency = float(latencies['99th Percentile Latency (microseconds)'])
-    result.max_latency = float(latencies['Maximum Latency (microseconds)'])
+    latencies = {k: float(l) for k,l in summary['Latency Distribution'].iteritems()}
+    result.avg_latency = latencies['Average Latency (microseconds)']
+    result.min_latency = latencies['Minimum Latency (microseconds)']
+    result.p25_latency = latencies['25th Percentile Latency (microseconds)']
+    result.p50_latency = latencies['Median Latency (microseconds)']
+    result.p75_latency = latencies['75th Percentile Latency (microseconds)']
+    result.p90_latency = latencies['90th Percentile Latency (microseconds)']
+    result.p95_latency = latencies['95th Percentile Latency (microseconds)']
+    result.p99_latency = latencies['99th Percentile Latency (microseconds)']
+    result.max_latency = latencies['Maximum Latency (microseconds)']
     result.throughput = float(summary['Throughput (requests/second)'])
     result.creation_time = now()
     result.save()
@@ -570,30 +563,35 @@ def handle_result_files(app, files, cluster_name=None):
         sta.max_latency = float(nums[max_idx])
         sta.save()
 
+    if cluster_name is not None:
+        try:
+            wkld_cluster = WorkloadCluster.objects.get(dbms=dbms_object, hardware=app.hardware, cluster_name=cluster_name)
+        except WorkloadCluster.DoesNotExist:
+            wkld_cluster = WorkloadCluster()
+            wkld_cluster.dbms = dbms_object
+            wkld_cluster.hardware = app.hardware
+            wkld_cluster.cluster_name = cluster_name
+            wkld_cluster.save()
+    else:
+        wkld_cluster = WorkloadCluster.get_default_cluster(dbms_object, app.hardware)
+
     tunable_param_catalog = filter(lambda x: x.tunable == True, knob_catalog)
     tunable_params = {p.name: db_conf_dict[p.name] for p in tunable_param_catalog}
     param_data = DBMSUtil.preprocess_dbms_params(dbms_object.type, tunable_params, tunable_param_catalog)
 
     numeric_metric_catalog = filter(lambda x: x.metric_type != MetricType.INFO, db_metrics_catalog)
     numeric_metrics = {p.name: db_metrics_dict[p.name] for p in numeric_metric_catalog}
-    metric_data = DBMSUtil.preprocess_dbms_metrics(dbms_type, numeric_metrics, numeric_metric_catalog, int(benchmark_config.time))
+
+    external_metrics = dict(summary['Latency Distribution'])
+    external_metrics['Throughput (requests/second)'] = summary['Throughput (requests/second)']
+    metric_data = DBMSUtil.preprocess_dbms_metrics(dbms_type, numeric_metrics, numeric_metric_catalog,
+                                                   external_metrics, int(benchmark_config.time))
     
     res_data = ResultData()
-    res_data.dbms = dbms_object
-    res_data.hardware = app.hardware
     res_data.result = result
+    res_data.cluster = wkld_cluster
     res_data.param_data = JSONUtil.dumps(param_data, pprint=True, sort=True)
     res_data.metric_data = JSONUtil.dumps(metric_data, pprint=True, sort=True)
-
-    if cluster_name is not None:
-        wkld_cluster = WorkloadCluster.objects.filter(cluster_name=cluster_name).first()
-        if wkld_cluster is None:
-            wkld_cluster = WorkloadCluster()
-            wkld_cluster.cluster_name = cluster_name
-            wkld_cluster.save()
-    else:
-        wkld_cluster = WorkloadCluster.get_default_cluster()
-    res_data.cluster = wkld_cluster
     res_data.save()
  
     app.project.last_update = now()
@@ -630,21 +628,23 @@ def handle_result_files(app, files, cluster_name=None):
     if app.tuning_session == False:
         return HttpResponse( "Store Success !")
 
-    response = chain(preprocess.s(1, 2), run_wm.s(3), run_gpr.s(4)).apply_async()
-    taskmeta_ids = [response.parent.parent.id, response.parent.id, response.id]
-    task_ids = []
-    for i, tmid in enumerate(taskmeta_ids):
-        task = Task()
-        task.taskmeta_id = tmid
-        task.start_time = None
-        task.result = result
-        task.type = TaskType.TYPE_NAMES.keys()[i]
-        task.save()
-        task_ids.append(str(task.pk))
-    result.task_ids = ','.join(task_ids)
-    result.save()
+#     response = chain(preprocess.s(1, 2), run_wm.s(3), run_gpr.s(4)).apply_async()
+#     taskmeta_ids = [response.parent.parent.id, response.parent.id, response.id]
+#     task_ids = []
+#     for i, tmid in enumerate(taskmeta_ids):
+#         task = Task()
+#         task.taskmeta_id = tmid
+#         task.start_time = None
+#         task.result = result
+#         task.type = TaskType.TYPE_NAMES.keys()[i]
+#         task.save()
+#         task_ids.append(str(task.pk))
+#     result.task_ids = ','.join(task_ids)
+#     result.save()
+#     response = process_result_data.delay(PipelineResult.get_newest_version())
 
-    return HttpResponse( "Store Success ! Running tuner... (status={})".format(response.status))
+
+    return HttpResponse( "Store Success ! Running tuner... (status={})")#.format(response.status))
 
 
 def file_iterator(file_name, chunk_size=512):
@@ -817,13 +817,13 @@ def get_benchmark_data(request):
 
 @login_required(login_url='/login/')
 def get_benchmark_conf_file(request):
-    id = request.GET['id']
+    bench_id = request.GET['id']
     benchmark_conf = get_object_or_404(BenchmarkConfig, pk=request.GET['id'])
     if benchmark_conf.application.user != request.user:
         return render(request, '404.html')
 
     response = HttpResponse(benchmark_conf.configuration, content_type='text/plain')
-    response['Content-Disposition'] = 'attachment; filename=result_' + str(id) + '.ben.cnf'
+    response['Content-Disposition'] = 'attachment; filename=result_' + str(bench_id) + '.ben.cnf'
     return response
 
 @login_required(login_url='/login/')
@@ -862,110 +862,17 @@ def result_same(a, b):
             return False
     return True
 
-
-def learn_model(results):
-    return 0
-#     features = []
-#     features2 = KnobCatalog.objects.filter(dbms=results[0].dbms, tunable=True)
-#     LEARNING_VARS = []
-#     for f in features2:
-#         LEARNING_VARS.append( re.compile(f.name, re.UNICODE | re.IGNORECASE))
-# 
-#     for f in LEARNING_VARS:
-#         values = []
-#         for r in results:
-#             db_conf = JSONUtil.loads(r.dbms_config.tuning_configuration)
-#             for kv in db_conf:
-#                 if f.match(kv[0]):
-#                     try:
-#                         values.append(math.log(int(kv[1])))
-#                         break
-#                     except Exception:
-#                         values.append(0.0)
-#                         break
-# 
-#         features.append(values)
-# 
-#     A = np.array(features)
-#     y = [r.throughput for r in results]
-#     return np.linalg.lstsq(A.T, y)[0]
-
-
-def apply_model(model, data, target):
-    return 0
-#     values = []
-#     db_conf = JSONUtil.loads(data.dbms_config.tunable_configuration)
-#     db_conf_t = JSONUtil.loads(target.dbms_config.tunable_configuration)
-#     features = KnobCatalog.objects.filter(dbms=data.dbms, tunable=True)
-#     LEARNING_VARS = []
-#     for f in features:
-#         LEARNING_VARS.append( re.compile(f.name, re.UNICODE | re.IGNORECASE))
-#     
-#     for f in LEARNING_VARS:
-#         v1 = 0
-#         v2 = 0
-#         for kv in db_conf:
-#             if f.match(kv[0]):
-#                 if kv[1] == '0':
-#                     kv[1] = '1'
-#                 v1 = math.log(int(kv[1]))
-#         for kv in db_conf_t:
-#             if f.match(kv[0]):
-#                 if kv[1] == '0':
-#                     kv[1] = '1'
-#                 v2 = math.log(int(kv[1]))
-#         values.append(v1 - v2)
-# 
-#     score = 0
-#     for i in range(0, len(model)):
-#         score += abs(model[i] * float(values[i]))
-#     return score
-
-
-
 @login_required(login_url='/login/')
 def update_similar(request):
-    target = get_object_or_404(Result, pk=request.GET['id'])
-    results = Result.objects.filter(application=target.application, benchmark_config=target.benchmark_config)
-    results = filter(lambda x: x.dbms == target.dbms, results)
-
-    linear_model = learn_model(results)
-    diff_results = filter(lambda x: x != target, results)
-    diff_results = filter(lambda x: not result_similar(x, target), diff_results)
-    scores = [apply_model(linear_model, x, target) for x in diff_results]
-    similars = sorted(zip(diff_results, scores), cmp=lambda x, y: x[1] > y[1] and 1 or (x[1] < y[1] and -1 or 0))
-    if len(similars) > 5:
-        similars = similars[:5]
-
-    target.most_similar = ','.join([str(r[0].pk) for r in similars])
-    target.save()
-
-    return redirect('/result/?id=' + str(request.GET['id']))
-
-
+    raise Http404()
 
 def result(request):
-
     target = get_object_or_404(Result, pk=request.GET['id'])
-    #task = get_object_or_404(Task, id=request.GET['id'])
     data_package = {}
-#     sames = {}   
-#     similars = {}
-  
-    #results = Result.objects.select_related("db_conf__db_type","db_conf__configuration","db_conf__similar_conf").filter(application=target.application, benchmark_conf=target.benchmark_conf)
-#     results = Result.objects.select_related("dbms_config__dbms").filter(application=target.application, benchmark_config=target.benchmark_config)
     results = Result.objects.filter(application=target.application, dbms=target.dbms, benchmark_config=target.benchmark_config)
-
-#     results = filter(lambda x: x.dbms == target.dbms, results)
-    #sames = []
-#     sames = filter(lambda x: result_similar(x, target) and x != target , results)
     same_dbconf_results = filter(lambda x: result_same(x, target) and x.pk != target.pk, results)
     similar_dbconf_results = filter(lambda x: result_similar(x, target) and \
                                     x.pk not in ([target.pk] + [r.pk for r in same_dbconf_results]), results)
-
-#     similars = [Result.objects.get(pk=rid) for rid in filter(lambda x: len(x) > 0, target.most_similar.split(','))]
-
-    #results = []
     for metric in PLOTTABLE_FIELDS:
         data_package[metric] = {
             'data': {},
@@ -1030,22 +937,22 @@ def get_result_data_file(request):
     if target.application.user != request.user:
         return render(request, '404.html')
 
-    id = int(request.GET['id'])
-    type = request.GET['type']
+    result_id = int(request.GET['id'])
+    result_type = request.GET['type']
 
-    prefix = get_result_data_dir(id)
+    prefix = get_result_data_dir(result_id)
 
-    if type == 'sample':
-        response = HttpResponse(FileWrapper(file(prefix + '_' + type)), content_type='text/plain')
-        response.__setitem__('Content-Disposition', 'attachment; filename=result_' + str(id) + '.sample')
+    if result_type == 'sample':
+        response = HttpResponse(FileWrapper(file(prefix + '_' + result_type)), content_type='text/plain')
+        response.__setitem__('Content-Disposition', 'attachment; filename=result_' + str(result_id) + '.sample')
         return response
-    elif type == 'raw':
-        response = HttpResponse(FileWrapper(file(prefix + '_' + type)), content_type='text/plain')    
-        response['Content-Disposition'] = 'attachment; filename=result_' + str(id) + '.raw'
+    elif result_type == 'raw':
+        response = HttpResponse(FileWrapper(file(prefix + '_' + result_type)), content_type='text/plain')
+        response['Content-Disposition'] = 'attachment; filename=result_' + str(result_id) + '.raw'
         return response
-    elif type == 'new_conf':
-        response = HttpResponse(FileWrapper(file(prefix + '_' + type)), content_type='text/plain')
-        response['Content-Disposition'] = 'attachment; filename=result_' + str(id) + '_new_conf'
+    elif result_type == 'new_conf':
+        response = HttpResponse(FileWrapper(file(prefix + '_' + result_type)), content_type='text/plain')
+        response['Content-Disposition'] = 'attachment; filename=result_' + str(result_id) + '_new_conf'
         return response
 
 

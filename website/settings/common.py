@@ -3,13 +3,16 @@ Common Django settings for the OtterTune project.
 
 """
 
-import os
-from os.path import abspath, dirname, exists, join
+import sys, os
+from os.path import abspath, dirname, exists, expanduser, join
 
 try:
     from credentials import SECRET_KEY, DATABASES, ALLOWED_HOSTS
-except ImportError:
-    from credentials_TEMPLATE import SECRET_KEY, DATABASES, ALLOWED_HOSTS
+except ImportError as err:
+    raise err('Copy settings/credentials_TEMPLATE.py to credentials.py and update settings.')
+
+# Add OtterTune library to path
+sys.path.insert(0, join(expanduser("~"), "git"))
 
 ## ==============================================
 ## PATH CONFIGURATION
@@ -27,6 +30,9 @@ FILE_UPLOAD_PERMISSIONS = 0o644
 
 # Path to data preloaded with manage.py loaddata
 PRELOAD_DIR = os.path.join(PROJECT_ROOT, 'preload')
+
+# This is where intermediate results are stored in our ML pipeline
+PIPELINE_DIR = join(PROJECT_ROOT, 'data', 'pipeline_results')
 
 ## ==============================================
 ## DEBUG CONFIGURATION

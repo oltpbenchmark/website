@@ -5,6 +5,7 @@ Created on Jul 8, 2017
 '''
 
 import json
+import numpy as np
 import re
 from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
@@ -32,6 +33,34 @@ class JSONUtil(object):
 
         return json.dumps(config, encoding="UTF-8", indent=indent)
 
+
+class DataUtil(object):
+
+    @staticmethod
+    def aggregate_data(results, knob_labels, metric_labels):
+        X_matrix_shape = (len(results), len(knob_labels))
+        y_matrix_shape = (len(results), len(metric_labels))
+        X_matrix = np.empty(X_matrix_shape, dtype=float)
+        y_matrix = np.empty(y_matrix_shape, dtype=float)
+        rowlabels = np.empty(X_matrix_shape[0], dtype=int)
+
+        for i, result in enumerate(results):
+            param_data = JSONUtil.loads(result.param_data)
+            if len(param_data) != len(knob_labels):
+                raise Exception("Incorrect number of knobs (expected={}, actual={})".format(len(knob_labels), len(param_data)))
+            metric_data = JSONUtil.loads(result.metric_data)
+            if len(metric_data) != len(metric_labels):
+                raise Exception("Incorrect number of metrics (expected={}, actual={})".format(len(metric_labels), len(metric_data)))
+            X_matrix[i,:] = [param_data[l] for l in knob_labels]
+            y_matrix[i,:] = [metric_data[l] for l in metric_labels]
+            rowlabels[i] = result.pk
+        return {
+            'X_matrix': X_matrix,
+            'y_matrix': y_matrix,
+            'rowlabels': rowlabels,
+            'X_columnlabels': knob_labels,
+            'y_columnlabels': metric_labels,
+        }
 
 class ConversionUtil(object):
 
@@ -113,7 +142,10 @@ class DBMSUtilImpl(object):
             param_data[pinfo.name] = prep_value
         return param_data
 
-    def preprocess_dbms_metrics(self, numeric_metrics, numeric_metric_catalog, execution_time):
+    def preprocess_dbms_metrics(self, numeric_metrics, numeric_metric_catalog,
+                                external_metrics, execution_time):
+        if len(numeric_metrics) != len(numeric_metric_catalog):
+            raise Exception('The number of metrics should be equal!')
         metric_data = {}
         for minfo in numeric_metric_catalog:
             assert minfo.metric_type != MetricType.INFO
@@ -123,6 +155,7 @@ class DBMSUtilImpl(object):
                 metric_data[minfo.name] = float(converted) / execution_time
             else:
                 raise Exception('Unknown metric type: {}'.format(minfo.metric_type))
+        metric_data.update({k: float(v) for k,v in external_metrics.iteritems()})
         return metric_data
 
     @staticmethod
@@ -150,7 +183,6 @@ class DBMSUtilImpl(object):
                     valid_dict[v.name] = default if default is not None else v.default
         assert len(valid_dict) == len(official_config)
         return valid_dict, diffs
-
 
     def parse_dbms_config(self, config, official_config):
         return DBMSUtilImpl.extract_valid_keys(config, official_config)
@@ -254,8 +286,10 @@ class DBMSUtil(object):
         return DBMSUtil.__utils(dbms_type).preprocess_dbms_params(tunable_params, tunable_param_catalog)
 
     @staticmethod
-    def preprocess_dbms_metrics(dbms_type, numeric_metrics, numeric_metric_catalog, execution_time):
-        return DBMSUtil.__utils(dbms_type).preprocess_dbms_metrics(numeric_metrics, numeric_metric_catalog, execution_time)
+    def preprocess_dbms_metrics(dbms_type, numeric_metrics, numeric_metric_catalog,
+                                external_metrics, execution_time):
+        return DBMSUtil.__utils(dbms_type).preprocess_dbms_metrics(numeric_metrics, numeric_metric_catalog,
+                                                                   external_metrics, execution_time)
 
     @staticmethod
     def parse_dbms_config(dbms_type, config, official_config):

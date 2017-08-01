@@ -2,6 +2,7 @@ import sys
 import os.path
 import glob
 import json
+import numpy as np
 
 from poster.encode import multipart_encode
 from poster.streaminghttp import register_openers
@@ -25,13 +26,15 @@ class ResultUploader(object):
         self.upload_code_ = upload_code
         self.upload_url_ = upload_url
 
-    def upload_batch(self, directories, max_files=None):
+    def upload_batch(self, directories, max_files=5):
         for d in directories:
             cluster_name = os.path.basename(d)
             fnames = glob.glob(os.path.join(d, '*.summary'))
+            if max_files < len(fnames):
+                idxs = np.random.choice(len(fnames), max_files)
+                #idxs = np.arange(max_files)
+                fnames = [fnames[i] for i in idxs]
             bases = [fn.split('.summary')[0] for fn in fnames]
-            if max_files is not None:
-                bases = bases[:max_files]
 
             # Verify required extensions exist
             for base in bases:
@@ -46,8 +49,6 @@ class ResultUploader(object):
                 if complete == False:
                     continue
                 self.upload(base, cluster_name)
-                return
-
 
     def upload(self, basepath, cluster_name):
         exts = list(self.REQ_EXTS)
@@ -78,7 +79,9 @@ def main():
     url = 'http://0.0.0.0:8000/new_result/'
     upload_code = 'O50GE1HC8S1BHU8L6F8D'
     uploader = ResultUploader(upload_code, url)
-    dirnames = glob.glob(os.path.join(os.path.expanduser('~'), 'Dropbox/Apps/ottertune/data/sample_data/exps_*'))
+    dirnames = glob.glob(os.path.join(os.path.expanduser('~'), 'Dropbox/Apps/ottertune/data/sample_data/exps_*'))[:2]
+    #order = np.random.choice(np.arange(len(dirnames)), len(dirnames))
+    #dirnames = [dirnames[i] for i in order]
     uploader.upload_batch(dirnames, max_files=3)
 
 if __name__ == '__main__':

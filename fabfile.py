@@ -4,13 +4,13 @@ Admin tasks
 @author: dvanaken
 '''
 
-import os.path
+import os, os.path
 
 from collections import namedtuple
 from fabric.api import env, local, quiet, settings, task
 from fabric.state import output as fabric_output
 
-from website.settings import PRELOAD_DIR
+from website.settings import PRELOAD_DIR, PROJECT_ROOT
 
 # Fabric environment settings
 env.hosts = ['localhost']
@@ -129,3 +129,12 @@ def recreate_website_dbms():
            User.objects.create_superuser('user', 'user@email.com', '123')\" | python manage.py shell")
     local('python manage.py loaddata {}'.format(os.path.join(PRELOAD_DIR, '*')))
 
+@task
+def aggregate_results():
+    cmd = 'from website.tasks import aggregate_results; aggregate_results()'
+    local('export PYTHONPATH={}\:$PYTHONPATH; django-admin shell --settings=website.settings -c\"{}\"'.format(PROJECT_ROOT, cmd))
+
+@task
+def create_workload_mapping_data():
+    cmd = 'from website.tasks import create_workload_mapping_data; create_workload_mapping_data()'
+    local('export PYTHONPATH={}\:$PYTHONPATH; django-admin shell --settings=website.settings -c\"{}\"'.format(PROJECT_ROOT, cmd))

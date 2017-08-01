@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_comma_separated_integer_list
 
-from .types import DBMSType, MetricType, VarType, HardwareType, TaskType, KnobUnitType, PipelineComponentType
+from .types import DBMSType, MetricType, VarType, HardwareType, TaskType, KnobUnitType, PipelineTaskType
 from .utils import JSONUtil
 
 class DBMSCatalog(models.Model):
@@ -49,7 +49,7 @@ class MetricCatalog(models.Model):
     summary = models.TextField(null=True)
     scope = models.CharField(max_length=16)
     metric_type = models.IntegerField(choices=MetricType.choices())
-        
+
     def clean_fields(self, exclude=None):
         super(MetricCatalog, self).clean_fields(exclude=exclude)
         if self.metric_type == MetricType.COUNTER and self.vartype != VarType.INTEGER:
@@ -219,21 +219,41 @@ class Result(models.Model):
 
 
 class WorkloadCluster(models.Model):
-    DEFAULT_CLUSTER_NAME = 'UNKNOWN'
-    cluster_name = models.CharField(max_length=128)
+    dbms = models.ForeignKey(DBMSCatalog)
+    hardware = models.ForeignKey(Hardware)
+    cluster_name = models.CharField(max_length=128, unique=True)
+
+    @property
+    def default_name(self):
+        return '{}_{}_UNASSIGNED'.format(self.dbms.pk, self.hardware.pk)
+
+    def isdefault(self):
+        return self.cluster_name == self.default_name
 
     @staticmethod
-    def get_default_cluster():
-        return WorkloadCluster.objects.get(cluster_name=WorkloadCluster.DEFAULT_CLUSTER_NAME)
+    def get_default_cluster(dbms, hardware):
+        name = '{}_{}_UNASSIGNED'.format(dbms.pk, hardware.pk)
+        default_obj = WorkloadCluster.objects.filter(dbms=dbms, hardware=hardware, cluster_name=name).first()
+        if default_obj is None:
+            default_obj = WorkloadCluster()
+            default_obj.dbms = dbms
+            default_obj.hardware = hardware
+            default_obj.cluster_name = name
+            default_obj.save()
+        return default_obj
 
 
 class ResultData(models.Model):
-    dbms = models.ForeignKey(DBMSCatalog)
-    hardware = models.ForeignKey(Hardware)
     result = models.ForeignKey(Result)
+    cluster = models.ForeignKey(WorkloadCluster)
     param_data = models.TextField()
     metric_data = models.TextField()
-    cluster = models.ForeignKey(WorkloadCluster)
+
+    class Meta:
+        ordering = ('cluster',)
+
+    def clean_fields(self, exclude=None):
+        super(ResultData, self).clean_fields(exclude=exclude)
 
 
 class Task(models.Model):
@@ -246,24 +266,17 @@ class Task(models.Model):
 class PipelineResult(models.Model):
     dbms = models.ForeignKey(DBMSCatalog)
     hardware = models.ForeignKey(Hardware)
-    version_id = models.IntegerField()
-    component = models.IntegerField(choices=PipelineComponentType.choices())
-    task_type = models.IntegerField()
+    creation_timestamp = models.DateTimeField()
+    task_type = models.IntegerField(choices=PipelineTaskType.choices())
     value = models.TextField()
 
-    @property
-    def result_type(self):
-        type_name = PipelineComponentType.get_task_type(self.component, self.task_type)
-        return '{}@{}'.format(PipelineComponentType.TYPE_NAMES[self.component], type_name)
-
-    def clean_fields(self, exclude=None):
-        super(PipelineResult, self).clean_fields(exclude=exclude)
-        if self.task_type not in PipelineComponentType.TASK_TYPES[self.component].choices():
-            raise ValidationError("Invalid task type for component {} ({})".format(self.get_component_display(),
-                                                                                   self.task_type))
+    @staticmethod
+    def get_latest(dbms, hardware, task_type):
+        return PipelineResult.objects.filter(dbms=dbms, hardware=hardware, task_type=task_type).latest()
 
     class Meta:
-        unique_together = ("dbms", "hardware", "version_id", "component", "task_type")
+        unique_together = ("dbms", "hardware", "creation_timestamp", "task_type")
+        get_latest_by = ('creation_timestamp')
 
 
 class Statistics(models.Model):
