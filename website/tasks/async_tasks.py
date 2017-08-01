@@ -75,6 +75,117 @@ def aggregate_target_results(result_id):
     metric_labels = np.asarray(sorted(JSONUtil.loads(target_result_datas[0].metric_data).keys()))
     agg_data = DataUtil.aggregate_data(target_result_datas, knob_labels, metric_labels)
     agg_data['newest_result_id'] = result_id
+    return agg_data
+
+
+@task(name='configuration_recommendation')
+def configuration_recommendation(target_data):
+    from cmudbottertune.analysis.gp_tf import GPR_GD
+
+    # Find the best (minimum) score
+    best_score = np.inf
+    best_wkld_id = None
+    for wkld_id, similarity_score in target_data['scores'].iteritems():
+        if similarity_score < best_score:
+            best_score = similarity_score
+            best_wkld_id = wkld_id
+
+    # Load specific workload data
+    newest_result = Result.objects.get(pk=target_data['newest_result_id'])
+    dbms_id = newest_result.dbms.pk
+    hw_id = newest_result.application.hardware.pk
+    agg_data = PipelineResult.get_latest(dbms_id, hw_id, PipelineTaskType.AGGREGATED_DATA)
+    if agg_data is None:
+        return None
+    data_map = JSONUtil.loads(agg_data.value)
+    if best_wkld_id not in data_map['data']:
+        raise Exception('Cannot find mapped workload (id={}) in aggregated data'.format(best_wkld_id))
+    workload_data = np.load(data_map['data'][best_wkld_id])
+
+    # Mapped workload data
+    X_wkld_matrix = workload_data['X_matrix']
+    y_wkld_matrix = workload_data['y_matrix']
+    wkld_rowlabels = workload_data['rowlabels']
+    X_columnlabels = workload_data['X_columnlabels']
+    y_columnlabels = workload_data['y_columnlabels']
+
+    # Target workload data
+    X_target_matrix = target_data['X_matrix']
+    y_target_matrix = target_data['y_matrix']
+    target_rowlabels = target_data['rowlabels']
+
+    if not np.array_equal(X_columnlabels, target_data['X_columnlabels']):
+        raise Exception('The workload and target data should have identical X columnlabels (sorted knob names)')
+    if not np.array_equal(y_columnlabels, target_data['y_columnlabels']):
+        raise Exception('The workload and target data should have identical y columnlabels (sorted metric names)')
+
+    # Filter knobs
+    ranked_knobs = JSONUtil.loads(PipelineResult.get_latest(dbms_id, hw_id, PipelineTaskType.RANKED_KNOBS).value)[:10] # FIXME
+    X_idxs = [i for i in range(X_columnlabels.shape[0]) if X_columnlabels[i] in ranked_knobs]
+    X_wkld_matrix = X_wkld_matrix[:,X_idxs]
+    X_target_matrix = X_target_matrix[:,X_idxs]
+    X_columnlabels = X_columnlabels[X_idxs]
+
+    # Filter metrics by current target objective metric
+    target_obj = '99th Percentile Latency (microseconds)'
+    y_idx = [i for i in range(y_columnlabels.shape[0]) if y_columnlabels[i] == target_obj]
+    if len(y_idx) == 0:
+        raise Exception('Could not find target objective in metrics (target_obj={})'.format(target_obj))
+    elif len(y_idx) > 1:
+        raise Exception('Found {} instances of target objective in metrics (target_obj={})'.format(len(y_idx), target_obj))
+    y_wkld_matrix = y_wkld_matrix[:,y_idx]
+    y_target_matrix = y_target_matrix[:,y_idx]
+    y_columnlabels = y_columnlabels[y_idx]
+
+    # Combine duplicate rows in the target/workload data (separately)
+    X_wkld_matrix, y_wkld_matrix, wkld_rowlabels = DataUtil.combine_duplicate_rows(X_wkld_matrix, y_wkld_matrix, wkld_rowlabels)
+    X_target_matrix, y_target_matrix, target_rowlabels = DataUtil.combine_duplicate_rows(X_target_matrix, y_target_matrix, target_rowlabels)
+
+    # Delete any rows that appear in both the workload data and the target data from the workload data
+    dups_filter = np.ones(X_wkld_matrix.shape[0], dtype=bool)
+    target_row_tups = [tuple(row) for row in X_target_matrix]
+    for i,row in enumerate(X_wkld_matrix):
+        if tuple(row) in target_row_tups:
+            dups_filter[i] = False
+    X_wkld_matrix = X_wkld_matrix[dups_filter,:]
+    y_wkld_matrix = y_wkld_matrix[dups_filter,:]
+    wkld_rowlabels = wkld_rowlabels[dups_filter]
+
+    # Combine Xs and scale
+    rowlabels = np.hstack([target_rowlabels, wkld_rowlabels])
+    X_matrix = np.vstack([X_target_matrix, X_wkld_matrix])
+    X_scaler = StandardScaler()
+    X_scaled = X_scaler.fit_transform(X_matrix)
+    if y_target_matrix.shape[0] < 5: # FIXME
+        y_target_scaler = None
+        y_wkld_scaler = StandardScaler()
+        y_matrix = np.vstack([y_target_matrix, y_wkld_matrix])
+        y_scaled = y_wkld_scaler.fit_transform(y_matrix)
+    else:
+        y_target_scaler = StandardScaler()
+        y_wkld_scaler = StandardScaler()
+        y_target_scaled = y_target_scaler.fit_transform(y_target_matrix)
+        y_wkld_scaled = y_wkld_scaler.fit_transform(y_wkld_matrix)
+        y_scaled = np.vstack([y_target_scaled, y_wkld_scaled])
+
+    ridge = np.empty(X_scaled.shape[0])
+    ridge[:X_target_matrix.shape[0]] = 0.01
+    ridge[X_target_matrix.shape[0]:] = 0.1
+
+    # FIXME
+    num_samples = 5
+    X_samples = np.empty((num_samples, X_scaled.shape[1]))
+    for i in range(X_scaled.shape[1]):
+        col_min = X_scaled[:,i].min()
+        col_max = X_scaled[:,i].max()
+        X_samples[:,i] = np.random.rand(num_samples) * (col_max - col_min) + col_min
+
+    model = GPR_GD()
+    model.fit(X_scaled, y_scaled, ridge)
+    res = model.predict(X_samples)
+    best_idx = np.argmin(res.minL.ravel())
+    best_conf = res.minL_conf[best_idx, :]
+    best_conf = X_scaler.inverse_transform(best_conf)
 
 @task(name='map_workload')
 def map_workload(target_data):
@@ -196,23 +307,7 @@ def create_workload_mapping_data():
             y_columnlabels = y_columnlabels[metric_idxs]
 
             # Combine duplicate rows
-            X_unique, idxs, invs, cts = np.unique(X_matrix, return_index=True, return_inverse=True, return_counts=True, axis=0)
-            num_unique = X_unique.shape[0]
-            if num_unique < X_matrix.shape[0]:
-                y_unique = np.empty((num_unique, y_matrix.shape[1]))
-                rowlabels_unique = np.empty(num_unique, dtype=tuple)
-                ix = np.arange(X_matrix.shape[0])
-                for i, count in enumerate(cts):
-                    if count == 1:
-                        y_unique[i,:] = y_matrix[idxs[i],:]
-                        rowlabels_unique[i] = (rowlabels[idxs[i]],)
-                    else:
-                        dup_idxs = ix[invs == i]
-                        y_unique[i,:] = np.median(y_matrix[dup_idxs,:], axis=0)
-                        rowlabels_unique[i] = tuple(rowlabels[dup_idxs])
-                X_matrix = X_unique
-                y_matrix = y_unique
-                rowlabels = rowlabels_unique
+            X_matrix, y_matrix, rowlabels = DataUtil.combine_duplicate_rows(X_matrix, y_matrix, rowlabels)
             cluster_data[cluster] = {
                 'X_matrix': X_matrix,
                 'y_matrix': y_matrix,
