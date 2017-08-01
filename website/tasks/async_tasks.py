@@ -75,7 +75,6 @@ def aggregate_target_results(result_id):
     metric_labels = np.asarray(sorted(JSONUtil.loads(target_result_datas[0].metric_data).keys()))
     agg_data = DataUtil.aggregate_data(target_result_datas, knob_labels, metric_labels)
     agg_data['newest_result_id'] = result_id
-    return agg_data
 
 @task(name='map_workload')
 def map_workload(target_data):
@@ -85,14 +84,14 @@ def map_workload(target_data):
     newest_result = Result.objects.get(pk=target_data['newest_result_id'])
     dbms = newest_result.dbms.pk
     hardware = newest_result.application.hardware.pk
-    workload_data = PipelineResult.get_latest(dbms, hardware, PipelineTaskType.AGGREGATED_DATA)
+    workload_data = PipelineResult.get_latest(dbms, hardware, PipelineTaskType.WORKLOAD_MAPPING_DATA)
     if workload_data is None:
         return None
 
     data_values = JSONUtil.loads(workload_data.value)
     X_scaler = np.load(data_values['X_scaler'])
     y_scaler = np.load(data_values['y_scaler'])
-    y_deciles = np.load(data_values['y_deciles'])
+    y_deciles = np.load(data_values['y_deciles'])['deciles']
     X_columnlabels = data_values['X_columnlabels']
     y_columnlabels = data_values['y_columnlabels']
 
@@ -107,17 +106,19 @@ def map_workload(target_data):
         y_binned[:,i] = bin_by_decile(y_target[:,i], y_deciles[i])
 
     scores = {}
-    for wkld_id, wkld_entry in data_values['data'].iteritems():
+    for wkld_id, wkld_entry_path in data_values['data'].iteritems():
+        wkld_entry = np.load(wkld_entry_path)
         preds = np.empty_like(y_target)
         X_wkld = wkld_entry['X_matrix']
         for j in range(y_target.shape[1]):
             y_col = wkld_entry['y_matrix'][:,j].reshape(X_wkld.shape[0], 1)
             model = GPR()
             model.fit(X_wkld, y_col, ridge=0.01)
-            preds[:,j] = bin_by_decile(model.predict(X_target).ypreds, y_deciles[j])
-        dists = np.sum(np.square(np.subtract(preds, preds)), axis=1)
+            preds[:,j] = bin_by_decile(model.predict(X_target).ypreds.ravel(), y_deciles[j])
+        dists = np.sqrt(np.sum(np.square(np.subtract(preds, y_target)), axis=1))
         scores[wkld_id] = np.mean(dists)
     target_data['scores'] = scores
+    return target_data
 
 @task(name='aggregate_results')
 def aggregate_results():
@@ -227,7 +228,8 @@ def create_workload_mapping_data():
         X_scaler.fit(Xs)
         y_scaler = StandardScaler(copy=False)
         y_scaler.fit_transform(ys)
-        y_binner = Bin(ys, axis=0)
+        y_binner = Bin(axis=0)
+        y_binner.fit(ys)
         del Xs
         del ys
 
@@ -264,6 +266,6 @@ def create_workload_mapping_data():
         new_res.hardware = Hardware.objects.get(pk=hw_id)
         new_res.creation_timestamp = timestamp
         new_res.task_type = PipelineTaskType.WORKLOAD_MAPPING_DATA
-        new_res.value = JSONUtil.dumps(value)
+        new_res.value = JSONUtil.dumps(value, pprint=True)
         new_res.save()
 
