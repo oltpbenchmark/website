@@ -1,42 +1,37 @@
 from django.conf.urls import include, url
-
-# Uncomment the next two lines to enable the admin:
 from django.contrib import admin
-#from django.contrib.auth import views as auth_views
 from django.contrib.staticfiles.views import serve
 from django.views.decorators.cache import never_cache
+
 from website import settings
 from website import views as website_views
 
 admin.autodiscover()
 
-urlpatterns =[
+urlpatterns = [
     url(r'^signup/', website_views.signup_view, name='signup'),
     url(r'^login/', website_views.login_view, name='login'),
-    #url(r'^auth/', website_views.auth_and_login),
-    #url(r'^signupin/', website_views.sign_up_in),
     url(r'^$', website_views.home),
     url(r'^logout/', website_views.logout_view, name='logout'),
-    
+
     url(r'^ajax_new/', website_views.ajax_new),
     url(r'^status/', website_views.ml_info),
-    
+
     url(r'^new_result/', website_views.new_result),
     url(r'^result/', website_views.result),
     url(r'^get_result_data_file/', website_views.get_result_data_file),
     url(r'^update_similar/', website_views.update_similar),
-    
+
     url(r'^edit_application/', website_views.edit_application),
     url(r'^update_application/', website_views.update_application),
-    url(r'^application/', website_views.application),    
-    url(r'^project_info/', website_views.project_info),  
-    url(r'^delete_application/', website_views.delete_application),    
+    url(r'^application/', website_views.application),
+    url(r'^project_info/', website_views.project_info),
+    url(r'^delete_application/', website_views.delete_application),
     url(r'^edit_project/', website_views.edit_project),
     url(r'^project/', website_views.project),
     url(r'^delete_project/', website_views.delete_project),
     url(r'^update_project/', website_views.update_project),
 
-#     url(r'^benchmark_conf/', website_views.benchmark_configuration),
     url(r'^benchmark_conf/', website_views.benchmark_configuration),
     url(r'^edit_benchmark_conf/', website_views.edit_benchmark_conf),
     url(r'^get_benchmark_data/', website_views.get_benchmark_data),
@@ -59,5 +54,4 @@ if settings.DEBUG:
 
     urlpatterns = [
         url(r'^__debug__/', include(debug_toolbar.urls)),
-    ] + urlpatterns + [ url(r'^static/(?P<path>.*)$', never_cache(serve)),]
-    
+    ] + urlpatterns + [url(r'^static/(?P<path>.*)$', never_cache(serve)), ]

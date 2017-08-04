@@ -1,8 +1,10 @@
 from django.contrib import admin
 from djcelery.models import TaskMeta
 
-from .models import (Application, BenchmarkConfig, DBConf, DBMSCatalog, DBMSMetrics, KnobCatalog, MetricCatalog,
-    PipelineResult, Project, Result, ResultData, Task, WorkloadCluster)
+from .models import (Application, BenchmarkConfig, DBConf, DBMSCatalog,
+                     DBMSMetrics, KnobCatalog, MetricCatalog, PipelineResult,
+                     Project, Result, ResultData, Task, WorkloadCluster)
+
 
 class DBMSCatalogAdmin(admin.ModelAdmin):
     list_display = ['dbms_info']
@@ -35,21 +37,24 @@ class ProjectAdmin(admin.ModelAdmin):
 
 
 class ApplicationAdmin(admin.ModelAdmin):
-    fields = ['name', 'user', 'description', 'creation_time', 'last_update', 'upload_code']
+    fields = ['name', 'user', 'description',
+              'creation_time', 'last_update', 'upload_code']
     list_display = ('name', 'user', 'last_update', 'creation_time')
     list_display_links = ('name',)
 
 
 class BenchmarkConfigAdmin(admin.ModelAdmin):
     list_display = ['name', 'benchmark_type', 'creation_time']
-    list_filter = [ 'benchmark_type' ]
-    fields = ['application', 'name', 'benchmark_type', 'creation_time', 'isolation',
-              'scalefactor', 'terminals', 'rate', 'time', 'skew', 'configuration']
+    list_filter = ['benchmark_type']
+    fields = ['application', 'name', 'benchmark_type', 'creation_time',
+              'isolation', 'scalefactor', 'terminals', 'rate', 'time',
+              'skew', 'configuration']
 
 
 class DBConfAdmin(admin.ModelAdmin):
-    list_display = [ 'name', 'dbms_info', 'creation_time']
-    fields = ['application', 'name', 'creation_time', 'configuration', 'orig_config_diffs', 'dbms']
+    list_display = ['name', 'dbms_info', 'creation_time']
+    fields = ['application', 'name', 'creation_time',
+              'configuration', 'orig_config_diffs', 'dbms']
 
     def dbms_info(self, obj):
         return obj.dbms.full_name
@@ -57,24 +62,28 @@ class DBConfAdmin(admin.ModelAdmin):
 
 class DBMSMetricsAdmin(admin.ModelAdmin):
     list_display = ['name', 'dbms_info', 'creation_time']
-    fields = ['application', 'name', 'creation_time', 'execution_time', 'configuration', 'orig_config_diffs', 'dbms']
+    fields = ['application', 'name', 'creation_time',
+              'execution_time', 'configuration', 'orig_config_diffs', 'dbms']
 
     def dbms_info(self, obj):
         return obj.dbms.full_name
 
 
 class TaskAdmin(admin.ModelAdmin):
-    list_display = ['taskmeta_id', 'type', 'start_time', 'finish_time', 'status']
+    list_display = ['taskmeta_id', 'type',
+                    'start_time', 'finish_time', 'status']
 
     def finish_time(self, obj):
         return TaskMeta.objects.get(task_id=obj.taskmeta_id).date_done
-    
+
     def status(self, obj):
         return TaskMeta.objects.get(task_id=obj.taskmeta_id).status
 
+
 class ResultAdmin(admin.ModelAdmin):
     list_display = ['result_id', 'dbms_info', 'benchmark', 'creation_time']
-    list_filter = ['dbms__type', 'dbms__version', 'benchmark_config__benchmark_type']
+    list_filter = ['dbms__type', 'dbms__version',
+                   'benchmark_config__benchmark_type']
     ordering = ['id']
 
     def result_id(self, obj):
@@ -86,6 +95,7 @@ class ResultAdmin(admin.ModelAdmin):
     def benchmark(self, obj):
         return obj.benchmark_config.benchmark_type
 
+
 class ResultDataAdmin(admin.ModelAdmin):
     list_display = ['id', 'dbms_info', 'hardware_info']
 
@@ -95,14 +105,17 @@ class ResultDataAdmin(admin.ModelAdmin):
     def hardware_info(self, obj):
         return obj.cluster.hardware.name
 
+
 class PipelineResultAdmin(admin.ModelAdmin):
-    list_display = ['task_type', 'dbms_info', 'hardware_info', 'creation_timestamp']
+    list_display = ['task_type', 'dbms_info',
+                    'hardware_info', 'creation_timestamp']
 
     def dbms_info(self, obj):
         return obj.dbms.full_name
 
     def hardware_info(self, obj):
         return obj.hardware.name
+
 
 class WorkloadClusterAdmin(admin.ModelAdmin):
     list_display = ['cluster_id', 'cluster_name']
@@ -124,4 +137,3 @@ admin.site.register(Result, ResultAdmin)
 admin.site.register(ResultData, ResultDataAdmin)
 admin.site.register(PipelineResult, PipelineResultAdmin)
 admin.site.register(WorkloadCluster, WorkloadClusterAdmin)
-

@@ -5,33 +5,37 @@ Created on Jul 8, 2017
 '''
 
 import json
+import logging
 import numpy as np
 import re
 from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
 
-import logging
-LOG = logging.getLogger(__name__)
-
 from .types import BooleanType, DBMSType, MetricType, VarType, KnobUnitType
+
+LOG = logging.getLogger(__name__)
 
 
 class JSONUtil(object):
 
     @staticmethod
     def loads(config_str):
-        return json.loads(config_str, encoding="UTF-8", object_pairs_hook=OrderedDict)
+        return json.loads(config_str,
+                          encoding="UTF-8",
+                          object_pairs_hook=OrderedDict)
 
     @staticmethod
     def dumps(config, pprint=False, sort=False):
-        indent = 4 if pprint == True else None
-        if sort == True:
+        indent = 4 if pprint is True else None
+        if sort is True:
             if isinstance(config, dict):
                 config = OrderedDict(sorted(config.items()))
             else:
                 config = sorted(config)
 
-        return json.dumps(config, encoding="UTF-8", indent=indent)
+        return json.dumps(config,
+                          encoding="UTF-8",
+                          indent=indent)
 
 
 class DataUtil(object):
@@ -47,12 +51,18 @@ class DataUtil(object):
         for i, result in enumerate(results):
             param_data = JSONUtil.loads(result.param_data)
             if len(param_data) != len(knob_labels):
-                raise Exception("Incorrect number of knobs (expected={}, actual={})".format(len(knob_labels), len(param_data)))
+                raise Exception(
+                    ("Incorrect number of knobs "
+                     "(expected={}, actual={})").format(len(knob_labels),
+                                                        len(param_data)))
             metric_data = JSONUtil.loads(result.metric_data)
             if len(metric_data) != len(metric_labels):
-                raise Exception("Incorrect number of metrics (expected={}, actual={})".format(len(metric_labels), len(metric_data)))
-            X_matrix[i,:] = [param_data[l] for l in knob_labels]
-            y_matrix[i,:] = [metric_data[l] for l in metric_labels]
+                raise Exception(
+                    ("Incorrect number of metrics "
+                     "(expected={}, actual={})").format(len(metric_labels),
+                                                        len(metric_data)))
+            X_matrix[i, :] = [param_data[l] for l in knob_labels]
+            y_matrix[i, :] = [metric_data[l] for l in metric_labels]
             rowlabels[i] = result.pk
         return {
             'X_matrix': X_matrix,
@@ -64,7 +74,11 @@ class DataUtil(object):
 
     @staticmethod
     def combine_duplicate_rows(X_matrix, y_matrix, rowlabels):
-        X_unique, idxs, invs, cts = np.unique(X_matrix, return_index=True, return_inverse=True, return_counts=True, axis=0)
+        X_unique, idxs, invs, cts = np.unique(X_matrix,
+                                              return_index=True,
+                                              return_inverse=True,
+                                              return_counts=True,
+                                              axis=0)
         num_unique = X_unique.shape[0]
         if num_unique == X_matrix.shape[0]:
             # No duplicate rows
@@ -76,11 +90,11 @@ class DataUtil(object):
         ix = np.arange(X_matrix.shape[0])
         for i, count in enumerate(cts):
             if count == 1:
-                y_unique[i,:] = y_matrix[idxs[i],:]
+                y_unique[i, :] = y_matrix[idxs[i], :]
                 rowlabels_unique[i] = (rowlabels[idxs[i]],)
             else:
                 dup_idxs = ix[invs == i]
-                y_unique[i,:] = np.median(y_matrix[dup_idxs,:], axis=0)
+                y_unique[i, :] = np.median(y_matrix[dup_idxs, :], axis=0)
                 rowlabels_unique[i] = tuple(rowlabels[dup_idxs])
         return X_unique, y_unique, rowlabels_unique
 
@@ -113,14 +127,16 @@ class DBMSUtilImpl(object):
         pass
 
     def preprocess_bool(self, bool_value, param_info):
-        return BooleanType.TRUE if bool_value.lower() == 'on' else BooleanType.FALSE
+        return BooleanType.TRUE if \
+                bool_value.lower() == 'on' else BooleanType.FALSE
 
     def preprocess_enum(self, enum_value, param_info):
         enumvals = param_info.enumvals.split(',')
         try:
             return enumvals.index(enum_value)
         except ValueError:
-            raise Exception('Invalid enum value for param {} ({})'.format(param_info.name, enum_value))
+            raise Exception('Invalid enum value for param {} ({})'.format(
+                param_info.name, enum_value))
 
     def preprocess_integer(self, int_value, param_info):
         try:
@@ -142,7 +158,9 @@ class DBMSUtilImpl(object):
         param_data = {}
         for pinfo in tunable_param_catalog:
             # These tunable_params should all be tunable
-            assert pinfo.tunable == True, "All tunable_params should be tunable ({} is not)".format(pinfo.name)
+            assert(pinfo.tunable is True,
+                   "All tunable_params should be tunable ({} is not)".format(
+                        pinfo.name))
             pvalue = tunable_params[pinfo.name]
             prep_value = None
             if pinfo.vartype == VarType.BOOL:
@@ -158,10 +176,12 @@ class DBMSUtilImpl(object):
             elif pinfo.vartype == VarType.TIMESTAMP:
                 prep_value = self.preprocess_timestamp(pvalue, pinfo)
             else:
-                raise Exception('Unknown variable type: {}'.format(pinfo.vartype))
+                raise Exception(
+                    'Unknown variable type: {}'.format(pinfo.vartype))
 
             if prep_value is None:
-                raise Exception('Param value for {} cannot be null'.format(pinfo.name))
+                raise Exception(
+                    'Param value for {} cannot be null'.format(pinfo.name))
             param_data[pinfo.name] = prep_value
         return param_data
 
@@ -177,8 +197,10 @@ class DBMSUtilImpl(object):
                 converted = self.preprocess_integer(mvalue, minfo)
                 metric_data[minfo.name] = float(converted) / execution_time
             else:
-                raise Exception('Unknown metric type: {}'.format(minfo.metric_type))
-        metric_data.update({k: float(v) for k,v in external_metrics.iteritems()})
+                raise Exception(
+                    'Unknown metric type: {}'.format(minfo.metric_type))
+        metric_data.update({k: float(v)
+                            for k, v in external_metrics.iteritems()})
         return metric_data
 
     @staticmethod
@@ -203,7 +225,8 @@ class DBMSUtilImpl(object):
                 if k not in lowercase_idict:
                     # Set missing keys to a default value
                     diffs.append(('missing_key', v.name, None, None))
-                    valid_dict[v.name] = default if default is not None else v.default
+                    valid_dict[
+                        v.name] = default if default is not None else v.default
         assert len(valid_dict) == len(official_config)
         return valid_dict, diffs
 
@@ -211,7 +234,9 @@ class DBMSUtilImpl(object):
         return DBMSUtilImpl.extract_valid_keys(config, official_config)
 
     def parse_dbms_metrics(self, metrics, official_metrics):
-        return DBMSUtilImpl.extract_valid_keys(metrics, official_metrics, default='0')
+        return DBMSUtilImpl.extract_valid_keys(metrics,
+                                               official_metrics,
+                                               default='0')
 
 
 class PostgresUtilImpl(DBMSUtilImpl):
@@ -239,16 +264,21 @@ class PostgresUtilImpl(DBMSUtilImpl):
     def preprocess_integer(self, int_value, param_info):
         converted = None
         try:
-            converted = super(PostgresUtilImpl, self).preprocess_integer(int_value, param_info)
+            converted = super(PostgresUtilImpl, self).preprocess_integer(
+                int_value, param_info)
         except ValueError:
             if param_info.unit == KnobUnitType.BYTES:
-                converted = ConversionUtil.get_raw_size(int_value, system=self.POSTGRES_BYTES_SYSTEM)
+                converted = ConversionUtil.get_raw_size(
+                    int_value, system=self.POSTGRES_BYTES_SYSTEM)
             elif param_info.unit == KnobUnitType.MILLISECONDS:
-                converted = ConversionUtil.get_raw_size(int_value, system=self.POSTGRES_TIME_SYSTEM)
+                converted = ConversionUtil.get_raw_size(
+                    int_value, system=self.POSTGRES_TIME_SYSTEM)
             else:
-                raise Exception('Unknown unit type: {}'.format(param_info.unit))
+                raise Exception(
+                    'Unknown unit type: {}'.format(param_info.unit))
         if converted is None:
-            raise Exception('Invalid integer format for param {} ({})'.format(param_info.name, int_value))
+            raise Exception('Invalid integer format for param {} ({})'.format(
+                param_info.name, int_value))
         return converted
 
     def parse_version_string(self, version_string):
@@ -269,7 +299,8 @@ class PostgresUtilImpl(DBMSUtilImpl):
 
         # Extract all valid metrics
         official_metric_map = {m.name: m for m in official_metrics}
-        valid_metrics, diffs = DBMSUtilImpl.extract_valid_keys(valid_metrics, official_metrics, default='0')
+        valid_metrics, diffs = DBMSUtilImpl.extract_valid_keys(
+            valid_metrics, official_metrics, default='0')
 
         # Combine values
         for mname, mvalues in valid_metrics.iteritems():
@@ -284,8 +315,10 @@ class PostgresUtilImpl(DBMSUtilImpl):
                 else:
                     valid_metrics[mname] = str(sum(mvalues))
             else:
-                raise Exception('Invalid metric type: {}'.format(metric.metric_type))
+                raise Exception(
+                    'Invalid metric type: {}'.format(metric.metric_type))
         return valid_metrics, diffs
+
 
 class DBMSUtil(object):
 
@@ -305,20 +338,28 @@ class DBMSUtil(object):
         return DBMSUtil.__utils(dbms_type).parse_version_string(version_string)
 
     @staticmethod
-    def preprocess_dbms_params(dbms_type, tunable_params, tunable_param_catalog):
-        return DBMSUtil.__utils(dbms_type).preprocess_dbms_params(tunable_params, tunable_param_catalog)
+    def preprocess_dbms_params(dbms_type,
+                               tunable_params,
+                               tunable_param_catalog):
+        return DBMSUtil.__utils(dbms_type).preprocess_dbms_params(
+                tunable_params, tunable_param_catalog)
 
     @staticmethod
-    def preprocess_dbms_metrics(dbms_type, numeric_metrics, numeric_metric_catalog,
-                                external_metrics, execution_time):
-        return DBMSUtil.__utils(dbms_type).preprocess_dbms_metrics(numeric_metrics, numeric_metric_catalog,
-                                                                   external_metrics, execution_time)
+    def preprocess_dbms_metrics(dbms_type,
+                                numeric_metrics,
+                                numeric_metric_catalog,
+                                external_metrics,
+                                execution_time):
+        return DBMSUtil.__utils(dbms_type).preprocess_dbms_metrics(
+                numeric_metrics, numeric_metric_catalog,
+                external_metrics, execution_time)
 
     @staticmethod
     def parse_dbms_config(dbms_type, config, official_config):
-        return DBMSUtil.__utils(dbms_type).parse_dbms_config(config, official_config)
+        return DBMSUtil.__utils(dbms_type).parse_dbms_config(
+                config, official_config)
 
     @staticmethod
     def parse_dbms_metrics(dbms_type, metrics, official_metrics):
-        return DBMSUtil.__utils(dbms_type).parse_dbms_metrics(metrics, official_metrics)
-
+        return DBMSUtil.__utils(dbms_type).parse_dbms_metrics(
+                metrics, official_metrics)
