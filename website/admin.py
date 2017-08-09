@@ -3,7 +3,7 @@ from djcelery.models import TaskMeta
 
 from .models import (Application, BenchmarkConfig, DBConf, DBMSCatalog,
                      DBMSMetrics, KnobCatalog, MetricCatalog, PipelineResult,
-                     Project, Result, ResultData, Task, WorkloadCluster)
+                     Project, Result, ResultData, Statistics, WorkloadCluster)
 
 
 class DBMSCatalogAdmin(admin.ModelAdmin):
@@ -38,7 +38,8 @@ class ProjectAdmin(admin.ModelAdmin):
 
 class ApplicationAdmin(admin.ModelAdmin):
     fields = ['name', 'user', 'description',
-              'creation_time', 'last_update', 'upload_code']
+              'creation_time', 'last_update', 'upload_code',
+              'nondefault_settings']
     list_display = ('name', 'user', 'last_update', 'creation_time')
     list_display_links = ('name',)
 
@@ -69,15 +70,9 @@ class DBMSMetricsAdmin(admin.ModelAdmin):
         return obj.dbms.full_name
 
 
-class TaskAdmin(admin.ModelAdmin):
-    list_display = ['taskmeta_id', 'type',
-                    'start_time', 'finish_time', 'status']
-
-    def finish_time(self, obj):
-        return TaskMeta.objects.get(task_id=obj.taskmeta_id).date_done
-
-    def status(self, obj):
-        return TaskMeta.objects.get(task_id=obj.taskmeta_id).status
+class TaskMetaAdmin(admin.ModelAdmin):
+#     readonly_fields = ('result',)
+    list_display = ['id', 'status', 'date_done']
 
 
 class ResultAdmin(admin.ModelAdmin):
@@ -117,6 +112,11 @@ class PipelineResultAdmin(admin.ModelAdmin):
         return obj.hardware.name
 
 
+class StatisticsAdmin(admin.ModelAdmin):
+    list_display = ['id', 'type', 'time']
+    list_filter = ['type']
+
+
 class WorkloadClusterAdmin(admin.ModelAdmin):
     list_display = ['cluster_id', 'cluster_name']
 
@@ -132,8 +132,9 @@ admin.site.register(Project, ProjectAdmin)
 admin.site.register(BenchmarkConfig, BenchmarkConfigAdmin)
 admin.site.register(DBConf, DBConfAdmin)
 admin.site.register(DBMSMetrics, DBMSMetricsAdmin)
-admin.site.register(Task, TaskAdmin)
+admin.site.register(TaskMeta, TaskMetaAdmin)
 admin.site.register(Result, ResultAdmin)
 admin.site.register(ResultData, ResultDataAdmin)
 admin.site.register(PipelineResult, PipelineResultAdmin)
+admin.site.register(Statistics, StatisticsAdmin)
 admin.site.register(WorkloadCluster, WorkloadClusterAdmin)

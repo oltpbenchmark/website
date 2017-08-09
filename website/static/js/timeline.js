@@ -137,17 +137,17 @@ function render(data) {
                 return '<a href="/result/?id=' + data + '">' + data + '</a>';
             }},
             { "sTitle": "Creation Time", "sClass": "center"},
-            { "sTitle": "DB Conf", "sClass": "center", "mRender": function (data, type, full) {
+            { "sTitle": "DBMS Config", "sClass": "center", "mRender": function (data, type, full) {
                 return '<a href="/db_conf/?id=' + full[7] + '">' + data + '</a>';
             }},
             { "sTitle": "DBMS Metrics", "sClass": "center", "mRender": function (data, type, full) {
                 return '<a href="/dbms_metrics/?id=' + full[8] + '">' + data + '</a>';
             }},
-            { "sTitle": "Benchmark Conf", "sClass": "center", "mRender": function (data, type, full) {
+            { "sTitle": "Benchmark Config", "sClass": "center", "mRender": function (data, type, full) {
                 return '<a href="/benchmark_conf/?id=' + full[9] + '">' + data + '</a>';
             }},
-            { "sTitle": "Throughput", "sClass": "center", "mRender": function (data, type, full) {return data.toFixed(2);}},
-            { "sTitle": "p99 Latency", "sClass": "center", "mRender": function (data, type, full) {return data.toFixed(2);}},
+            { "sTitle": "Throughput (txn/sec)", "sClass": "center", "mRender": function (data, type, full) {return data.toFixed(2);}},
+            { "sTitle": "99% Latency (ms)", "sClass": "center", "mRender": function (data, type, full) {return data.toFixed(2);}},
         ],
         "bFilter": false,
         "bAutoWidth": true,

@@ -7,10 +7,18 @@ Created on Jul 8, 2017
 import json
 import logging
 import numpy as np
+import os.path
 import re
-from abc import ABCMeta, abstractmethod
+import string
+from abc import ABCMeta, abstractmethod, abstractproperty
 from collections import OrderedDict
+from random import choice
 
+import mimetypes
+from django.http import StreamingHttpResponse
+from wsgiref.util import FileWrapper
+
+from .settings import CONFIG_DIR, UPLOAD_DIR
 from .types import BooleanType, DBMSType, MetricType, VarType, KnobUnitType
 
 LOG = logging.getLogger(__name__)
@@ -36,6 +44,34 @@ class JSONUtil(object):
         return json.dumps(config,
                           encoding="UTF-8",
                           indent=indent)
+
+
+class MediaUtil(object):
+
+    @staticmethod
+    def get_result_data_path(result_id):
+        result_path = os.path.join(UPLOAD_DIR, str(result_id % 100))
+        try:
+            os.makedirs(result_path)
+        except OSError as e:
+            if e.errno == 17:
+                pass
+        return os.path.join(result_path, str(int(result_id) / 100l))
+
+    @staticmethod
+    def upload_code_generator(size=6,
+                              chars=string.ascii_uppercase + string.digits):
+        new_upload_code = ''.join(choice(chars) for _ in range(size))
+        return new_upload_code
+
+    @staticmethod
+    def download_file(filepath, chunk_size=8192):
+        filename = os.path.basename(filepath)
+        response = StreamingHttpResponse(FileWrapper(open(filepath, 'rb'), chunk_size),
+                                         content_type=mimetypes.guess_type(filepath)[0])
+        response['Content-Length'] = os.path.getsize(filepath)
+        response['Content-Disposition'] = "attachment; filename=%s" % filename
+        return response
 
 
 class DataUtil(object):
@@ -122,6 +158,14 @@ class DBMSUtilImpl(object):
 
     __metaclass__ = ABCMeta
 
+    @abstractproperty
+    def base_configuration_settings(self):
+        return {}
+
+    @abstractproperty
+    def configuration_filename(self):
+        pass
+
     @abstractmethod
     def parse_version_string(self, version_string):
         pass
@@ -158,9 +202,9 @@ class DBMSUtilImpl(object):
         param_data = {}
         for pinfo in tunable_param_catalog:
             # These tunable_params should all be tunable
-            assert(pinfo.tunable is True,
+            assert pinfo.tunable is True, \
                    "All tunable_params should be tunable ({} is not)".format(
-                        pinfo.name))
+                        pinfo.name)
             pvalue = tunable_params[pinfo.name]
             prep_value = None
             if pinfo.vartype == VarType.BOOL:
@@ -238,6 +282,53 @@ class DBMSUtilImpl(object):
                                                official_metrics,
                                                default='0')
 
+    def create_configuration(self, tuning_params, custom_params,
+                             official_catalog):
+        config_params = self.base_configuration_settings
+        config_params.update(custom_params)
+
+        categories = {}
+        for pinfo in official_catalog:
+            pname = pinfo.name
+            if pname not in config_params:
+                continue
+            category = pinfo.category
+            if category not in categories:
+                categories[category] = []
+            categories[category].append((pname, config_params[pname]))
+        categories = OrderedDict(sorted(categories.iteritems()))
+
+        config_path = os.path.join(CONFIG_DIR, self.configuration_filename)
+        with open(config_path, 'r') as f:
+            config = f.read()
+
+        header_fmt = ('#' + ('-' * 78) + '\n# {cat1}\n#' +
+                      ('-' * 78) + '\n\n').format
+        subheader_fmt = '# - {cat2} -\n\n'.format
+        for category, params in categories.iteritems():
+            parts = [p.strip() for p in category.upper().split(' / ')]
+            config += header_fmt(cat1=parts[0])
+            if len(parts) == 2:
+                config += subheader_fmt(cat2=parts[1])
+            for pname, pval in sorted(params):
+                config += '{} = \'{}\'\n'.format(pname, pval)
+            config += '\n'
+        config += header_fmt(cat1='TUNING PARAMETERS')
+        for pname, pval in sorted(tuning_params.iteritems()):
+            config += '{} = \'{}\'\n'.format(pname, pval)
+        return config#, self.configuration_filename
+
+    def get_nondefault_settings(self, config, official_config):
+        nondefault_settings = OrderedDict()
+        for pinfo in official_config:
+            if pinfo.tunable is True:
+                continue
+            pname = pinfo.name
+            pvalue = config[pname]
+            if pvalue != pinfo.default:
+                nondefault_settings[pname] = pvalue
+        return nondefault_settings
+
 
 class PostgresUtilImpl(DBMSUtilImpl):
 
@@ -257,6 +348,30 @@ class PostgresUtilImpl(DBMSUtilImpl):
         (1, 'ms'),
         (1000, 's'),
     ]
+
+    POSTGRES_BASE_PARAMS = {
+        'data_directory': None,
+        'hba_file': None,
+        'ident_file': None,
+        'external_pid_file': None,
+        'listen_addresses': None,
+        'port': None,
+        'max_connections': None,
+        'unix_socket_directories': None,
+        'log_line_prefix': '%t [%p-%l] %q%u@%d ',
+        'track_counts': 'on',
+        'track_io_timing': 'on',
+        'autovacuum': 'on',
+        'default_text_search_config': 'pg_catalog.english',
+    }
+
+    @property
+    def base_configuration_settings(self):
+        return dict(self.POSTGRES_BASE_PARAMS)
+
+    @property
+    def configuration_filename(self):
+        return 'postgresql.conf'
 
     def preprocess_string(self, enum_value, param_info):
         raise Exception('Implement me!')
@@ -363,3 +478,19 @@ class DBMSUtil(object):
     def parse_dbms_metrics(dbms_type, metrics, official_metrics):
         return DBMSUtil.__utils(dbms_type).parse_dbms_metrics(
                 metrics, official_metrics)
+
+    @staticmethod
+    def get_nondefault_settings(dbms_type, config, official_config):
+        return DBMSUtil.__utils(dbms_type).get_nondefault_settings(
+            config, official_config)
+
+    @staticmethod
+    def create_configuration(dbms_type, tuning_params, custom_params,
+                             official_catalog):
+        return DBMSUtil.__utils(dbms_type).create_configuration(
+            tuning_params, custom_params, official_catalog)
+
+    @staticmethod
+    def get_configuration_filename(dbms_type):
+        return DBMSUtil.__utils(dbms_type).configuration_filename
+

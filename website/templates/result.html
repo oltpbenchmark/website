@@ -39,14 +39,6 @@
         <td><div class="text-right">Upload Time</div></td>
         <td>{{ result.creation_time }}</td>
     </tr>
-    <!-- <tr>
-        <td><div class="text-right">Overall Throughout</div></td>
-        <td>{{ overall_throughput|floatformat:2 }} {{ metric_meta|get_item:"throughput"|get_item:"unit" }}</td>
-    </tr>
-    <tr>
-        <td><div class="text-right">Overall 99% Latency</div></td>
-        <td>{{ overall_p99_latency|floatformat:2 }} {{ metric_meta|get_item:"p99_latency"|get_item:"unit" }}</td>
-    </tr> -->
     {% for key, value in default_metrics.items %}
     <tr>
         <td><div class="text-right">{{ metric_meta|get_item:key|get_item:"print" }}</div></td>
@@ -55,7 +47,7 @@
     {% endfor %}
     <tr>
         <td><div class="text-right">Sampled data</div></td>
-        <td><a href="/get_result_data_file/?id={{ result.pk }}&type=sample">Download</a></td>
+        <td><a href="/get_result_data_file/?id={{ result.pk }}&type=samples">Download</a></td>
     </tr>
     <tr>
         <td><div class="text-right">Raw data</div></td>
@@ -63,9 +55,18 @@
     </tr>
     {% if status %}
     <tr>
-        <td><div class="text-right">Status:</div></td>
+        <td><div class="text-right">Status</div></td>
         <td><a href="/status/?id={{ result.pk }}">{{ status }}</td>
-    </tr>   
+    </tr>
+    {% else %}
+        <td><div class="text-right">Status</div></td>
+        <td>UNAVAILABLE</td>
+    {% endif %}
+    {% if next_conf_available %}
+    <tr>
+        <td><div class="text-right">Next Configuration</div></td>
+        <td><a href="/get_result_data_file/?id={{ result.pk }}&type=next_conf">Download</a></td>
+    </tr>
     {% endif %}
     </tbody>
 </table>

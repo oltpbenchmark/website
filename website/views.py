@@ -1,9 +1,7 @@
 import logging
-import string
+
 from collections import OrderedDict
-from pytz import timezone, os
-from random import choice
-from rexec import FileWrapper
+from pytz import timezone
 
 import xml.dom.minidom
 from django.contrib.auth import login, logout
@@ -11,7 +9,6 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Q
 from django.http import HttpResponse, QueryDict, Http404
 from django.shortcuts import redirect, render, get_object_or_404
 from django.template.context_processors import csrf
@@ -24,12 +21,11 @@ from djcelery.models import TaskMeta
 from .forms import NewResultForm, TuningSessionCheckbox
 from .models import (Application, BenchmarkConfig, DBConf, DBMSCatalog,
                      DBMSMetrics, Hardware, KnobCatalog, MetricCatalog,
-                     Project, Result, ResultData, Statistics, Task,
-                     WorkloadCluster, METRIC_META, PLOTTABLE_FIELDS)
-from .settings import UPLOAD_DIR
-# from tasks import run_gpr, run_wm, preprocess, process_result_data
-from .types import DBMSType, HardwareType, MetricType, TaskType
-from .utils import JSONUtil
+                     Project, Result, ResultData, Statistics,
+                     WorkloadCluster)
+from tasks import aggregate_target_results, map_workload, configuration_recommendation
+from .types import DBMSType, HardwareType, MetricType, StatsType, TaskType
+from .utils import DBMSUtil, JSONUtil, MediaUtil
 
 log = logging.getLogger(__name__)
 
@@ -44,7 +40,8 @@ def ajax_new(request):
     new_id = request.GET['new_id']
     ts = Statistics.objects.filter(result=new_id)
     data = {}
-    for metric in PLOTTABLE_FIELDS:
+    metric_meta = Statistics.objects.METRIC_META
+    for metric, metric_info in metric_meta.iteritems():
         if len(ts) > 0:
             offset = ts[0].time
             if len(ts) > 1:
@@ -53,7 +50,7 @@ def ajax_new(request):
             for t in ts:
                 data[metric].append(
                     [t.time - offset,
-                        getattr(t, metric) * METRIC_META[metric]['scale']])
+                        getattr(t, metric) * metric_info['scale']])
     return HttpResponse(JSONUtil.dumps(data), content_type='application/json')
 
 
@@ -110,19 +107,6 @@ def logout_view(request):
     return redirect("/login/")
 
 
-def upload_code_generator(size=6,
-                          chars=string.ascii_uppercase + string.digits):
-    # We must make sure this code does not already exist in the database
-    # although duplicates should be extremely rare.
-    new_upload_code = ''.join(choice(chars) for _ in range(size))
-    num_dup_codes = Project.objects.filter(upload_code=new_upload_code).count()
-    while (num_dup_codes > 0):
-        new_upload_code = ''.join(choice(chars) for _ in range(size))
-        num_dup_codes = Project.objects.filter(
-            upload_code=new_upload_code).count()
-    return new_upload_code
-
-
 @login_required(login_url='/login/')
 def home(request):
     context = {"projects": Project.objects.filter(user=request.user)}
@@ -130,39 +114,13 @@ def home(request):
     return render(request, 'home.html', context)
 
 
-@login_required(login_url='/login/')
-def ml_info(request):
-    result_id = request.GET['id']
-    res = Result.objects.get(pk=result_id)
-    tasks = Task.objects.filter(result=res)
-    assert len(tasks) == 3
-    tasks = sorted(tasks, cmp=lambda x, y: x.type < y.type)
-    task_metas = TaskMeta.objects.filter(reduce(
-            lambda x, y: x | y, [Q(task_id=obj.taskmeta_id) for obj in tasks]))
-    if len(task_metas) == 0:
-        raise Http404()
-
-    task_info = OrderedDict()
-    for task in tasks:
-        if task.start_time is None:
-            raise Http404()
-        task_dict = {}
-        task_meta = filter(lambda x: x.task_id == task.taskmeta_id, task_metas)
-        if len(task_meta) == 0:
-            continue
-        else:
-            assert len(task_meta) == 1
-            task_meta = task_meta[0]
-
-        task_dict['runtime'] = (task_meta.date_done - task.start_time).seconds
-        task_dict.update(task.__dict__)
-        task_dict.update(task_meta.__dict__)
-        task_info[TaskType.TYPE_NAMES[task.type]] = task_dict
-
+def get_task_status(tasks):
+    if len(tasks) == 0:
+        return None, 0
     overall_status = 'SUCCESS'
     num_completed = 0
-    for entry in task_info.values():
-        status = entry['status']
+    for task in tasks:
+        status = task.status
         if status == "SUCCESS":
             num_completed += 1
         elif status in ['FAILURE', 'REVOKED', 'RETRY']:
@@ -171,12 +129,39 @@ def ml_info(request):
         else:
             assert status in ['PENDING', 'RECEIVED', 'STARTED']
             overall_status = status
+    return overall_status, num_completed
+
+
+@login_required(login_url='/login/')
+def ml_info(request):
+    result_id = request.GET['id']
+    res = Result.objects.get(pk=result_id)
+
+    task_ids = res.task_ids.split(',')
+    tasks = []
+    for tid in task_ids:
+        task = TaskMeta.objects.filter(task_id=tid).first()
+        if task is not None:
+            tasks.append(task)
+
+    overall_status, num_completed = get_task_status(tasks)
+    if overall_status in ['PENDING', 'RECEIVED', 'STARTED']:
+        completion_time = 'N/A'
+        total_runtime = 'N/A'
+    else:
+        completion_time = tasks[-1].date_done
+        total_runtime = (completion_time - res.creation_time)
+
+    task_info = [(tname, task) for tname, task in \
+                 zip(TaskType.TYPE_NAMES.values(), tasks)]
+
     context = {"id": result_id,
                "result": res,
                "overall_status": overall_status,
-               "num_completed": "{} / {}".format(num_completed, len(tasks)),
-               "tasks": task_info,
-               "limit": "300"}
+               "num_completed": "{} / {}".format(num_completed, 3),
+               "completion_time": completion_time,
+               "total_runtime": total_runtime,
+               "tasks": task_info}
 
     return render(request, "ml_info.html", context)
 
@@ -237,8 +222,11 @@ def application(request):
 #         f = {'values': [key for key in value_dict.iterkeys()],
 #              'print': field['print'], 'field': field['field']}
 #         filters.append(f)
+
     defaultspe = "none" if len(benchmarks) == 0 else \
         list(benchmarks.iteritems())[0][0]
+
+    metric_meta = Statistics.objects.METRIC_META
     context = {'project': project,
                'dbmss': dbs,
                'benchmarks': benchmarks,
@@ -248,9 +236,9 @@ def application(request):
                'defaultequid': False,
                'defaultbenchmark': 'grid',
                'defaultspe': defaultspe,
-               'metrics': PLOTTABLE_FIELDS,
-               'metric_meta': METRIC_META,
-               'defaultmetrics': ['throughput', 'p99_latency'],
+               'metrics': metric_meta.keys(),
+               'metric_meta': metric_meta,
+               'defaultmetrics': Statistics.objects.DEFAULT_METRICS,
                'filters': filters,
                'application': application,
                'results': results}
@@ -332,7 +320,7 @@ def update_project(request):
             return render(request, '404.html')
 
     if gen_upload_code:
-        p.upload_code = upload_code_generator(size=20)
+        p.upload_code = MediaUtil.upload_code_generator(size=20)
 
     p.name = request.POST['name']
     p.description = request.POST['description']
@@ -374,7 +362,7 @@ def update_application(request):
             return render(request, '404.html')
 
     if gen_upload_code:
-        p.upload_code = upload_code_generator(size=20)
+        p.upload_code = MediaUtil.upload_code_generator(size=20)
 
     p.name = request.POST['name']
     p.description = request.POST['description']
@@ -414,18 +402,7 @@ def new_result(request):
     return HttpResponse("POST please\n")
 
 
-def get_result_data_dir(result_id):
-    result_path = os.path.join(UPLOAD_DIR, str(result_id % 100))
-    try:
-        os.makedirs(result_path)
-    except OSError as e:
-        if e.errno == 17:
-            pass
-    return os.path.join(result_path, str(int(result_id) / 100l))
-
-
 def handle_result_files(app, files, cluster_name):
-    from .utils import DBMSUtil
     from celery import chain
 
     # Load summary file
@@ -553,54 +530,13 @@ def handle_result_files(app, files, cluster_name):
         int(summary['Current Timestamp (milliseconds)']) / 1000,
         timezone("UTC"))
     result.hardware = app.hardware
-
-    latencies = {k: float(l) for k, l in summary[
-        'Latency Distribution'].iteritems()}
-    result.avg_latency = latencies['Average Latency (microseconds)']
-    result.min_latency = latencies['Minimum Latency (microseconds)']
-    result.p25_latency = latencies['25th Percentile Latency (microseconds)']
-    result.p50_latency = latencies['Median Latency (microseconds)']
-    result.p75_latency = latencies['75th Percentile Latency (microseconds)']
-    result.p90_latency = latencies['90th Percentile Latency (microseconds)']
-    result.p95_latency = latencies['95th Percentile Latency (microseconds)']
-    result.p99_latency = latencies['99th Percentile Latency (microseconds)']
-    result.max_latency = latencies['Maximum Latency (microseconds)']
-    result.throughput = float(summary['Throughput (requests/second)'])
     result.creation_time = now()
     result.save()
+    result.summary_stats = Statistics.objects.create_summary_stats(
+        summary, result, benchmark_config.time)
+    result.save()
 
-    sample_lines = samples.split('\n')
-    header = [h.strip() for h in sample_lines[0].split(',')]
-
-    time_idx = header.index('Time (seconds)')
-    tput_idx = header.index('Throughput (requests/second)')
-    avg_idx = header.index('Average Latency (microseconds)')
-    min_idx = header.index('Minimum Latency (microseconds)')
-    p25_idx = header.index('25th Percentile Latency (microseconds)')
-    p50_idx = header.index('Median Latency (microseconds)')
-    p75_idx = header.index('75th Percentile Latency (microseconds)')
-    p90_idx = header.index('90th Percentile Latency (microseconds)')
-    p95_idx = header.index('95th Percentile Latency (microseconds)')
-    p99_idx = header.index('99th Percentile Latency (microseconds)')
-    max_idx = header.index('Maximum Latency (microseconds)')
-    for line in sample_lines[1:]:
-        if line == '':
-            continue
-        sta = Statistics()
-        nums = line.strip().split(',')
-        sta.result = result
-        sta.time = int(nums[time_idx])
-        sta.throughput = float(nums[tput_idx])
-        sta.avg_latency = float(nums[avg_idx])
-        sta.min_latency = float(nums[min_idx])
-        sta.p25_latency = float(nums[p25_idx])
-        sta.p50_latency = float(nums[p50_idx])
-        sta.p75_latency = float(nums[p75_idx])
-        sta.p90_latency = float(nums[p90_idx])
-        sta.p95_latency = float(nums[p95_idx])
-        sta.p99_latency = float(nums[p99_idx])
-        sta.max_latency = float(nums[max_idx])
-        sta.save()
+    Statistics.objects.create_sample_stats(samples, result)
 
     if cluster_name is not None:
         try:
@@ -629,9 +565,7 @@ def handle_result_files(app, files, cluster_name):
     numeric_metrics = {p.name: db_metrics_dict[
         p.name] for p in numeric_metric_catalog}
 
-    external_metrics = dict(summary['Latency Distribution'])
-    external_metrics['Throughput (requests/second)'] = summary[
-        'Throughput (requests/second)']
+    external_metrics = Statistics.objects.get_external_metrics(summary)
     metric_data = DBMSUtil.preprocess_dbms_metrics(dbms_type,
                                                    numeric_metrics,
                                                    numeric_metric_catalog,
@@ -645,31 +579,29 @@ def handle_result_files(app, files, cluster_name):
     res_data.metric_data = JSONUtil.dumps(metric_data, pprint=True, sort=True)
     res_data.save()
 
+    nondefault_settings = DBMSUtil.get_nondefault_settings(dbms_object.type,
+                                                           db_conf_dict,
+                                                           knob_catalog)
     app.project.last_update = now()
     app.last_update = now()
+    if app.nondefault_settings is None:
+        app.nondefault_settings = JSONUtil.dumps(nondefault_settings)
     app.project.save()
     app.save()
 
-    path_prefix = get_result_data_dir(result.pk)
-    with open('{}.samples'.format(path_prefix), 'w') as f:
-        for chunk in files['sample_data'].chunks():
-            f.write(chunk)
+    path_prefix = MediaUtil.get_result_data_path(result.pk)
+    paths = [
+        (path_prefix + '.samples', 'sample_data'),
+        (path_prefix + '.summary', 'summary_data'),
+        (path_prefix + '.params', 'db_parameters_data'),
+        (path_prefix + '.metrics', 'db_metrics_data'),
+        (path_prefix + '.expconfig', 'benchmark_conf_data'),
+    ]
 
-    with open('{}.summary'.format(path_prefix), 'w') as f:
-        for chunk in files['summary_data'].chunks():
-            f.write(chunk)
-
-    with open('{}.params'.format(path_prefix), 'w') as f:
-        for chunk in files['db_parameters_data'].chunks():
-            f.write(chunk)
-
-    with open('{}.metrics'.format(path_prefix), 'w') as f:
-        for chunk in files['db_metrics_data'].chunks():
-            f.write(chunk)
-
-    with open('{}.expconfig'.format(path_prefix), 'w') as f:
-        for chunk in files['benchmark_conf_data'].chunks():
-            f.write(chunk)
+    for path, content_name in paths:
+        with open(path, 'w') as f:
+            for chunk in files[content_name].chunks():
+                f.write(chunk)
 
     if 'raw_data' in files:
         with open('{}.csv.tgz'.format(path_prefix), 'w') as f:
@@ -679,21 +611,15 @@ def handle_result_files(app, files, cluster_name):
     if app.tuning_session is False:
         return HttpResponse("Store Success !")
 
-#     response = chain(preprocess.s(1, 2), run_wm.s(3), run_gpr.s(4)).apply_async()
-#     taskmeta_ids = [response.parent.parent.id, response.parent.id, response.id]
-#     task_ids = []
-#     for i, tmid in enumerate(taskmeta_ids):
-#         task = Task()
-#         task.taskmeta_id = tmid
-#         task.start_time = None
-#         task.result = result
-#         task.type = TaskType.TYPE_NAMES.keys()[i]
-#         task.save()
-#         task_ids.append(str(task.pk))
-#     result.task_ids = ','.join(task_ids)
-#     result.save()
-#     response = process_result_data.delay(PipelineResult.get_newest_version())
-    return HttpResponse("Store Success ! Running tuner... (status={})")
+    print 'RESULT_PK = {}'.format(result.pk)
+    response = chain(aggregate_target_results.s(result.pk),
+                     map_workload.s(),
+                     configuration_recommendation.s()).apply_async()
+    taskmeta_ids = [response.parent.parent.id, response.parent.id, response.id]
+    result.task_ids = ','.join(taskmeta_ids)
+    result.save()
+    return HttpResponse("Store Success ! Running tuner... (status={})".format(
+        response.status))
 
 
 def file_iterator(file_name, chunk_size=512):
@@ -739,7 +665,7 @@ def dbms_metrics_view(request):
                            for k, v in numeric_dict.iteritems()]
     else:
         metrics = list(metric_dict.iteritems())
-        numeric_metrics = list(metric_dict.iteritems())
+        numeric_metrics = list(numeric_dict.iteritems())
 
     peer_metrics = DBMSMetrics.objects.filter(
         dbms=dbms_metrics.dbms, application=dbms_metrics.application)
@@ -820,10 +746,11 @@ def benchmark_configuration(request):
         if len(dbs[dbms_name]) < 1:
             dbs.pop(dbms_name)
 
+    metric_meta = Statistics.objects.METRIC_META
     context = {'benchmark': benchmark_conf,
                'dbs': dbs,
-               'metrics': PLOTTABLE_FIELDS,
-               'metric_meta': METRIC_META,
+               'metrics': metric_meta.keys(),
+               'metric_meta': metric_meta,
                'default_dbconf': all_db_confs,
                'default_metrics': ['throughput', 'p99_latency']}
     return render(request, 'benchmark_conf.html', context)
@@ -848,31 +775,29 @@ def get_benchmark_data(request):
 
     results = Result.objects.filter(benchmark_config=benchmark_conf)
     results = sorted(results, cmp=lambda x,
-                     y: int(y.throughput - x.throughput))
+                     y: int(y.summary_stats.throughput - x.summary_stats.throughput))
 
     data_package = {'results': [],
                     'error': 'None',
                     'metrics': data.get('met', 'throughput,p99_latency').split(',')}
 
+    metric_meta = Statistics.objects.METRIC_META
     for met in data_package['metrics']:
-        data_package['results']. \
-            append({'data': [[]], 'tick': [],
-                    'unit': METRIC_META[met]['unit'],
-                    'lessisbetter': METRIC_META[met][
-                'lessisbetter'] and '(less is better)' or '(more is better)',
-                'metric': METRIC_META[met]['print']})
+        data_package['results'].append({'data': [[]], 'tick': [],
+                                        'unit': metric_meta[met]['unit'],
+                                        'lessisbetter': metric_meta[met]['improvement'],
+                                        'metric': metric_meta[met]['print']})
 
         added = {}
         db_confs = data['db'].split(',')
-        log.warn('DB CONFS!!! {}'.format(db_confs))
         i = len(db_confs)
         for r in results:
             if r.dbms_config.pk in added or str(r.dbms_config.pk) not in db_confs:
                 continue
             added[r.dbms_config.pk] = True
-            data_package['results'][-1]['data'][0].append(
-                [i, getattr(r, met) * METRIC_META[met]['scale'],
-                 r.pk, getattr(r, met) * METRIC_META[met]['scale']])
+            data_package['results'][-1]['data'][0].append([
+                i, getattr(r.summary_stats, met) * metric_meta[met]['scale'],
+                r.pk, getattr(r.summary_stats, met) * metric_meta[met]['scale']])
             data_package['results'][-1]['tick'].append(r.dbms_config.name)
             i -= 1
         data_package['results'][-1]['data'].reverse()
@@ -949,14 +874,15 @@ def result(request):
     similar_dbconf_results = filter(lambda x: result_similar(x, target) and
                                     x.pk not in ([target.pk] +
                                     [r.pk for r in same_dbconf_results]), results)
-    less_is_better = METRIC_META[metric]['lessisbetter'] and \
-        '(less is better)' or '(more is better)'
-    for metric in PLOTTABLE_FIELDS:
+
+    metric_meta = Statistics.objects.METRIC_META
+    for metric, metric_info in metric_meta.iteritems():
         data_package[metric] = {
             'data': {},
-            'units': METRIC_META[metric]['unit'],
-            'lessisbetter': less_is_better,
-            'metric': METRIC_META[metric]['print']
+            'units': metric_info['unit'],
+            'lessisbetter': metric_info['improvement'],
+            'metric': metric_info['print'],
+            'print': metric_info['print'],
         }
 
         same_id = []
@@ -969,7 +895,7 @@ def result(request):
                 data_package[metric]['data'][int(x)].extend(tmp)
                 continue
 
-            ts = Statistics.objects.filter(result=x)
+            ts = Statistics.objects.filter(data_result=x, type=StatsType.SAMPLES)
             if len(ts) > 0:
                 offset = ts[0].time
                 if len(ts) > 1:
@@ -977,33 +903,34 @@ def result(request):
                 data_package[metric]['data'][int(x)] = []
                 for t in ts:
                     data_package[metric]['data'][int(x)].append(
-                        [t.time - offset, getattr(t, metric) * METRIC_META[metric]['scale']])
+                        [t.time - offset, getattr(t, metric) * metric_meta[metric]['scale']])
                 cache.set(key, data_package[metric]['data'][int(x)], 60 * 5)
 
     default_metrics = {}
-    for met in ['throughput', 'p99_latency']:
-        default_metrics[met] = '{0:0.2f}'.format(
-            getattr(target, met) * METRIC_META[met]['scale'])
+    for met in Statistics.objects.DEFAULT_METRICS:
+        default_metrics[met] = getattr(target.summary_stats, met) * metric_meta[met]['scale']
 
     status = None
     if target.task_ids is not None:
-        tasks = Task.objects.filter(result=target)
-        for task in tasks[::-1]:
-            tm = TaskMeta.objects.filter(task_id=task.taskmeta_id).first()
-            if tm is not None:
-                status = tm.status
-                break
-        if status is None:
-            status = 'UNKNOWN'
+        task_ids = target.task_ids.split(',')
+        tasks = []
+        for tid in task_ids:
+            task = TaskMeta.objects.filter(task_id=tid).first()
+            if task is not None:
+                tasks.append(task)
+        status, _ = get_task_status(tasks)
+
+    next_conf_available = True if status == 'SUCCESS' else False
 
     context = {
         'result': target,
-        'metrics': PLOTTABLE_FIELDS,
-        'metric_meta': METRIC_META,
+        'metrics': metric_meta.keys(),
+        'metric_meta': metric_meta,
         'default_metrics': default_metrics,
         'data': JSONUtil.dumps(data_package),
         'same_runs': same_dbconf_results,
         'status': status,
+        'next_conf_available': next_conf_available,
         'similar_runs': similar_dbconf_results
     }
     return render(request, 'result.html', context)
@@ -1012,33 +939,21 @@ def result(request):
 @login_required(login_url='/login/')
 def get_result_data_file(request):
     target = get_object_or_404(Result, pk=request.GET['id'])
-    # task =  get_object_or_404(Task, pk=request.GET['id'])
     if target.application.user != request.user:
         return render(request, '404.html')
 
     result_id = int(request.GET['id'])
     result_type = request.GET['type']
 
-    prefix = get_result_data_dir(result_id)
+    prefix = MediaUtil.get_result_data_path(result_id)
 
-    if result_type == 'sample':
-        response = HttpResponse(FileWrapper(
-            file(prefix + '_' + result_type)), content_type='text/plain')
-        response.__setitem__(
-            'Content-Disposition', 'attachment; filename=result_' + str(result_id) + '.sample')
-        return response
+    if result_type == 'samples':
+        filepath = prefix + '.samples'
     elif result_type == 'raw':
-        response = HttpResponse(FileWrapper(
-            file(prefix + '_' + result_type)), content_type='text/plain')
-        response['Content-Disposition'] = 'attachment; filename=result_' + \
-            str(result_id) + '.raw'
-        return response
-    elif result_type == 'new_conf':
-        response = HttpResponse(FileWrapper(
-            file(prefix + '_' + result_type)), content_type='text/plain')
-        response['Content-Disposition'] = 'attachment; filename=result_' + \
-            str(result_id) + '_new_conf'
-        return response
+        filepath = prefix + '.raw'
+    elif result_type == 'next_conf':
+        filepath = prefix + '.next_conf'
+    return MediaUtil.download_file(filepath)
 
 
 # Data Format:
@@ -1067,18 +982,19 @@ def get_timeline_data(request):
         (x.timestamp - y.timestamp).total_seconds()))
 
     table_results = []
-    if request.GET['ben'] == 'show_none':
+    display_type = request.GET['ben']
+    if display_type == 'show_none':
         pass
     else:
 
-        if request.GET['ben'] == 'grid':
+        if display_type == 'grid':
             benchmarks = set()
             benchmark_confs = []
             for result in results:
                 benchmarks.add(result.benchmark_config.benchmark_type)
                 benchmark_confs.append(result.benchmark_config)
         else:
-            benchmarks = [request.GET['ben']]
+            benchmarks = [display_type]
             benchmark_confs = filter(lambda x: x != '', request.GET[
                                      'spe'].strip().split(','))
             results = filter(lambda x: str(x.benchmark_config.pk)
@@ -1092,62 +1008,63 @@ def get_timeline_data(request):
                 x.benchmark_config, key) == value, results)
 
         table_results = results
-
+        default_metrics = Statistics.objects.DEFAULT_METRICS
         if len(benchmarks) == 1:
             metrics = request.GET.get(
-                'met', 'throughput,p99_latency').split(',')
+                'met', ','.join(default_metrics)).split(',')
         else:
-            metrics = ['throughput', 'p99_latency']
+            metrics = default_metrics
 
-    # For the data table
-    data_package['results'] = [
-        [x.pk,
-         x.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
-         x.dbms_config.name,
-         x.dbms_metrics.name,
-         x.benchmark_config.name,
-         x.throughput * METRIC_META['throughput']['scale'],
-         x.p99_latency * METRIC_META['p99_latency']['scale'],
-         x.dbms_config.pk,
-         x.dbms_metrics.pk,
-         x.benchmark_config.pk
-         ]
-        for x in table_results]
+        # For the data table
+        metric_meta = Statistics.objects.METRIC_META
+        tput_scale = metric_meta[Statistics.objects.THROUGHPUT]['scale']
+        lat_scale = metric_meta[Statistics.objects.P99_LATENCY]['scale']
+        data_package['results'] = [
+            [x.pk,
+             x.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+             x.dbms_config.name,
+             x.dbms_metrics.name,
+             x.benchmark_config.name,
+             x.summary_stats.throughput * tput_scale,
+             x.summary_stats.p99_latency * lat_scale,
+             x.dbms_config.pk,
+             x.dbms_metrics.pk,
+             x.benchmark_config.pk
+             ]
+            for x in table_results]
 
-    # For plotting charts
-    for metric in metrics:
-        for bench in benchmarks:
-            b_r = filter(
-                lambda x: x.benchmark_config.benchmark_type == bench, results)
-            if len(b_r) == 0:
-                continue
+        # For plotting charts
+        for metric in metrics:
+            for bench in benchmarks:
+                b_r = filter(
+                    lambda x: x.benchmark_config.benchmark_type == bench, results)
+                if len(b_r) == 0:
+                    continue
 
-            less_is_better = METRIC_META[metric]['lessisbetter'] and \
-                '(less is better)' or '(more is better)'
-            data = {
-                'benchmark': bench,
-                'units': METRIC_META[metric]['unit'],
-                'lessisbetter': less_is_better,
-                'data': {},
-                'baseline': "None",
-                'metric': metric
-            }
+                data = {
+                    'benchmark': bench,
+                    'units': metric_meta[metric]['unit'],
+                    'lessisbetter': metric_meta[metric]['improvement'],
+                    'data': {},
+                    'baseline': "None",
+                    'metric': metric_meta[metric]['print']
+                }
 
-            for db in request.GET['db'].split(','):
-                d_r = filter(lambda x: x.dbms.key == db, b_r)
-                d_r = d_r[-revs:]
-                out = [
-                    [
-                        res.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
-                        getattr(res, metric) * METRIC_META[metric]['scale'],
-                        "",
-                        str(res.pk)
-                    ]
-                    for res in d_r]
+                for db in request.GET['db'].split(','):
+                    d_r = filter(lambda x: x.dbms.key == db, b_r)
+                    d_r = d_r[-revs:]
+                    out = [
+                        [
+                            res.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+                            getattr(res.summary_stats, metric) * metric_meta[metric]['scale'],
+                            "",
+                            str(res.pk)
+                        ]
+                        for res in d_r]
 
-                if len(out) > 0:
-                    data['data'][db] = out
+                    if len(out) > 0:
+                        data['data'][db] = out
 
-            data_package['timelines'].append(data)
+                data_package['timelines'].append(data)
 
     return HttpResponse(JSONUtil.dumps(data_package), content_type='application/json')

@@ -1,73 +1,79 @@
 import itertools
 import numpy as np
 import os.path
-import time
 from collections import OrderedDict
 
 from celery.task import task, Task
 from django.utils.timezone import now
+from djcelery.models import TaskMeta
 from sklearn.preprocessing import StandardScaler
 
-from website.models import (DBMSCatalog, Hardware, KnobCatalog, Result,
-                            ResultData, WorkloadCluster, PipelineResult)
-from website.models import Task as TaskModel
+from website.models import (DBMSCatalog, Hardware, KnobCatalog, PipelineResult,
+                            Result, ResultData, WorkloadCluster)
 from website.settings import PIPELINE_DIR
-from website.types import KnobUnitType, PipelineTaskType
-from website.utils import ConversionUtil, DataUtil, JSONUtil, PostgresUtilImpl
+from website.types import KnobUnitType, PipelineTaskType, VarType
+from website.utils import (ConversionUtil, DataUtil, DBMSUtil, JSONUtil,
+                           MediaUtil,PostgresUtilImpl)
 
 
 class UpdateTask(Task):
 
-    def __call__(self, *args, **kwargs):
+    def __init__(self):
         self.rate_limit = '50/m'
         self.max_retries = 3
         self.default_retry_delay = 60
 
-        # Update start time for this task
-        task = TaskModel.objects.get(taskmeta_id=self.request.id)
-        task.start_time = now()
-        task.save()
-        return super(UpdateTask, self).__call__(*args, **kwargs)
 
-#     def after_return(self, status, retval, task_id, args, kwargs, einfo):
-#         super(UpdateTask, self).after_return(status, retval, task_id, args, kwargs, einfo)
-#         print "RETURNED!! (task_id={}, rl={}, mr={}, drt={})".format(task_id, self.rate_limit, self.max_retries, self.default_retry_delay)
-#
-#     def on_failure(self, exc, task_id, args, kwargs, einfo):
-#         super(UpdateTask, self).on_failure(exc, task_id, args, kwargs, einfo)
-#         print "FAILURE!! {} (task_id={})".format(exc, task_id)
-#
-#     def on_success(self, retval, task_id, args, kwargs):
-#         super(UpdateTask, self).on_success(retval, task_id, args, kwargs)
-#         print "SUCCESS!! result={} (task_id={})".format(retval, task_id)
-#
-#     def on_retry(self, exc, task_id, args, kwargs, einfo):
-#         super(UpdateTask, self).on_retry(exc, task_id, args, kwargs, einfo)
-#         print "RETRY!! {} (task_id={})".format(exc, task_id)
+class AggregateTargetResults(UpdateTask):
+
+    def on_success(self, retval, task_id, args, kwargs):
+        super(UpdateTask, self).on_success(retval, task_id, args, kwargs)
+
+        # Completely delete this result because it's huge and not
+        # interesting
+        task_meta = TaskMeta.objects.get(task_id=task_id)
+        task_meta.result = None
+        task_meta.save()
 
 
-@task(base=UpdateTask, name='preprocess')
-def preprocess(a, b):
-    print "PREPROCESSING ({}, {})".format(a, b)
-    time.sleep(2)
-    return a + b
+class MapWorkload(UpdateTask):
+
+    def on_success(self, retval, task_id, args, kwargs):
+        super(UpdateTask, self).on_success(retval, task_id, args, kwargs)
+
+        # Replace result with formatted result
+        new_res = {
+            'scores': sorted(args[0]['scores'].iteritems()),
+            'mapped_workload_id': args[0]['mapped_workload'],
+        }
+        task_meta = TaskMeta.objects.get(task_id=task_id)
+        task_meta.result = new_res # Only store scores
+        task_meta.save()
 
 
-@task(base=UpdateTask, name='run_wm')
-def run_wm(q, r):
-    print "RUNNING WM: ({}, {})".format(q, r)
-    time.sleep(3)
-    return q + r
+class ConfigurationRecommendation(UpdateTask):
 
+    def on_success(self, retval, task_id, args, kwargs):
+        super(UpdateTask, self).on_success(retval, task_id, args, kwargs)
 
-@task(base=UpdateTask, name='run_gpr')
-def run_gpr(x, y):
-    print "RUNNING GP ({}, {})".format(x, y)
-    time.sleep(4)
-    return x + y
+        # Replace result with formatted result
+        tuning_params = retval
+        task_meta = TaskMeta.objects.get(task_id=task_id)
+        task_meta.result = retval
+        task_meta.save()
 
+        # Create next configuration to try
+        result_id = args[0]['newest_result_id']
+        result = Result.objects.get(pk=result_id)
+        official_params = KnobCatalog.objects.filter(dbms=result.dbms)
+        nondefault_params = JSONUtil.loads(result.application.nondefault_settings)
+        config = DBMSUtil.create_configuration(
+            result.dbms.type, tuning_params, nondefault_params, official_params)
+        path_prefix = MediaUtil.get_result_data_path(result.pk)
+        with open('{}.next_conf'.format(path_prefix), 'w') as f:
+            f.write(config)
 
-@task(name='aggregate_target_results')
+@task(base=AggregateTargetResults, name='aggregate_target_results')
 def aggregate_target_results(result_id):
     newest_result = Result.objects.get(pk=result_id)
     target_results = Result.objects.filter(
@@ -88,17 +94,13 @@ def aggregate_target_results(result_id):
     return agg_data
 
 
-@task(name='configuration_recommendation')
+@task(base=ConfigurationRecommendation, name='configuration_recommendation')
 def configuration_recommendation(target_data):
     from cmudbottertune.analysis.gp_tf import GPR_GD
 
-    # Find the best (minimum) score
-    best_score = np.inf
-    best_wkld_id = None
-    for wkld_id, similarity_score in target_data['scores'].iteritems():
-        if similarity_score < best_score:
-            best_score = similarity_score
-            best_wkld_id = wkld_id
+    if target_data['scores'] is None:
+        raise NotImplementedError('Implement me!')
+    best_wkld_id = target_data['mapped_workload'][0]
 
     # Load specific workload data
     newest_result = Result.objects.get(pk=target_data['newest_result_id'])
@@ -143,7 +145,7 @@ def configuration_recommendation(target_data):
     X_columnlabels = X_columnlabels[X_idxs]
 
     # Filter metrics by current target objective metric
-    target_obj = '99th Percentile Latency (microseconds)'
+    target_obj = 'p99_latency'
     y_idx = [i for i in range(y_columnlabels.shape[0])
              if y_columnlabels[i] == target_obj]
     if len(y_idx) == 0:
@@ -175,7 +177,6 @@ def configuration_recommendation(target_data):
     wkld_rowlabels = wkld_rowlabels[dups_filter]
 
     # Combine Xs and scale
-    rowlabels = np.hstack([target_rowlabels, wkld_rowlabels])
     X_matrix = np.vstack([X_target_matrix, X_wkld_matrix])
     X_scaler = StandardScaler()
     X_scaled = X_scaler.fit_transform(X_matrix)
@@ -185,11 +186,17 @@ def configuration_recommendation(target_data):
         y_matrix = np.vstack([y_target_matrix, y_wkld_matrix])
         y_scaled = y_wkld_scaler.fit_transform(y_matrix)
     else:
-        y_target_scaler = StandardScaler()
-        y_wkld_scaler = StandardScaler()
-        y_target_scaled = y_target_scaler.fit_transform(y_target_matrix)
-        y_wkld_scaled = y_wkld_scaler.fit_transform(y_wkld_matrix)
-        y_scaled = np.vstack([y_target_scaled, y_wkld_scaled])
+        try:
+            y_target_scaler = StandardScaler()
+            y_wkld_scaler = StandardScaler()
+            y_target_scaled = y_target_scaler.fit_transform(y_target_matrix)
+            y_wkld_scaled = y_wkld_scaler.fit_transform(y_wkld_matrix)
+            y_scaled = np.vstack([y_target_scaled, y_wkld_scaled])
+        except ValueError:
+            y_target_scaler = None
+            y_wkld_scaler = StandardScaler()
+            y_matrix = np.vstack([y_target_matrix, y_wkld_matrix])
+            y_scaled = y_wkld_scaler.fit_transform(y_matrix)
 
     ridge = np.empty(X_scaled.shape[0])
     ridge[:X_target_matrix.shape[0]] = 0.01
@@ -225,11 +232,15 @@ def configuration_recommendation(target_data):
             else:
                 raise Exception(
                     'Invalid knob unit type: {}'.format(knob_info.unit))
+        elif knob_info.vartype == VarType.INTEGER:
+            knob_value = int(round(knob_value))
+        elif knob_info.vartype == VarType.REAL:
+            knob_value = '{0:.2f}'.format(round(knob_value, 2))
         conf_map[knob_name] = knob_value
-    print conf_map
+    return conf_map
 
 
-@task(name='map_workload')
+@task(base=MapWorkload, name='map_workload')
 def map_workload(target_data):
     from cmudbottertune.analysis.gp_tf import GPR
     from cmudbottertune.analysis.preprocessing import bin_by_decile
@@ -240,7 +251,8 @@ def map_workload(target_data):
     workload_data = PipelineResult.get_latest(
         dbms, hardware, PipelineTaskType.WORKLOAD_MAPPING_DATA)
     if workload_data is None:
-        return None
+        target_data['scores'] = None
+        return target_data
 
     data_values = JSONUtil.loads(workload_data.value)
     X_scaler = np.load(data_values['X_scaler'])
@@ -275,6 +287,15 @@ def map_workload(target_data):
         dists = np.sqrt(
             np.sum(np.square(np.subtract(preds, y_target)), axis=1))
         scores[wkld_id] = np.mean(dists)
+
+    # Find the best (minimum) score
+    best_score = np.inf
+    best_wkld_id = None
+    for wkld_id, similarity_score in scores.iteritems():
+        if similarity_score < best_score:
+            best_score = similarity_score
+            best_wkld_id = wkld_id
+    target_data['mapped_workload'] = (best_wkld_id, best_score)
     target_data['scores'] = scores
     return target_data
 

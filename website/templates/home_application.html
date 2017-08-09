@@ -11,7 +11,7 @@
         <th><input type="checkbox" onClick="toggle(this, 'applications')" /></th>
         <th>Application Name</th>
         <th>Project Name</th>
-        <th>Description</th>
+<!--         <th>Description</th> -->
         <th>Hardware</th>
         <th>Tuning Session</th>
         <th>Last Update</th>
@@ -22,7 +22,7 @@
             <td style="vertical-align:middle"><input type="checkbox" name="applications" value="{{ application.pk }}" /></td>
             <td style="vertical-align:middle"><a href="/application/?id={{application.pk}}">{{ application.name }}</a></td>
             <td style="vertical-align:middle">{{ project.name }}</a></td>
-            <td style="vertical-align:middle">{{ application.description|linebreaks }}</td>
+<!--             <td style="vertical-align:middle">{{ application.description|linebreaks }}</td> -->
             <td style="vertical-align:middle">{{ application.hardware.name }}</td>
             <td style="vertical-align:middle">{{ application.tuning_session }}</td>
             <td style="vertical-align:middle">{{ application.creation_time }}</td>

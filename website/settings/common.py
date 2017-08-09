@@ -34,6 +34,9 @@ PRELOAD_DIR = os.path.join(PROJECT_ROOT, 'preload')
 # This is where intermediate results are stored in our ML pipeline
 PIPELINE_DIR = join(PROJECT_ROOT, 'data', 'pipeline_results')
 
+# Path to the base DBMS configuration files
+CONFIG_DIR = join(PROJECT_ROOT, 'config')
+
 ## ==============================================
 ## DEBUG CONFIGURATION
 ## ==============================================

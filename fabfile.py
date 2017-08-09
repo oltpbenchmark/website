@@ -8,7 +8,7 @@ import os
 import os.path
 
 from collections import namedtuple
-from fabric.api import env, local, quiet, settings, task
+from fabric.api import env, execute, local, quiet, settings, task
 from fabric.state import output as fabric_output
 
 from website.settings import PRELOAD_DIR, PROJECT_ROOT
@@ -166,10 +166,16 @@ def create_workload_mapping_data():
 
 
 @task
+def process_data():
+    execute(aggregate_results)
+    execute(create_workload_mapping_data)
+
+
+@task
 def test_workload_mapping():
     cmd = ('from website.tasks import aggregate_target_results, '
            'map_workload, configuration_recommendation; res = '
-           'aggregate_target_results(7); res = map_workload(res); '
+           'aggregate_target_results(23); res = map_workload(res); '
            'res = configuration_recommendation(res)')
     local(('export PYTHONPATH={}\:$PYTHONPATH; '
            'django-admin shell --settings=website.settings '
