@@ -1,13 +1,14 @@
 from collections import OrderedDict
 
+import xml.dom.minidom
 from django.contrib.auth.models import User
-from django.core.exceptions import ValidationError
-from django.core.validators import validate_comma_separated_integer_list
+from django.core.validators import (validate_comma_separated_integer_list,
+                                    MinValueValidator)
 from django.db import models
+from django.utils.timezone import now
 
 from .types import (DBMSType, MetricType, VarType, HardwareType,
                     KnobUnitType, PipelineTaskType, StatsType)
-from .utils import JSONUtil
 
 
 class DBMSCatalog(models.Model):
@@ -15,16 +16,19 @@ class DBMSCatalog(models.Model):
     version = models.CharField(max_length=16)
 
     @property
-    def key(self):
-        return '{}_{}'.format(self.name, self.version)
-
-    @property
     def name(self):
         return DBMSType.name(self.type)
 
     @property
+    def key(self):
+        return '{}_{}'.format(self.name, self.version)
+
+    @property
     def full_name(self):
         return '{} v{}'.format(self.name, self.version)
+
+    def __unicode__(self):
+        return self.full_name
 
 
 class KnobCatalog(models.Model):
@@ -52,12 +56,6 @@ class MetricCatalog(models.Model):
     scope = models.CharField(max_length=16)
     metric_type = models.IntegerField(choices=MetricType.choices())
 
-    def clean_fields(self, exclude=None):
-        super(MetricCatalog, self).clean_fields(exclude=exclude)
-        if self.metric_type == MetricType.COUNTER and \
-                self.vartype != VarType.INTEGER:
-            raise ValidationError('Counter metrics must be integers.')
-
 
 class Project(models.Model):
     user = models.ForeignKey(User)
@@ -72,23 +70,29 @@ class Project(models.Model):
             x.delete()
         super(Project, self).delete(using)
 
+    def __unicode__(self):
+        return self.name
+
 
 class Hardware(models.Model):
     type = models.IntegerField(choices=HardwareType.choices())
     name = models.CharField(max_length=32)
     cpu = models.IntegerField()
     memory = models.FloatField()
-    storage = models.CharField(
-            max_length=64,
+    storage = models.CharField(max_length=64,
             validators=[validate_comma_separated_integer_list])
     storage_type = models.CharField(max_length=16)
     additional_specs = models.TextField(null=True)
+
+    def __unicode__(self):
+        return HardwareType.TYPE_NAMES[self.type]
 
 
 class Application(models.Model):
     user = models.ForeignKey(User)
     name = models.CharField(max_length=64)
-    description = models.TextField()
+    description = models.TextField(null=True)
+    dbms = models.ForeignKey(DBMSCatalog)
     hardware = models.ForeignKey(Hardware)
 
     project = models.ForeignKey(Project)
@@ -111,8 +115,60 @@ class Application(models.Model):
             x.delete()
         super(Application, self).delete(using)
 
+    def __unicode__(self):
+        return self.name
+
+
+class ExpManager(models.Manager):
+
+    def create_name(self, config, key):
+        ts = config.creation_time.strftime("%Y-%m-%d,%H")
+        return (key + '@' + ts + '#' + str(config.pk))
+
+
+class BenchmarkConfigManager(ExpManager):
+
+    def create_benchmark_config(self, app, config, bench_type, desc=None):
+        try:
+            return BenchmarkConfig.objects.get(application=app,
+                                               configuration=config)
+        except BenchmarkConfig.DoesNotExist:
+            benchmark_config = BenchmarkConfig()
+            benchmark_config.name = ''
+            benchmark_config.application = app
+            benchmark_config.configuration = config
+            benchmark_config.benchmark_type = bench_type
+            benchmark_config.description = desc
+            benchmark_config.creation_time = now()
+
+            dom = xml.dom.minidom.parseString(config)
+            root = dom.documentElement
+            benchmark_config.isolation = (root.getElementsByTagName('isolation'))[
+                0].firstChild.data
+            benchmark_config.scalefactor = (
+                root.getElementsByTagName('scalefactor'))[0].firstChild.data
+            benchmark_config.terminals = (root.getElementsByTagName('terminals'))[
+                0].firstChild.data
+            benchmark_config.time = (root.getElementsByTagName('time'))[
+                0].firstChild.data
+            benchmark_config.rate = (root.getElementsByTagName('rate'))[
+                0].firstChild.data
+            benchmark_config.skew = (root.getElementsByTagName('skew'))
+            benchmark_config.skew = - \
+                1 if len(benchmark_config.skew) == 0 else benchmark_config.skew[
+                    0].firstChild.data
+            benchmark_config.transaction_types = [
+                t.firstChild.data for t in root.getElementsByTagName('name')]
+            benchmark_config.transaction_weights = [
+                w.firstChild.data for w in root.getElementsByTagName('weights')]
+            benchmark_config.save()
+            benchmark_config.name = self.create_name(benchmark_config, bench_type)
+            benchmark_config.save()
+            return benchmark_config
 
 class BenchmarkConfig(models.Model):
+    objects = BenchmarkConfigManager()
+
     application = models.ForeignKey(Application)
     name = models.CharField(max_length=64)
     description = models.CharField(max_length=512, null=True)
@@ -122,7 +178,7 @@ class BenchmarkConfig(models.Model):
     isolation = models.CharField(max_length=64)
     scalefactor = models.FloatField()
     terminals = models.IntegerField()
-    time = models.IntegerField()
+    time = models.IntegerField(validators=[MinValueValidator(0)])
     rate = models.CharField(max_length=32)
     skew = models.FloatField(null=True)
     transaction_types = models.TextField(
@@ -136,69 +192,98 @@ class BenchmarkConfig(models.Model):
         {'field': 'terminals', 'print': '# of Terminals'},
     ]
 
-    def clean_fields(self, exclude=None):
-        super(BenchmarkConfig, self).clean_fields(exclude=exclude)
-        if self.time <= 0:
-            raise ValidationError('Time must be greater than 0.')
+    def __unicode__(self):
+        return self.name
 
 
-class DBConf(models.Model):
+class DBModel(models.Model):
+
     application = models.ForeignKey(Application)
+    dbms = models.ForeignKey(DBMSCatalog)
     name = models.CharField(max_length=50)
-    description = models.CharField(max_length=512)
+    description = models.CharField(max_length=512, null=True)
     creation_time = models.DateTimeField()
     configuration = models.TextField()
     orig_config_diffs = models.TextField()
-    dbms = models.ForeignKey(DBMSCatalog)
 
-    def get_tuning_configuration(self, return_both=False):
-        config = JSONUtil.loads(self.configuration)
-        param_catalog = KnobCatalog.objects.filter(dbms=self.dbms)
-        tunable_params = OrderedDict()
-        if return_both is True:
-            other_params = OrderedDict()
-        for p in param_catalog:
-            if p.tunable is True:
-                tunable_params[p.name] = config[p.name]
-            elif return_both is True:
-                other_params[p.name] = config[p.name]
-        return tunable_params if return_both is False else \
-            (tunable_params, other_params)
+    def __unicode__(self):
+        return self.name
 
 
-class DBMSMetrics(models.Model):
-    application = models.ForeignKey(Application)
-    name = models.CharField(max_length=50)
-    description = models.CharField(max_length=512)
-    creation_time = models.DateTimeField()
-    execution_time = models.IntegerField()
-    configuration = models.TextField()
-    orig_config_diffs = models.TextField()
-    dbms = models.ForeignKey(DBMSCatalog)
+class DBConfManager(ExpManager):
 
-    def clean_fields(self, exclude=None):
-        super(DBMSMetrics, self).clean_fields(exclude=exclude)
-        if self.execution_time <= 0:
-            raise ValidationError('Execution time must be greater than 0.')
+    def create_dbconf(self, app, config, orig_config_diffs,
+                      dbms, desc=None):
+        try:
+            return DBConf.objects.get(application=app,
+                                      configuration=config)
+        except DBConf.DoesNotExist:
+            conf = DBConf()
+            conf.application = app
+            conf.configuration = config
+            conf.orig_config_diffs = orig_config_diffs
+            conf.dbms = dbms
+            conf.creation_time = now()
+            conf.description = desc
+            conf.save()
+            conf.name = self.create_name(conf, dbms.key)
+            conf.save()
+            return conf
 
-    def get_numeric_configuration(self, normalize=True, return_both=False):
-        config = JSONUtil.loads(self.configuration)
-        metric_catalog = MetricCatalog.objects.filter(dbms=self.dbms)
-        numeric_metrics = OrderedDict()
-        if return_both is True:
-            other_metrics = OrderedDict()
-        for m in metric_catalog:
-            if m.metric_type == MetricType.COUNTER:
-                numeric_metrics[m.name] = \
-                        float(config[m.name]) / self.execution_time if \
-                        normalize is True else float(config[m.name])
-            elif return_both is True:
-                other_metrics[m.name] = config[m.name]
-        return numeric_metrics if return_both is False else \
-            (numeric_metrics, other_metrics)
 
+class DBConf(DBModel):
+    objects = DBConfManager()
+
+
+class DBMSMetricsManager(ExpManager):
+
+    def create_dbms_metrics(self, app, config, orig_config_diffs,
+                            exec_time, dbms, desc=None):
+        metrics = DBMSMetrics()
+        metrics.application = app
+        metrics.configuration = config
+        metrics.orig_config_diffs = orig_config_diffs
+        metrics.dbms = dbms
+        metrics.creation_time = now()
+        metrics.execution_time = exec_time
+        metrics.description = desc
+        metrics.save()
+        metrics.name = self.create_name(metrics, dbms.key)
+        metrics.save()
+
+
+class DBMSMetrics(DBModel):
+    objects = DBMSMetricsManager()
+
+    execution_time = models.IntegerField(
+        validators=[MinValueValidator(0)])
+
+
+class ResultManager(models.Manager):
+
+    def create_result(self, app, dbms, bench_config, dbms_config,
+                      dbms_metrics, summary, samples, timestamp,
+                      summary_stats=None, task_ids=None,
+                      most_similar=None):
+        res = Result()
+        res.application = app
+        res.dbms = dbms
+        res.benchmark_config = bench_config
+        res.dbms_config = dbms_config
+        res.dbms_metrics = dbms_metrics
+        res.summary = summary
+        res.samples = samples
+        res.timestamp = timestamp
+        res.summary_stats = summary_stats
+        res.task_ids = task_ids
+        res.most_similar = most_similar
+        res.creation_time = now()
+        res.save()
+        return res
 
 class Result(models.Model):
+    objects = ResultManager()
+
     application = models.ForeignKey(Application)
     dbms = models.ForeignKey(DBMSCatalog)
     benchmark_config = models.ForeignKey(BenchmarkConfig)
@@ -212,39 +297,62 @@ class Result(models.Model):
     summary_stats = models.ForeignKey('Statistics', null=True)
     timestamp = models.DateTimeField()
     most_similar = models.CharField(max_length=100, validators=[
-                                    validate_comma_separated_integer_list])
+                                    validate_comma_separated_integer_list],
+                                    null=True)
 
     def __unicode__(self):
         return unicode(self.pk)
 
 
+class WorkloadClusterManager(models.Manager):
+
+    __DEFAULT_FMT = '{}_{}_UNASSIGNED'.format
+
+    def create_workload_cluster(self, dbms, hardware, cluster_name=None):
+        if cluster_name is None:
+            cluster_name = self.__DEFAULT_FMT(dbms.pk, hardware.pk)
+        try:
+            return WorkloadCluster.objects.get(cluster_name=cluster_name)
+        except WorkloadCluster.DoesNotExist:
+            cluster = WorkloadCluster()
+            cluster.dbms = dbms
+            cluster.hardware = hardware
+            cluster.cluster_name = cluster_name
+            cluster.save()
+            return cluster
+
+
 class WorkloadCluster(models.Model):
+    objects = WorkloadClusterManager()
+
     dbms = models.ForeignKey(DBMSCatalog)
     hardware = models.ForeignKey(Hardware)
     cluster_name = models.CharField(max_length=128, unique=True)
 
-    @property
-    def default_name(self):
-        return '{}_{}_UNASSIGNED'.format(self.dbms.pk, self.hardware.pk)
-
     def isdefault(self):
-        return self.cluster_name == self.default_name
+        default_name = WorkloadClusterManager.__DEFAULT_FMT(
+            self.dbms.pk, self.hardware.pk)
+        return self.cluster_name == default_name
 
-    @staticmethod
-    def get_default_cluster(dbms, hardware):
-        name = '{}_{}_UNASSIGNED'.format(dbms.pk, hardware.pk)
-        default_obj = WorkloadCluster.objects.filter(
-            dbms=dbms, hardware=hardware, cluster_name=name).first()
-        if default_obj is None:
-            default_obj = WorkloadCluster()
-            default_obj.dbms = dbms
-            default_obj.hardware = hardware
-            default_obj.cluster_name = name
-            default_obj.save()
-        return default_obj
+    def __unicode__(self):
+        return self.cluster_name
 
+
+class ResultDataManager(models.Manager):
+
+    def create_result_data(self, result, cluster,
+                           param_data, metric_data):
+        res_data = ResultData()
+        res_data.result = result
+        res_data.cluster = cluster
+        res_data.param_data = param_data
+        res_data.metric_data = metric_data
+        res_data.save()
+        return res_data
 
 class ResultData(models.Model):
+    objects = ResultDataManager()
+
     result = models.ForeignKey(Result)
     cluster = models.ForeignKey(WorkloadCluster)
     param_data = models.TextField()
@@ -381,6 +489,7 @@ class StatsManager(models.Manager):
 
 
 class Statistics(models.Model):
+    objects = StatsManager()
 
     data_result = models.ForeignKey(Result)
     type = models.IntegerField(choices = StatsType.choices())
@@ -395,5 +504,3 @@ class Statistics(models.Model):
     p95_latency = models.FloatField()
     p99_latency = models.FloatField()
     max_latency = models.FloatField()
-
-    objects = StatsManager()

@@ -22,7 +22,8 @@ urlpatterns = [
     url(r'^get_result_data_file/', website_views.get_result_data_file),
     url(r'^update_similar/', website_views.update_similar),
 
-    url(r'^edit_application/', website_views.edit_application),
+#     url(r'^edit_application/', website_views.edit_application),
+    url(r'^edit_application/', website_views.update_application),
     url(r'^update_application/', website_views.update_application),
     url(r'^application/', website_views.application),
     url(r'^project_info/', website_views.project_info),

@@ -56,19 +56,20 @@ class ConfigurationRecommendation(UpdateTask):
     def on_success(self, retval, task_id, args, kwargs):
         super(UpdateTask, self).on_success(retval, task_id, args, kwargs)
 
+        result_id = args[0]['newest_result_id']
+        result = Result.objects.get(pk=result_id)
+
         # Replace result with formatted result
-        tuning_params = retval
+        formatted_params = DBMSUtil.format_dbms_params(result.dbms.pk, retval)
         task_meta = TaskMeta.objects.get(task_id=task_id)
-        task_meta.result = retval
+        task_meta.result = formatted_params
         task_meta.save()
 
         # Create next configuration to try
-        result_id = args[0]['newest_result_id']
-        result = Result.objects.get(pk=result_id)
-        official_params = KnobCatalog.objects.filter(dbms=result.dbms)
-        nondefault_params = JSONUtil.loads(result.application.nondefault_settings)
+        nondefault_params = JSONUtil.loads(
+            result.application.nondefault_settings)
         config = DBMSUtil.create_configuration(
-            result.dbms.type, tuning_params, nondefault_params, official_params)
+            result.dbms.pk, formatted_params, nondefault_params)
         path_prefix = MediaUtil.get_result_data_path(result.pk)
         with open('{}.next_conf'.format(path_prefix), 'w') as f:
             f.write(config)
@@ -218,26 +219,27 @@ def configuration_recommendation(target_data):
     best_conf = res.minL_conf[best_idx, :]
     best_conf = X_scaler.inverse_transform(best_conf)
 
-    conf_map = {}
-    for i, knob_name in enumerate(X_columnlabels):
-        knob_value = best_conf[i]
-        knob_info = KnobCatalog.objects.get(dbms__pk=dbms_id, name=knob_name)
-        if knob_info.unit != KnobUnitType.OTHER and knob_value > 0:
-            if knob_info.unit == KnobUnitType.BYTES:
-                knob_value = ConversionUtil.get_human_readable(
-                    knob_value, PostgresUtilImpl.POSTGRES_BYTES_SYSTEM)
-            elif knob_info.unit == KnobUnitType.MILLISECONDS:
-                knob_value = ConversionUtil.get_human_readable(
-                    knob_value, PostgresUtilImpl.POSTGRES_TIME_SYSTEM)
-            else:
-                raise Exception(
-                    'Invalid knob unit type: {}'.format(knob_info.unit))
-        elif knob_info.vartype == VarType.INTEGER:
-            knob_value = int(round(knob_value))
-        elif knob_info.vartype == VarType.REAL:
-            knob_value = '{0:.2f}'.format(round(knob_value, 2))
-        conf_map[knob_name] = knob_value
+    conf_map = {k: best_conf[i] for i,k in enumerate(X_columnlabels)}
     return conf_map
+#     for i, knob_name in enumerate(X_columnlabels):
+#         knob_value = best_conf[i]
+#         knob_info = KnobCatalog.objects.get(dbms__pk=dbms_id, name=knob_name)
+#         if knob_info.unit != KnobUnitType.OTHER and knob_value > 0:
+#             if knob_info.unit == KnobUnitType.BYTES:
+#                 knob_value = ConversionUtil.get_human_readable(
+#                     knob_value, PostgresUtilImpl.POSTGRES_BYTES_SYSTEM)
+#             elif knob_info.unit == KnobUnitType.MILLISECONDS:
+#                 knob_value = ConversionUtil.get_human_readable(
+#                     knob_value, PostgresUtilImpl.POSTGRES_TIME_SYSTEM)
+#             else:
+#                 raise Exception(
+#                     'Invalid knob unit type: {}'.format(knob_info.unit))
+#         elif knob_info.vartype == VarType.INTEGER:
+#             knob_value = int(round(knob_value))
+#         elif knob_info.vartype == VarType.REAL:
+#             knob_value = '{0:.2f}'.format(round(knob_value, 2))
+#         conf_map[knob_name] = knob_value
+
 
 
 @task(base=MapWorkload, name='map_workload')
@@ -303,7 +305,7 @@ def map_workload(target_data):
 @task(name='aggregate_results')
 def aggregate_results():
     unique_clusters = WorkloadCluster.objects.all()
-    unique_clusters = filter(lambda x: x.isdefault() == False, unique_clusters)
+    unique_clusters = filter(lambda x: x.isdefault() is False, unique_clusters)
     all_data = {}
     all_labels = {}
     for cluster in unique_clusters:

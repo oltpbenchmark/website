@@ -18,7 +18,7 @@ function renderPlot(data, div_id) {
             },
             xaxis:{
                 renderer: $.jqplot.CategoryAxisRenderer,
-                label: 'DB Conf ID',
+                label: 'DBMS Config ID',
                 labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
                 ticks: data.tick,
                 pad: 1.01,

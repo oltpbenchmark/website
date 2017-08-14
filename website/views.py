@@ -3,7 +3,6 @@ import logging
 from collections import OrderedDict
 from pytz import timezone
 
-import xml.dom.minidom
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
@@ -18,13 +17,12 @@ from django.utils.timezone import now
 from django.views.decorators.csrf import csrf_exempt
 from djcelery.models import TaskMeta
 
-from .forms import NewResultForm, TuningSessionCheckbox
+from .forms import ApplicationForm, NewResultForm
 from .models import (Application, BenchmarkConfig, DBConf, DBMSCatalog,
-                     DBMSMetrics, Hardware, KnobCatalog, MetricCatalog,
-                     Project, Result, ResultData, Statistics,
-                     WorkloadCluster)
+                     DBMSMetrics, Project, Result, ResultData,
+                     Statistics, WorkloadCluster)
 from tasks import aggregate_target_results, map_workload, configuration_recommendation
-from .types import DBMSType, HardwareType, MetricType, StatsType, TaskType
+from .types import DBMSType, StatsType, TaskType
 from .utils import DBMSUtil, JSONUtil, MediaUtil
 
 log = logging.getLogger(__name__)
@@ -150,7 +148,8 @@ def ml_info(request):
         total_runtime = 'N/A'
     else:
         completion_time = tasks[-1].date_done
-        total_runtime = (completion_time - res.creation_time)
+        total_runtime = (completion_time - res.creation_time).total_seconds()
+        total_runtime = '{0:.2f} seconds'.format(total_runtime)
 
     task_info = [(tname, task) for tname, task in \
                  zip(TaskType.TYPE_NAMES.values(), tasks)]
@@ -261,25 +260,27 @@ def edit_project(request):
     return render(request, 'edit_project.html', context)
 
 
-@login_required(login_url='/login/')
-def edit_application(request):
-    context = {}
-    try:
-        if request.GET['id'] != '':
-            application = Application.objects.get(pk=request.GET['id'])
-            if application.user != request.user:
-                return render(request, '404.html')
-            context['application'] = application
-    except Application.DoesNotExist:
-        pass
-    try:
-        if request.GET['pid'] != '':
-            project = Project.objects.get(pk=request.GET['pid'])
-            context['project'] = project
-    except Project.DoesNotExist:
-        pass
-    context['form'] = TuningSessionCheckbox(request.POST or None)
-    return render(request, 'edit_application.html', context)
+# @login_required(login_url='/login/')
+# def edit_application(request):
+#     project = get_object_or_404(Project, pk=request.GET['pid'])
+#     if project.user != request.user:
+#         return Http404()
+#     if request.GET['id'] != '':
+#         app = Application.objects.get(pk=int(request.GET['id']))
+#         form = ApplicationForm(instance=app)
+# #         form.fields['dbms'].widget.attrs['disabled'] = True
+# #         form.fields['dbms'].widget.attrs['readonly'] = True
+# #         form.fields['hardware'].widget.attrs['disabled'] = True
+# #         form.fields['hardware'].widget.attrs['readonly'] = True
+#     else:
+#         app = None
+#         form = ApplicationForm()
+#     context = {
+#         'project': project,
+#         'application': app,
+#         'form': form,
+#     }
+#     return render(request, 'edit_application.html', context)
 
 
 @login_required(login_url='/login/')
@@ -333,45 +334,55 @@ def update_project(request):
                'applications': applications}
     return render(request, 'home_application.html', context)
 
-
+@login_required(login_url='/login/')
 def update_application(request):
-    gen_upload_code = False
-    if 'id_new_code' in request.POST:
-        app_id = request.POST['id_new_code']
-        gen_upload_code = True
-    else:
-        tmp = request.POST['id']
-        tmp2 = tmp.split('&')
-        app_id = tmp2[0]
-        proj_id = tmp2[1]
-    if app_id == '':
-        p = Application()
-        p.creation_time = now()
-        p.user = request.user
-        # FIXME (dva): hardware type is hardcoded for now
-        hardware_type = HardwareType.EC2_M3XLARGE
-        if hardware_type == HardwareType.GENERIC:
-            raise NotImplementedError('Implement me!')
+    if request.method == 'POST':
+        app_id, proj_id = request.POST['id'].split('&')
+        project = Project.objects.get(pk=int(proj_id))
+        if project.user != request.user:
+            return Http404()
+        if app_id == '':
+            form = ApplicationForm(request.POST)
+            if not form.is_valid():
+                return HttpResponse(str(form))
+            app = form.save(commit=False)
+            app.user = request.user
+            app.project = project
+            ts = now()
+            app.creation_time = ts
+            app.last_update = ts
+            app.upload_code = MediaUtil.upload_code_generator()
+            app.save()
         else:
-            p.hardware = Hardware.objects.get(type=hardware_type)
-        gen_upload_code = True
-        p.project = Project.objects.get(pk=proj_id)
+            app = Application.objects.get(pk=int(app_id))
+            form = ApplicationForm(request.POST, instance=app)
+            if not form.is_valid():
+                return HttpResponse(str(form))
+            if form.cleaned_data['gen_upload_code'] is True:
+                app.upload_code = MediaUtil.upload_code_generator()
+            app.last_update = now()
+            app.save()
+        return redirect('/application/?id=' + str(app.pk))
     else:
-        p = Application.objects.get(pk=app_id)
-        if p.user != request.user:
-            return render(request, '404.html')
-
-    if gen_upload_code:
-        p.upload_code = MediaUtil.upload_code_generator(size=20)
-
-    p.name = request.POST['name']
-    p.description = request.POST['description']
-    p.last_update = now()
-    tuning_form = TuningSessionCheckbox(request.POST or None)
-    if tuning_form.is_valid():
-        p.tuning_session = tuning_form.cleaned_data['tuning_session']
-    p.save()
-    return redirect('/application/?id=' + str(p.pk))
+        project = get_object_or_404(Project, pk=request.GET['pid'])
+        if project.user != request.user:
+            return Http404()
+        if request.GET['id'] != '':
+            app = Application.objects.get(pk=int(request.GET['id']))
+            form = ApplicationForm(instance=app)
+#             form.fields['dbms'].widget.attrs['disabled'] = True
+#             form.fields['dbms'].widget.attrs['readonly'] = True
+#             form.fields['hardware'].widget.attrs['disabled'] = True
+#             form.fields['hardware'].widget.attrs['readonly'] = True
+        else:
+            app = None
+            form = ApplicationForm()
+        context = {
+            'project': project,
+            'application': app,
+            'form': form,
+        }
+        return render(request, 'edit_application.html', context)
 
 
 def write_file(contents, output_file, chunk_size=512):
@@ -405,10 +416,10 @@ def new_result(request):
 def handle_result_files(app, files, cluster_name):
     from celery import chain
 
-    # Load summary file
+    print 'FILES TYPE: {}'.format(type(files))
+    print 'FILE TYPE: {}'.format(type(files['summary_data']))
+    # Load summary file and verify that the database/version is supported
     summary = JSONUtil.loads(''.join(files['summary_data'].chunks()))
-
-    # Verify that the database/version is supported
     dbms_type = DBMSType.type(summary['DBMS Type'])
     # FIXME! bad hack until I have time to get the PG 9.3 metric/knob data in
     # the same form
@@ -423,165 +434,55 @@ def handle_result_files(app, files, cluster_name):
         return HttpResponse('{} v{} is not yet supported.'.format(
             summary['DBMS Type'], dbms_version))
 
-    # Load DB parameters file
+    # Load parameters, metrics, benchmark, and samples
     db_parameters = JSONUtil.loads(
         ''.join(files['db_parameters_data'].chunks()))
-
-    # Load DB metrics file
     db_metrics = JSONUtil.loads(''.join(files['db_metrics_data'].chunks()))
-
-    # Load benchmark config file
     benchmark_config_str = ''.join(files['benchmark_conf_data'].chunks())
-
-    # Load samples file
     samples = ''.join(files['sample_data'].chunks())
 
-    benchmark_configs = BenchmarkConfig.objects.filter(
-        configuration=benchmark_config_str)
-    if len(benchmark_configs) >= 1:
-        benchmark_config = benchmark_configs[0]
-    else:
-        benchmark_config = BenchmarkConfig()
-        benchmark_config.name = ''
-        benchmark_config.application = app
-        benchmark_config.configuration = benchmark_config_str
-        benchmark_config.benchmark_type = summary['Benchmark Type'].upper()
-        benchmark_config.creation_time = now()
+    benchmark_config = BenchmarkConfig.objects.create_benchmark_config(
+        app, benchmark_config_str, summary['Benchmark Type'].upper())
 
-        dom = xml.dom.minidom.parseString(benchmark_config_str)
-        root = dom.documentElement
-        benchmark_config.isolation = (root.getElementsByTagName('isolation'))[
-            0].firstChild.data
-        benchmark_config.scalefactor = (
-            root.getElementsByTagName('scalefactor'))[0].firstChild.data
-        benchmark_config.terminals = (root.getElementsByTagName('terminals'))[
-            0].firstChild.data
-        benchmark_config.time = (root.getElementsByTagName('time'))[
-            0].firstChild.data
-        benchmark_config.rate = (root.getElementsByTagName('rate'))[
-            0].firstChild.data
-        benchmark_config.skew = (root.getElementsByTagName('skew'))
-        benchmark_config.skew = - \
-            1 if len(benchmark_config.skew) == 0 else benchmark_config.skew[
-                0].firstChild.data
-        benchmark_config.transaction_types = [
-            t.firstChild.data for t in root.getElementsByTagName('name')]
-        benchmark_config.transaction_weights = [
-            w.firstChild.data for w in root.getElementsByTagName('weights')]
-        benchmark_config.save()
-        benchmark_config.name = benchmark_config.benchmark_type + '@' + \
-            benchmark_config.creation_time.strftime("%Y-%m-%d,%H") + \
-            '#' + str(benchmark_config.pk)
-        benchmark_config.save()
+    db_conf_dict, db_diffs = DBMSUtil.parse_dbms_config(
+        dbms_object.pk, db_parameters)
+    db_conf = DBConf.objects.create_dbconf(
+        app, JSONUtil.dumps(db_conf_dict, pprint=True, sort=True),
+        JSONUtil.dumps(db_diffs), dbms_object)
 
-    knob_catalog = KnobCatalog.objects.filter(dbms=dbms_object)
-    db_conf_dict, db_diffs = DBMSUtil.parse_dbms_config(dbms_object.type,
-                                                        db_parameters,
-                                                        knob_catalog)
-    db_conf_str = JSONUtil.dumps(db_conf_dict, pprint=True, sort=True)
-
-    creation_time = now()
-    db_confs = DBConf.objects.filter(
-        configuration=db_conf_str, application=app)
-    if len(db_confs) >= 1:
-        db_conf = db_confs[0]
-    else:
-        db_conf = DBConf()
-        db_conf.creation_time = creation_time
-        db_conf.name = ''
-        db_conf.configuration = db_conf_str
-        db_conf.orig_config_diffs = JSONUtil.dumps(db_diffs, pprint=True)
-        db_conf.application = app
-        db_conf.dbms = dbms_object
-        db_conf.description = ''
-        db_conf.save()
-        db_conf.name = dbms_object.key + '@' + \
-            creation_time.strftime("%Y-%m-%d,%H") + '#' + str(db_conf.pk)
-        db_conf.save()
-
-    db_metrics_catalog = MetricCatalog.objects.filter(dbms=dbms_object)
     db_metrics_dict, met_diffs = DBMSUtil.parse_dbms_metrics(
-            dbms_object.type, db_metrics, db_metrics_catalog)
-    dbms_metrics = DBMSMetrics()
-    dbms_metrics.creation_time = creation_time
-    dbms_metrics.name = ''
-    dbms_metrics.configuration = JSONUtil.dumps(
-        db_metrics_dict, pprint=True, sort=True)
-    dbms_metrics.orig_config_diffs = JSONUtil.dumps(met_diffs, pprint=True)
-    dbms_metrics.execution_time = benchmark_config.time
-    dbms_metrics.application = app
-    dbms_metrics.dbms = dbms_object
-    dbms_metrics.save()
-    dbms_metrics.name = dbms_object.key + '@' + \
-        creation_time.strftime("%Y-%m-%d,%H") + '#' + str(dbms_metrics.pk)
-    dbms_metrics.save()
+            dbms_object.pk, db_metrics)
+    dbms_metrics = DBMSMetrics.objects.create_dbms_metrics(
+        app, JSONUtil.dumps(db_metrics_dict, pprint=True, sort=True),
+        JSONUtil.dumps(met_diffs), benchmark_config.time, dbms_object)
 
-    result = Result()
-    result.application = app
-    result.dbms = dbms_object
-    result.dbms_config = db_conf
-    result.dbms_metrics = dbms_metrics
-    result.benchmark_config = benchmark_config
-
-    result.summary = JSONUtil.dumps(summary, pprint=True, sort=True)
-    result.samples = samples
-
-    result.timestamp = datetime.fromtimestamp(
+    timestamp = datetime.fromtimestamp(
         int(summary['Current Timestamp (milliseconds)']) / 1000,
         timezone("UTC"))
-    result.hardware = app.hardware
-    result.creation_time = now()
-    result.save()
+    result = Result.objects.create_result(
+        app, dbms_object, benchmark_config, db_conf, dbms_metrics,
+        JSONUtil.dumps(summary, pprint=True, sort=True), samples,
+        timestamp)
     result.summary_stats = Statistics.objects.create_summary_stats(
         summary, result, benchmark_config.time)
     result.save()
-
     Statistics.objects.create_sample_stats(samples, result)
 
-    if cluster_name is not None:
-        try:
-            wkld_cluster = WorkloadCluster.objects.get(
-                dbms=dbms_object,
-                hardware=app.hardware,
-                cluster_name=cluster_name)
-        except WorkloadCluster.DoesNotExist:
-            wkld_cluster = WorkloadCluster()
-            wkld_cluster.dbms = dbms_object
-            wkld_cluster.hardware = app.hardware
-            wkld_cluster.cluster_name = cluster_name
-            wkld_cluster.save()
-    else:
-        wkld_cluster = WorkloadCluster.get_default_cluster(
-            dbms_object, app.hardware)
-
-    tunable_param_catalog = filter(lambda x: x.tunable is True, knob_catalog)
-    tunable_params = {p.name: db_conf_dict[p.name]
-                      for p in tunable_param_catalog}
-    param_data = DBMSUtil.preprocess_dbms_params(
-        dbms_object.type, tunable_params, tunable_param_catalog)
-
-    numeric_metric_catalog = filter(
-        lambda x: x.metric_type != MetricType.INFO, db_metrics_catalog)
-    numeric_metrics = {p.name: db_metrics_dict[
-        p.name] for p in numeric_metric_catalog}
-
+    wkld_cluster = WorkloadCluster.objects.create_workload_cluster(
+        dbms_object, app.hardware, cluster_name)
+    param_data = DBMSUtil.convert_dbms_params(
+        dbms_object.pk, db_conf_dict)
     external_metrics = Statistics.objects.get_external_metrics(summary)
-    metric_data = DBMSUtil.preprocess_dbms_metrics(dbms_type,
-                                                   numeric_metrics,
-                                                   numeric_metric_catalog,
-                                                   external_metrics,
-                                                   int(benchmark_config.time))
+    metric_data = DBMSUtil.convert_dbms_metrics(
+        dbms_object.pk, db_metrics_dict, external_metrics,
+        int(benchmark_config.time))
 
-    res_data = ResultData()
-    res_data.result = result
-    res_data.cluster = wkld_cluster
-    res_data.param_data = JSONUtil.dumps(param_data, pprint=True, sort=True)
-    res_data.metric_data = JSONUtil.dumps(metric_data, pprint=True, sort=True)
-    res_data.save()
+    ResultData.objects.create_result_data(
+        result, wkld_cluster, JSONUtil.dumps(param_data, pprint=True, sort=True),
+        JSONUtil.dumps(metric_data, pprint=True, sort=True))
 
-    nondefault_settings = DBMSUtil.get_nondefault_settings(dbms_object.type,
-                                                           db_conf_dict,
-                                                           knob_catalog)
+    nondefault_settings = DBMSUtil.get_nondefault_settings(dbms_object.pk,
+                                                           db_conf_dict)
     app.project.last_update = now()
     app.last_update = now()
     if app.nondefault_settings is None:
@@ -609,16 +510,15 @@ def handle_result_files(app, files, cluster_name):
                 f.write(chunk)
 
     if app.tuning_session is False:
-        return HttpResponse("Store Success !")
+        return HttpResponse("Store success!")
 
-    print 'RESULT_PK = {}'.format(result.pk)
     response = chain(aggregate_target_results.s(result.pk),
                      map_workload.s(),
                      configuration_recommendation.s()).apply_async()
     taskmeta_ids = [response.parent.parent.id, response.parent.id, response.id]
     result.task_ids = ','.join(taskmeta_ids)
     result.save()
-    return HttpResponse("Store Success ! Running tuner... (status={})".format(
+    return HttpResponse("Store Success! Running tuner... (status={})".format(
         response.status))
 
 
@@ -650,15 +550,20 @@ def dbms_metrics_view(request):
     dbms_metrics = get_object_or_404(DBMSMetrics, pk=request.GET['id'])
     if dbms_metrics.application.user != request.user:
         raise Http404()
-    numeric_dict, other_dict = dbms_metrics.get_numeric_configuration(
-        normalize=True, return_both=True)
-    metric_dict = combine_dicts(numeric_dict, other_dict)
+
+    dbms_id = dbms_metrics.dbms.pk
+    metric_dict = JSONUtil.loads(dbms_metrics.configuration)
+    numeric_dict = DBMSUtil.filter_numeric_metrics(
+        dbms_id, metric_dict, normalize=True)
+#     numeric_dict, other_dict = dbms_metrics.get_numeric_configuration(
+#         normalize=True, return_both=True)
+#     metric_dict = combine_dicts(numeric_dict, other_dict)
 
     if 'compare' in request.GET and request.GET['compare'] != 'none':
         compare_obj = DBMSMetrics.objects.get(pk=request.GET['compare'])
-        comp_numeric_dict, comp_other_dict = compare_obj.get_numeric_configuration(
-            normalize=True, return_both=True)
-        comp_dict = combine_dicts(comp_numeric_dict, comp_other_dict)
+        comp_dict = JSONUtil.loads(compare_obj.configuration)
+        comp_numeric_dict = DBMSUtil.filter_numeric_metrics(
+            dbms_id, comp_dict, normalize=True)
 
         metrics = [(k, v, comp_dict[k]) for k, v in metric_dict.iteritems()]
         numeric_metrics = [(k, v, comp_numeric_dict[k])
@@ -690,15 +595,15 @@ def db_conf_view(request):
     db_conf = get_object_or_404(DBConf, pk=request.GET['id'])
     if db_conf.application.user != request.user:
         raise Http404()
-    tuning_dict, other_dict = db_conf.get_tuning_configuration(
-        return_both=True)
-    params_dict = combine_dicts(tuning_dict, other_dict)
+
+    dbms_id = db_conf.dbms.pk
+    params_dict = JSONUtil.loads(db_conf.configuration)
+    tuning_dict = DBMSUtil.filter_tunable_params(dbms_id, params_dict)
 
     if 'compare' in request.GET and request.GET['compare'] != 'none':
         compare_obj = DBConf.objects.get(pk=request.GET['compare'])
-        comp_tuning_dict, comp_other_dict = compare_obj.get_tuning_configuration(
-            return_both=True)
-        comp_dict = combine_dicts(comp_tuning_dict, comp_other_dict)
+        comp_dict = JSONUtil.loads(compare_obj.configuration)
+        comp_tuning_dict = DBMSUtil.filter_tunable_params(dbms_id, comp_dict)
 
         params = [(k, v, comp_dict[k]) for k, v in params_dict.iteritems()]
         tuning_params = [(k, v, comp_tuning_dict[k])
@@ -841,8 +746,11 @@ def update_benchmark_conf(request):
 
 
 def result_similar(a, b):
-    db_conf_a = a.dbms_config.get_tuning_configuration()
-    db_conf_b = b.dbms_config.get_tuning_configuration()
+    dbms_id = a.dbms.pk
+    db_conf_a = DBMSUtil.filter_tunable_params(
+        dbms_id, JSONUtil.loads(a.dbms_config.configuration))
+    db_conf_b = DBMSUtil.filter_tunable_params(
+        dbms_id, JSONUtil.loads(b.dbms_config.configuration))
     for k, v in db_conf_a.iteritems():
         if k not in db_conf_b or v != db_conf_b[k]:
             return False
@@ -999,6 +907,8 @@ def get_timeline_data(request):
                                      'spe'].strip().split(','))
             results = filter(lambda x: str(x.benchmark_config.pk)
                              in benchmark_confs, results)
+
+#         if len(results) >= 1:
 
         for f in filter(lambda x: x != '', request.GET.getlist('add[]', [])):
             key, value = f.split(':')

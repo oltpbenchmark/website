@@ -18,6 +18,7 @@ import mimetypes
 from django.http import StreamingHttpResponse
 from wsgiref.util import FileWrapper
 
+from .models import DBMSCatalog, KnobCatalog, MetricCatalog
 from .settings import CONFIG_DIR, UPLOAD_DIR
 from .types import BooleanType, DBMSType, MetricType, VarType, KnobUnitType
 
@@ -59,7 +60,7 @@ class MediaUtil(object):
         return os.path.join(result_path, str(int(result_id) / 100l))
 
     @staticmethod
-    def upload_code_generator(size=6,
+    def upload_code_generator(size=20,
                               chars=string.ascii_uppercase + string.digits):
         new_upload_code = ''.join(choice(chars) for _ in range(size))
         return new_upload_code
@@ -158,9 +159,21 @@ class DBMSUtilImpl(object):
 
     __metaclass__ = ABCMeta
 
+    def __init__(self, dbms_id):
+        self.dbms_id_ = dbms_id
+        knobs = KnobCatalog.objects.filter(dbms__pk=self.dbms_id_)
+        self.knob_catalog_ = {k.name: k for k in knobs}
+        self.tunable_knob_catalog_ = {k: v for k, v in \
+                self.knob_catalog_.iteritems() if v.tunable is True}
+        metrics = MetricCatalog.objects.filter(dbms__pk=self.dbms_id_)
+        self.metric_catalog_ = {m.name: m for m in metrics}
+        self.numeric_metric_catalog_ = {m: v for m, v in \
+                self.metric_catalog_.iteritems() if \
+                v.metric_type == MetricType.COUNTER}
+
     @abstractproperty
     def base_configuration_settings(self):
-        return {}
+        pass
 
     @abstractproperty
     def configuration_filename(self):
@@ -170,11 +183,11 @@ class DBMSUtilImpl(object):
     def parse_version_string(self, version_string):
         pass
 
-    def preprocess_bool(self, bool_value, param_info):
+    def convert_bool(self, bool_value, param_info):
         return BooleanType.TRUE if \
                 bool_value.lower() == 'on' else BooleanType.FALSE
 
-    def preprocess_enum(self, enum_value, param_info):
+    def convert_enum(self, enum_value, param_info):
         enumvals = param_info.enumvals.split(',')
         try:
             return enumvals.index(enum_value)
@@ -182,76 +195,69 @@ class DBMSUtilImpl(object):
             raise Exception('Invalid enum value for param {} ({})'.format(
                 param_info.name, enum_value))
 
-    def preprocess_integer(self, int_value, param_info):
+    def convert_integer(self, int_value, param_info):
         try:
             return int(int_value)
         except ValueError:
             return int(float(int_value))
 
-    def preprocess_real(self, real_value, param_info):
+    def convert_real(self, real_value, param_info):
         return float(real_value)
 
-    @abstractmethod
-    def preprocess_string(self, string_value, param_info):
-        pass
-
-    def preprocess_timestamp(self, timestamp_value, param_info):
+    def convert_string(self, string_value, param_info):
         raise NotImplementedError('Implement me!')
 
-    def preprocess_dbms_params(self, tunable_params, tunable_param_catalog):
+    def convert_timestamp(self, timestamp_value, param_info):
+        raise NotImplementedError('Implement me!')
+
+    def convert_dbms_params(self, params):
         param_data = {}
-        for pinfo in tunable_param_catalog:
-            # These tunable_params should all be tunable
-            assert pinfo.tunable is True, \
-                   "All tunable_params should be tunable ({} is not)".format(
-                        pinfo.name)
-            pvalue = tunable_params[pinfo.name]
+        for pname, pinfo in self.tunable_knob_catalog_.iteritems():
+            if pinfo.tunable is False:
+                continue
+            pvalue = params[pname]
             prep_value = None
             if pinfo.vartype == VarType.BOOL:
-                prep_value = self.preprocess_bool(pvalue, pinfo)
+                prep_value = self.convert_bool(pvalue, pinfo)
             elif pinfo.vartype == VarType.ENUM:
-                prep_value = self.preprocess_enum(pvalue, pinfo)
+                prep_value = self.convert_enum(pvalue, pinfo)
             elif pinfo.vartype == VarType.INTEGER:
-                prep_value = self.preprocess_integer(pvalue, pinfo)
+                prep_value = self.convert_integer(pvalue, pinfo)
             elif pinfo.vartype == VarType.REAL:
-                prep_value = self.preprocess_real(pvalue, pinfo)
+                prep_value = self.convert_real(pvalue, pinfo)
             elif pinfo.vartype == VarType.STRING:
-                prep_value = self.preprocess_string(pvalue, pinfo)
+                prep_value = self.convert_string(pvalue, pinfo)
             elif pinfo.vartype == VarType.TIMESTAMP:
-                prep_value = self.preprocess_timestamp(pvalue, pinfo)
+                prep_value = self.convert_timestamp(pvalue, pinfo)
             else:
                 raise Exception(
                     'Unknown variable type: {}'.format(pinfo.vartype))
-
             if prep_value is None:
                 raise Exception(
-                    'Param value for {} cannot be null'.format(pinfo.name))
-            param_data[pinfo.name] = prep_value
+                    'Param value for {} cannot be null'.format(pname))
+            param_data[pname] = prep_value
         return param_data
 
-    def preprocess_dbms_metrics(self, numeric_metrics, numeric_metric_catalog,
-                                external_metrics, execution_time):
-        if len(numeric_metrics) != len(numeric_metric_catalog):
-            raise Exception('The number of metrics should be equal!')
+    def convert_dbms_metrics(self, metrics, external_metrics, execution_time):
+#         if len(metrics) != len(self.numeric_metric_catalog_):
+#             raise Exception('The number of metrics should be equal!')
         metric_data = {}
-        for minfo in numeric_metric_catalog:
-            assert minfo.metric_type != MetricType.INFO
-            mvalue = numeric_metrics[minfo.name]
+        for mname, minfo in self.numeric_metric_catalog_.iteritems():
+            mvalue = metrics[mname]
             if minfo.metric_type == MetricType.COUNTER:
-                converted = self.preprocess_integer(mvalue, minfo)
-                metric_data[minfo.name] = float(converted) / execution_time
+                converted = self.convert_integer(mvalue, minfo)
+                metric_data[mname] = float(converted) / execution_time
             else:
                 raise Exception(
                     'Unknown metric type: {}'.format(minfo.metric_type))
-        metric_data.update({k: float(v)
-                            for k, v in external_metrics.iteritems()})
+        metric_data.update(external_metrics)
         return metric_data
 
     @staticmethod
-    def extract_valid_keys(idict, official_config, default=None):
+    def extract_valid_keys(idict, catalog, default=None):
         valid_dict = {}
         diffs = []
-        lowercase_dict = {k.name.lower(): k for k in official_config}
+        lowercase_dict = {k.lower(): v for k, v in catalog.iteritems()}
         for k, v in idict.iteritems():
             lower_k2 = k.lower()
             if lower_k2 in lowercase_dict:
@@ -271,31 +277,27 @@ class DBMSUtilImpl(object):
                     diffs.append(('missing_key', v.name, None, None))
                     valid_dict[
                         v.name] = default if default is not None else v.default
-        assert len(valid_dict) == len(official_config)
+        assert len(valid_dict) == len(catalog)
         return valid_dict, diffs
 
-    def parse_dbms_config(self, config, official_config):
-        return DBMSUtilImpl.extract_valid_keys(config, official_config)
+    def parse_dbms_config(self, config):
+        return DBMSUtilImpl.extract_valid_keys(config, self.knob_catalog_)
 
-    def parse_dbms_metrics(self, metrics, official_metrics):
+    def parse_dbms_metrics(self, metrics):
         return DBMSUtilImpl.extract_valid_keys(metrics,
-                                               official_metrics,
+                                               self.metric_catalog_,
                                                default='0')
 
-    def create_configuration(self, tuning_params, custom_params,
-                             official_catalog):
+    def create_configuration(self, tuning_params, custom_params):
         config_params = self.base_configuration_settings
         config_params.update(custom_params)
 
         categories = {}
-        for pinfo in official_catalog:
-            pname = pinfo.name
-            if pname not in config_params:
-                continue
-            category = pinfo.category
+        for pname, pvalue in config_params.iteritems():
+            category = self.knob_catalog_[pname].category
             if category not in categories:
                 categories[category] = []
-            categories[category].append((pname, config_params[pname]))
+            categories[category].append((pname, pvalue))
         categories = OrderedDict(sorted(categories.iteritems()))
 
         config_path = os.path.join(CONFIG_DIR, self.configuration_filename)
@@ -316,18 +318,67 @@ class DBMSUtilImpl(object):
         config += header_fmt(cat1='TUNING PARAMETERS')
         for pname, pval in sorted(tuning_params.iteritems()):
             config += '{} = \'{}\'\n'.format(pname, pval)
-        return config#, self.configuration_filename
+        return config
 
-    def get_nondefault_settings(self, config, official_config):
+    def get_nondefault_settings(self, config):
         nondefault_settings = OrderedDict()
-        for pinfo in official_config:
+        for pname, pinfo in self.knob_catalog_.iteritems():
             if pinfo.tunable is True:
                 continue
-            pname = pinfo.name
             pvalue = config[pname]
             if pvalue != pinfo.default:
                 nondefault_settings[pname] = pvalue
         return nondefault_settings
+
+    def format_bool(self, bool_value, param_info):
+        return 'on' if bool_value == BooleanType.TRUE else 'off'
+
+    def format_enum(self, enum_value, param_info):
+        enumvals = param_info.enumvals.split(',')
+        return enumvals[enum_value]
+
+    def format_integer(self, int_value, param_info):
+        return int(round(int_value))
+
+    def format_string(self, string_value, param_info):
+        raise NotImplementedError('Implement me!')
+
+    def format_timestamp(self, timestamp_value, param_info):
+        raise NotImplementedError('Implement me!')
+
+    def format_dbms_params(self, params):
+        formatted_params = {}
+        for pname, pvalue in params.iteritems():
+            pinfo = self.knob_catalog_[pname]
+            prep_value = None
+            if pinfo.vartype == VarType.BOOL:
+                prep_value = self.format_bool(pvalue, pinfo)
+            elif pinfo.vartype == VarType.ENUM:
+                prep_value = self.format_enum(pvalue, pinfo)
+            elif pinfo.vartype == VarType.INTEGER:
+                prep_value = self.format_integer(pvalue, pinfo)
+            elif pinfo.vartype == VarType.REAL:
+                prep_value = self.format_real(pvalue, pinfo)
+            elif pinfo.vartype == VarType.STRING:
+                prep_value = self.format_string(pvalue, pinfo)
+            elif pinfo.vartype == VarType.TIMESTAMP:
+                prep_value = self.format_timestamp(pvalue, pinfo)
+            else:
+                raise Exception(
+                    'Unknown variable type: {}'.format(pinfo.vartype))
+            if prep_value is None:
+                raise Exception(
+                    'Cannot format value for {}'.format(pname))
+            formatted_params[pname] = prep_value
+        return formatted_params
+
+    def filter_numeric_metrics(self, metrics, normalize=False):
+        return OrderedDict([(k, v) for k, v in metrics.iteritems() if \
+                            k in self.numeric_metric_catalog_])
+
+    def filter_tunable_params(self, params):
+        return OrderedDict([(k, v) for k, v in params.iteritems() if \
+                            k in self.tunable_knob_catalog_])
 
 
 class PostgresUtilImpl(DBMSUtilImpl):
@@ -373,13 +424,10 @@ class PostgresUtilImpl(DBMSUtilImpl):
     def configuration_filename(self):
         return 'postgresql.conf'
 
-    def preprocess_string(self, enum_value, param_info):
-        raise Exception('Implement me!')
-
-    def preprocess_integer(self, int_value, param_info):
+    def convert_integer(self, int_value, param_info):
         converted = None
         try:
-            converted = super(PostgresUtilImpl, self).preprocess_integer(
+            converted = super(PostgresUtilImpl, self).convert_integer(
                 int_value, param_info)
         except ValueError:
             if param_info.unit == KnobUnitType.BYTES:
@@ -396,11 +444,26 @@ class PostgresUtilImpl(DBMSUtilImpl):
                 param_info.name, int_value))
         return converted
 
+    def format_integer(self, int_value, param_info):
+        if param_info.unit != KnobUnitType.OTHER and int_value > 0:
+            if param_info.unit == KnobUnitType.BYTES:
+                int_value = ConversionUtil.get_human_readable(
+                    int_value, PostgresUtilImpl.POSTGRES_BYTES_SYSTEM)
+            elif param_info.unit == KnobUnitType.MILLISECONDS:
+                int_value = ConversionUtil.get_human_readable(
+                    int_value, PostgresUtilImpl.POSTGRES_TIME_SYSTEM)
+            else:
+                raise Exception(
+                    'Invalid knob unit type: {}'.format(param_info.unit))
+        else:
+            int_value = super(PostgresUtilImpl, self).format_integer(int_value, param_info)
+        return int_value
+
     def parse_version_string(self, version_string):
         dbms_version = version_string.split(',')[0]
         return re.search("\d+\.\d+(?=\.\d+)", dbms_version).group(0)
 
-    def parse_dbms_metrics(self, metrics, official_metrics):
+    def parse_dbms_metrics(self, metrics):
         # Postgres measures stats at different scopes (e.g. indexes,
         # tables, database) so for now we just combine them
         valid_metrics = {}
@@ -413,13 +476,12 @@ class PostgresUtilImpl(DBMSUtilImpl):
                     valid_metrics[key].append(mvalue)
 
         # Extract all valid metrics
-        official_metric_map = {m.name: m for m in official_metrics}
         valid_metrics, diffs = DBMSUtilImpl.extract_valid_keys(
-            valid_metrics, official_metrics, default='0')
+            valid_metrics, self.metric_catalog_, default='0')
 
         # Combine values
         for mname, mvalues in valid_metrics.iteritems():
-            metric = official_metric_map[mname]
+            metric = self.metric_catalog_[mname]
             mvalues = valid_metrics[mname]
             if metric.metric_type == MetricType.INFO or len(mvalues) == 1:
                 valid_metrics[mname] = mvalues[0]
@@ -435,62 +497,89 @@ class PostgresUtilImpl(DBMSUtilImpl):
         return valid_metrics, diffs
 
 
+class Postgres96UtilImpl(PostgresUtilImpl):
+
+    def __init__(self):
+        dbms = DBMSCatalog.objects.get(
+            type=DBMSType.POSTGRES, version='9.6')
+        super(Postgres96UtilImpl, self).__init__(dbms.pk)
+
+
 class DBMSUtil(object):
 
-    __DBMS_UTILS_IMPLS = {
-        DBMSType.POSTGRES: PostgresUtilImpl()
-    }
+    __DBMS_UTILS_IMPLS = None#{}
+#     {
+#         DBMSCatalog.objects.get(
+#             type=DBMSType.POSTGRES, version='9.6').pk: Postgres96UtilImpl()
+#     }
 
     @staticmethod
-    def __utils(dbms_type):
+    def __utils(dbms_id):
+        if DBMSUtil.__DBMS_UTILS_IMPLS is None:
+            DBMSUtil.DBMS_UTILS_IMPLS = {
+                DBMSCatalog.objects.get(
+                    type=DBMSType.POSTGRES, version='9.6').pk: Postgres96UtilImpl()
+            } 
         try:
-            return DBMSUtil.__DBMS_UTILS_IMPLS[dbms_type]
+            return DBMSUtil.__DBMS_UTILS_IMPLS[dbms_id]
         except KeyError:
-            raise NotImplementedError('Implement me! ({})'.format(dbms_type))
+            raise NotImplementedError(
+                'Implement me! ({})'.format(dbms_id))
 
     @staticmethod
     def parse_version_string(dbms_type, version_string):
-        return DBMSUtil.__utils(dbms_type).parse_version_string(version_string)
+        for k, v in DBMSUtil.__utils.iteritems():
+            dbms = DBMSCatalog.objects.get(pk=k)
+            if dbms.type == dbms_type:
+                try:
+                    return v.parse_version_string(version_string)
+                except:
+                    pass
+        return None
 
     @staticmethod
-    def preprocess_dbms_params(dbms_type,
-                               tunable_params,
-                               tunable_param_catalog):
-        return DBMSUtil.__utils(dbms_type).preprocess_dbms_params(
-                tunable_params, tunable_param_catalog)
+    def convert_dbms_params(dbms_id, params):
+        return DBMSUtil.__utils(dbms_id).convert_dbms_params(
+                params)
 
     @staticmethod
-    def preprocess_dbms_metrics(dbms_type,
-                                numeric_metrics,
-                                numeric_metric_catalog,
-                                external_metrics,
-                                execution_time):
-        return DBMSUtil.__utils(dbms_type).preprocess_dbms_metrics(
-                numeric_metrics, numeric_metric_catalog,
-                external_metrics, execution_time)
+    def convert_dbms_metrics(dbms_id, numeric_metrics,
+                                external_metrics, execution_time):
+        return DBMSUtil.__utils(dbms_id).convert_dbms_metrics(
+                numeric_metrics, external_metrics, execution_time)
 
     @staticmethod
-    def parse_dbms_config(dbms_type, config, official_config):
-        return DBMSUtil.__utils(dbms_type).parse_dbms_config(
-                config, official_config)
+    def parse_dbms_config(dbms_id, config):
+        return DBMSUtil.__utils(dbms_id).parse_dbms_config(config)
 
     @staticmethod
-    def parse_dbms_metrics(dbms_type, metrics, official_metrics):
-        return DBMSUtil.__utils(dbms_type).parse_dbms_metrics(
-                metrics, official_metrics)
+    def parse_dbms_metrics(dbms_id, metrics):
+        return DBMSUtil.__utils(dbms_id).parse_dbms_metrics(metrics)
 
     @staticmethod
-    def get_nondefault_settings(dbms_type, config, official_config):
-        return DBMSUtil.__utils(dbms_type).get_nondefault_settings(
-            config, official_config)
+    def get_nondefault_settings(dbms_id, config):
+        return DBMSUtil.__utils(dbms_id).get_nondefault_settings(
+            config)
 
     @staticmethod
-    def create_configuration(dbms_type, tuning_params, custom_params,
-                             official_catalog):
-        return DBMSUtil.__utils(dbms_type).create_configuration(
-            tuning_params, custom_params, official_catalog)
+    def create_configuration(dbms_id, tuning_params, custom_params):
+        return DBMSUtil.__utils(dbms_id).create_configuration(
+            tuning_params, custom_params)
 
     @staticmethod
-    def get_configuration_filename(dbms_type):
-        return DBMSUtil.__utils(dbms_type).configuration_filename
+    def format_dbms_params(dbms_id, params):
+        return DBMSUtil.__utils(dbms_id).format_dbms_params(params)
+
+    @staticmethod
+    def get_configuration_filename(dbms_id):
+        return DBMSUtil.__utils(dbms_id).configuration_filename
+
+    @staticmethod
+    def filter_numeric_metrics(dbms_id, metrics, normalize=False):
+        return DBMSUtil.__utils(dbms_id).filter_numeric_metrics(
+            metrics, normalize)
+
+    @staticmethod
+    def filter_tunable_params(dbms_id, params):
+        return DBMSUtil.__utils(dbms_id).filter_tunable_params(params)
 
