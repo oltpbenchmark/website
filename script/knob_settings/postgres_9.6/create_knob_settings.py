@@ -36,7 +36,7 @@ pg_time = [
 #     cfg['t_additional_values'] = t_additional_values
 #     cfg['t_dependent'] = t_dependent
 #     cfg['t_weight_samples'] = t_weight_samples
-#     
+#
 #     return cfg
 
 
@@ -47,15 +47,6 @@ BOOL      = 4
 ENUM      = 5
 TIMESTAMP = 6
 
-# TYPE_NAMES = {
-#     STRING:    'string',
-#     INTEGER:   'integer',
-#     REAL:      'real',
-#     BOOL:      'bool',
-#     ENUM:      'enum',
-#     TIMESTAMP: 'timestamp',
-# }
-
 TYPE_NAMES = {
     'string': STRING,
     'integer': INTEGER,
@@ -64,6 +55,10 @@ TYPE_NAMES = {
     'enum': ENUM,
     'timestamp': TIMESTAMP
 }
+
+UNIT_BYTES = 1
+UNIT_MS = 2
+UNIT_OTHER = 3
 
 def convert(size, system=pg_system):
     for factor, suffix in system:
@@ -96,8 +91,7 @@ with open("settings.csv", "r") as f:
             param['scope'] = 'global'
             param['summary'] = row[header.index('short_desc')]
             param['description'] = row[header.index('extra_desc')]
-#             param['tuning_config'] = None
-            
+
             default = row[header.index('boot_val')]
             minval = row[header.index('min_val')]
             maxval = row[header.index('max_val')]
@@ -114,7 +108,7 @@ with open("settings.csv", "r") as f:
                 assert maxval == ''
                 minval = None
                 maxval = None
-                
+
             param['minval'] = minval
             param['maxval'] = maxval
             param['default'] = default
@@ -124,7 +118,7 @@ with open("settings.csv", "r") as f:
                 for i, enumval in enumerate(enumvals):
                     if enumval.startswith('\"') and enumval.endswith('\"'):
                         enumvals[i] = enumval[1:-1]
-                param['enumvals'] = enumvals
+                param['enumvals'] = ','.join(enumvals)
             else:
                 param['enumvals'] = None
 
@@ -134,16 +128,18 @@ with open("settings.csv", "r") as f:
                 if factor is None:
                     factor = convert(pg_unit, system=pg_time)
                     assert factor is not None
-                    param['unit'] = 'milliseconds'
+                    param['unit'] = UNIT_MS
                 else:
-                    param['unit'] = 'bytes'
-                
+                    param['unit'] = UNIT_BYTES
+
                 if param['default'] > 0:
                     param['default'] = param['default'] * factor
                 if param['minval'] > 0:
                     param['minval'] = param['minval'] * factor
                 if param['maxval'] > 0:
                     param['maxval'] = param['maxval'] * factor
+            else:
+                param['unit'] = UNIT_OTHER
 
             # Internal params are read-only
             if param['context'] == 'internal':
@@ -152,7 +148,7 @@ with open("settings.csv", "r") as f:
             # All string param types are not tunable in 9.6
             if param['vartype'] == STRING:
                 param['tunable'] = 'no'
-            
+
             # We do not tune autovacuum (yet)
             if param['name'].startswith('autovacuum'):
                 param['tunable'] = 'no'
@@ -194,7 +190,7 @@ with open("settings.csv", "r") as f:
             # We do not tune autovacuum (yet)
             if param['name'].startswith('vacuum'):
                 param['tunable'] = 'no'
-            
+
             # Do not tune replication settings
             if param['category'].startswith('Replication'):
                 param['tunable'] = 'no'
@@ -325,7 +321,7 @@ with open('tunable_params.txt', 'w') as f:
         f.write('\n')
 
 # MAX_MEM = 36  # 64GB or 2^36
-# 
+#
 # # backend_flush_after - range between 0 & 2MB
 # # max = 2^21, eff_min = 2^13 (8kB), step either 0.5 or 1
 # # other_values = [0]
@@ -333,64 +329,64 @@ with open('tunable_params.txt', 'w') as f:
 # params['backend_flush_after']['tuning_config'] = create_tuning_config(
 #     t_minval=13, t_maxval=21, t_step=0.5, t_additional_values=[0],
 #     t_powers_of_2=True, t_weight_samples=True)
-# 
+#
 # # bgwriter_delay
 # # true minval = 10, maxval = 500, step = 10
 # params['bgwriter_delay']['tuning_config'] = create_tuning_config(
 #     t_minval=10, t_maxval=500, t_step=10)
-# 
+#
 # # bgwriter_flush_after
 # # same as backend_flush_after
 # params['bgwriter_flush_after']['tuning_config'] = create_tuning_config(
 #     t_minval=13, t_maxval=21, t_step=0.5, t_additional_values=[0],
 #     t_powers_of_2=True, t_weight_samples=True)
-# 
+#
 # # bgwriter_lru_maxpages
 # # minval = 0, maxval = 1000, step = 50
 # params['bgwriter_lru_maxpages']['tuning_config'] = create_tuning_config(
 #     t_minval=0, t_maxval=1000, t_step=50)
-# 
+#
 # # bgwriter_lru_multiplier
 # # minval = 0.0, maxval = 10.0, step = 0.5
 # params['bgwriter_lru_multiplier']['tuning_config'] = create_tuning_config(
 #     t_minval=0.0, t_maxval=10.0, t_step=0.5)
-# 
+#
 # # checkpoint_completion_target
 # # minval = 0.0, maxval = 1.0, step = 0.1
 # params['checkpoint_completion_target']['tuning_config'] = create_tuning_config(
 #     t_minval=0.0, t_maxval=1.0, t_step=0.1)
-# 
+#
 # # checkpoint_flush_after
 # # same as backend_flush_after
 # params['checkpoint_flush_after']['tuning_config'] = create_tuning_config(
 #     t_minval=13, t_maxval=21, t_step=0.5, t_additional_values=[0], t_powers_of_2=True)
-# 
+#
 # # checkpoint_timeout
 # # minval = 5min, maxval = 3 hours, step = 5min
 # # other_values = 1min (maybe)
 # params['checkpoint_timeout']['tuning_config'] = create_tuning_config(
 #     t_minval=300000, t_maxval=10800000, t_step=300000, t_additional_values=[60000])
-# 
+#
 # # commit_delay
 # # minval = 0, maxval = 10000, step = 500
 # params['commit_delay']['tuning_config'] = create_tuning_config(
 #     t_minval=0, t_maxval=10000, t_step=500)
-# 
+#
 # # commit_siblings
 # # minval = 0, maxval = 20, step = 1
 # params['commit_siblings']['tuning_config'] = create_tuning_config(
 #     t_minval=0, t_maxval=20, t_step=1)
-# 
+#
 # # deadlock_timeout
 # # minval = 500, maxval = 20000, step = 500
 # params['deadlock_timeout']['tuning_config'] = create_tuning_config(
 #     t_minval=500, t_maxval=20000, t_step=500)
-# 
+#
 # # default_statistics_target
 # # minval = 50, maxval = 2000, step = 50
 # params['default_statistics_target']['tuning_config'] = create_tuning_config(
 #     t_minval=50, t_maxval=2000, t_step=50)
-# 
+#
 # # effective_cache_size
 # # eff_min = 256MB = 2^19, eff_max = over max memory (by 25%)
 # # other_values = []
@@ -399,107 +395,107 @@ with open('tunable_params.txt', 'w') as f:
 #     t_minval=19, t_maxval=1.25, t_maxval_type='percentage', t_resource_type='memory',
 #     t_step=0.5, t_powers_of_2=True, t_weight_samples=True,
 #     t_notes='t_maxval = 25% amt greater than max memory')
-# 
+#
 # # effective_io_concurrency
 # # minval = 0, maxval = 10, step = 1
 # params['effective_io_concurrency']['tuning_config'] = create_tuning_config(
 #     t_minval=0, t_maxval=10, t_step=1)
-# 
+#
 # # from_collapse_limit
 # # minval = 4, maxval = 40, step = 4
 # # other_values = 1
 # params['from_collapse_limit']['tuning_config'] = create_tuning_config(
 #     t_minval=4, t_maxval=40, t_step=4, t_additional_values=[1])
-# 
+#
 # # join_collapse_limit
 # # minval = 4, maxval = 40, step = 4
 # # other_values = 1
 # params['join_collapse_limit']['tuning_config'] = create_tuning_config(
 #     t_minval=4, t_maxval=40, t_step=4, t_additional_values=[1])
-# 
+#
 # # random_page_cost
 # # minval = current value of seq_page_cost, maxval = seq_page_cost + 5, step = 0.5
 # params['random_page_cost']['tuning_config'] = create_tuning_config(
 #     t_minval=None, t_maxval=None, t_step=0.5, t_dependent=True,
 #     t_notes='t_minval = current value of seq_page_cost, t_maxval = seq_page_cost + 5')
-# 
+#
 # # seq_page_cost
 # # minval = 0.0, maxval = 2.0, step = 0.1
 # params['seq_page_cost']['tuning_config'] = create_tuning_config(
 #     t_minval=0.0, t_maxval=2.0, t_step=0.1)
-# 
+#
 # # maintenance_work_mem
 # # eff_min 8MB, eff_max = 1/2 - 3/4
 # params['maintenance_work_mem']['tuning_config'] = create_tuning_config(
 #     t_minval=23, t_maxval=0.4, t_maxval_type='percentage', t_resource_type='memory',
 #     t_step=0.5, t_powers_of_2=True, #t_weight_samples=True,
 #     t_notes='t_maxval = 40% of total memory')
-# 
+#
 # # max_parallel_workers_per_gather
 # # minval = 0, maxval = current value of max_worker_processes
 # params['max_parallel_workers_per_gather']['tuning_config'] = create_tuning_config(
 #     t_minval=0, t_maxval=None, t_step=1, t_dependent=True,
 #     t_notes='t_maxval = max_worker_processes')
-# 
+#
 # # max_wal_size
 # # eff_min = 2^25, eff_max = 10GB? some percentage of total disk space?
 # params['max_wal_size']['tuning_config'] = create_tuning_config(
 #     t_minval=25, t_maxval=33.5, t_step=0.5, t_powers_of_2=True,
 #     t_weight_samples=True, t_notes='t_maxval = some % of total disk space')
-# 
+#
 # # max_worker_processes
 # # min = 4, max = 16, step = 2
 # params['max_worker_processes']['tuning_config'] = create_tuning_config(
 #     t_minval=4, t_maxval=16, t_step=2)
-# 
+#
 # # min_parallel_relation_size
 # # min = 1MB = 2^20, max = 2^30
 # params['min_parallel_relation_size']['tuning_config'] = create_tuning_config(
 #     t_minval=20, t_maxval=2^30, t_step=0.5, t_powers_of_2=True)
-# 
+#
 # # min_wal_size
 # # default = 80MB, some min, then max is up to current max_wal_size
 # params['min_wal_size']['tuning_config'] = create_tuning_config(
 #     t_minval=25, t_maxval=None, t_step=0.5, t_powers_of_2=True,
 #     t_dependent=True, t_notes='t_maxval = max_wal_size')
-# 
+#
 # # shared buffers
 # # min = 8388608 = 2^23, max = 70% of total memory
 # params['shared_buffers']['tuning_config'] = create_tuning_config(
 #     t_minval=23, t_maxval=0.7, t_maxval_type='percentage', t_resource_type='memory',
 #     t_step=0.5, t_powers_of_2=True, t_weight_samples=True,
 #     t_notes='t_maxval = 70% of total memory')
-# 
+#
 # # temp buffers
 # # min ~ 2^20, max = some percent of total memory
 # params['temp_buffers']['tuning_config'] = create_tuning_config(
 #     t_minval=20, t_maxval=0.25, t_maxval_type='percentage', t_resource_type='memory',
 #     t_step=0.5, t_powers_of_2=True, t_weight_samples=True,
 #     t_notes='t_maxval = some % of total memory')
-# 
+#
 # # wal_buffers
 # # min = 32kB = 2^15, max = 2GB
 # # other_values = [-1]
 # params['wal_buffers']['tuning_config'] = create_tuning_config(
 #     t_minval=15, t_maxval=30.5, t_step=0.5, t_powers_of_2=True,
 #     t_additional_values=[-1], t_weight_samples=True)
-# 
+#
 # # wal_sync_method
 # # enum: [open_datasync, fdatasync, fsync, open_sync]
 # params['wal_sync_method']['tuning_config'] = create_tuning_config(
 #     t_enumvals=['open_datasync', 'fdatasync', 'fsync', 'open_sync'])
-# 
+#
 # # wal_writer_delay
 # # min = 50ms, max = 1000ms, step = 50ms
 # # other_values = 10ms
 # params['wal_writer_delay']['tuning_config'] = create_tuning_config(
 #     t_minval=50, t_maxval=1000, t_step=50, t_additional_values=[10])
-# 
+#
 # # wal_writer_flush_after
 # # same as backend_flush_after
 # params['wal_writer_flush_after']['tuning_config'] = create_tuning_config(
 #     t_minval=13, t_maxval=21, t_step=0.5, t_additional_values=[0], t_powers_of_2=True)
-# 
+#
 # # work_mem
 # # min = 64kB = 2^16, max = some percent of total memory
 # params['work_mem']['tuning_config'] = create_tuning_config(
@@ -532,7 +528,8 @@ with open("settings.json", "w") as f:
 # print "maxlen: {}".format(maxlen)
 
 json_settings = []
-for pname, pinfo in params.iteritems():
+sorted_knob_names = []
+for pname, pinfo in sorted(params.iteritems()):
     entry = {}
     entry['model'] = 'website.KnobCatalog'
     fields = dict(pinfo)
@@ -541,16 +538,34 @@ for pname, pinfo in params.iteritems():
     else:
         fields['tunable'] = False
     for k,v in fields.iteritems():
-#         if v == '':
-#             fields[k] = None
         if v is not None and not isinstance(v, str) and not isinstance(v, bool):
             fields[k] = str(v)
     fields['dbms'] = 1
     entry['fields'] = fields
     json_settings.append(entry)
+    sorted_knob_names.append(pname)
 
 with open("postgres-96_knobs.json", "w") as f:
     json.dump(json_settings, f, indent=4)
 
-shutil.copy("postgres-96_knobs.json", "../../preload/postgres-96_knobs.json")
-    
+shutil.copy("postgres-96_knobs.json", "../../../preload/postgres-96_knobs.json")
+
+#sorted_knobs = [{
+#    'model': 'website.PipelineResult',
+#    'fields': {
+#        "dbms": 1,
+#        "task_type": 1,
+#        "component": 4,
+#        "hardware": 17,
+#        "version_id": 0,
+#        "value": json.dumps(sorted_knob_names),
+#    }
+#}]
+#
+#fname = 'postgres-96_sorted_knob_labels.json'
+#with open(fname, "w") as f:
+#    json.dump(sorted_knobs, f, indent=4)
+#
+#shutil.copy(fname, "../../../preload/")
+
+

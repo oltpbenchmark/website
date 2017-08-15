@@ -5,39 +5,63 @@
 <form action="/update_application/" method="POST"> {% csrf_token %}
     <table class="table table-striped table-bordered table-hover table-nonfluid">
         <tr>
-            <td align="right"><label for="name">Name:</label></td>
-            <td><input type="text" id="name" name="name" value="{{ application.name }}" maxlength="50" required></td>
+            <td>{{ form.name.label_tag }}</td>
+            <td>{{ form.name }}</td>
         </tr>
         <tr>
-            <td valign="top" align="right"><label for="description">Description:</label></td>
-            <td><textarea id="description" name="description" maxlength="500" rows="5">{{ application.description }}</textarea></td>
+            <td>{{ form.description.label_tag }}</td>
+            <td>{{ form.description }}</td>
         </tr>
-        {% if application %}
-        <tr>
-            <td align="right"><label for="project">Project:</label></td>
-            <td><div id="project">{{ project.name }}</div></td>
+        <tr id="dbms_row">
+            <td>{{ form.dbms.label_tag }}</td>
+            <td>{{ form.dbms }}</td>
         </tr>
-        <tr>
-            <td align="right"><label for="upload_code">Upload Code:</label></td>
-            <td><div id="upload_code">{{ application.upload_code }}</div></td>
-        </tr>
-        <tr>
-            <td align="right"><label>Last update:</label></td>
-            <td>{{ application.last_update }}</td>
+        <tr id="hardware_row">
+            <td>{{ form.hardware.label_tag }}</td>
+            <td>{{ form.hardware }}</td>
         </tr>
         <tr>
-            <td align="right"><label>Creation time:</label></td>
-            <td>{{ application.creation_time }}</td>
+            <td>{{ form.tuning_session.label_tag }}</td>
+            <td>{{ form.tuning_session }}</td>
         </tr>
-        {% endif %}
+        <tr id="target_obj_row">
+            <td>{{ form.target_objective.label_tag }}</td>
+            <td>{{ form.target_objective }}</td>
+        </tr>
+        <tr id="upload_code_row">
+            <td>{{ form.gen_upload_code.label_tag }}</td>
+            <td>{{ form.gen_upload_code }}</td>
+        </tr>
     </table>
-    <button class="btn btn-default" type="submit" name="id" value="{{ application.pk }}&{{project.pk}}">Submit</button>
+    <button class="btn btn-default" type="submit" name="id" value="{{ application.pk }}&{{ project.pk }}">Submit</button>
     {% if application %}
-    <button class="btn btn-default" type="submit" name="id_new_code" value="{{application.pk }}">Submit & Get a new upload code</button>
     <a class="btn btn-default" href="/application/?id={{ application.pk }}">Cancel</a>
     {% else %}
     <a class="btn btn-default" href="/">Cancel</a>
     {% endif %}
 </form>
 </div>
+
+<script language="javascript">
+function show_content() {
+	console.log("In show_content()")
+	$("#target_obj_row").toggle()
+}
+
+$(function() {
+	if ("{{ application }}" != "None") {
+	    $("#dbms_row").hide();
+	    $("#hardware_row").hide();
+	} else {
+		$("#upload_code_row").hide();
+	}
+	
+	if (document.getElementById('id_tuning_session').checked) {
+		$("#target_obj_row").show()
+	} else {
+		$("#target_obj_row").hide()
+	}
+});
+</script>
+
 {% endblock body %}

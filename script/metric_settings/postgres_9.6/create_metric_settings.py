@@ -45,8 +45,9 @@ with open('metrics_sample.json', 'r') as f:
     metrics = json.load(f)
 
 final_metrics = []
+numeric_metric_names = []
 vartypes = set()
-for view_name, mets in metrics.iteritems():
+for view_name, mets in sorted(metrics.iteritems()):
     if 'database' in view_name:
         scope = 'database'
         stats = dbstats
@@ -72,6 +73,7 @@ for view_name, mets in metrics.iteritems():
         fields['scope'] = scope
         metric_type = mstats['metric_type']
         if metric_type == 'counter':
+            numeric_metric_names.append(fields['name'])
             mt = COUNTER
         elif metric_type == 'info':
             mt = INFO
@@ -81,8 +83,30 @@ for view_name, mets in metrics.iteritems():
         fields['dbms'] = 1
         entry['fields'] = fields
         final_metrics.append(entry)
+#         sorted_metric_names.append(fields['name'])
 
 with open('postgres-96_metrics.json', 'w') as f:
     json.dump(final_metrics, f, indent=4)
 
-shutil.copy('postgres-96_metrics.json', '../../preload/postgres-96_metrics.json')
+shutil.copy('postgres-96_metrics.json', '../../../preload/postgres-96_metrics.json')
+
+with open('postgres-96_numeric_metric_names.json', 'w') as f:
+    json.dump(numeric_metric_names, f, indent=4)
+
+#sorted_metrics = [{
+#    'model': 'website.PipelineResult',
+#    'fields': {
+#        "dbms": 1,
+#        "task_type": 2,
+#        "component": 4,
+#        "hardware": 17,
+#        "version_id": 0,
+#        "value": json.dumps(sorted_metric_names),
+#    }
+#}]
+#
+#fname = 'postgres-96_sorted_metric_labels.json'
+#with open(fname, 'w') as f:
+#    json.dump(sorted_metrics, f, indent=4)
+#
+#shutil.copy(fname, '../../../preload/')

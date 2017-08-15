@@ -30,11 +30,11 @@ function renderPlot(data, div_id) {
     $("#" + div_id).html('<div id="' + div_id + '_plot"></div><div id="plotdescription"></div>');
 
     var plotoptions = {
-        title: {text: data.benchmark + ": " + data.metric, fontSize: '1.1em'},
+        title: {text: data.benchmark + ": " + data.print_metric + " " + data.lessisbetter, fontSize: '1.1em'},
         series: series,
         axes:{
         yaxis:{
-            label: data.units + " " + data.lessisbetter,
+            label: data.units,
             labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
             min: 0,
             autoscale: true,
@@ -44,7 +44,7 @@ function renderPlot(data, div_id) {
             label: 'Date',
             labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
             tickRenderer: $.jqplot.CanvasAxisTickRenderer,
-            tickOptions:{formatString:'%#m/%#d %H:%M', angle:-40}, //'%b %d %#I:%M'
+            tickOptions:{formatString:'%#m/%#d %H:%M', angle:-40},
             autoscale: true,
             rendererOptions:{sortMergedLabels:true}
         }
@@ -109,7 +109,6 @@ function render(data) {
         $("#plotgrid").html(getLoadText("No data available", h, false));
     } else if ($("input[name='benchmark']:checked").val() === "grid"){
         //Render Grid of plots
-    	console.log("PLOTTING MINIPLOTS")
         disable_options(true);
         for (var bench in data.timelines) {
             var plotid = "plot_" + data.timelines[bench].benchmark;
@@ -133,21 +132,21 @@ function render(data) {
     var dt = $("#dataTable").dataTable( {
         "aaData": data.results,
         "aoColumns": [
-            { "sTitle": "ID", "sClass": "center", "sType": "num-html", "mRender": function (data, type, full) {
+            { "sTitle": data.columnnames[0], "sClass": "center", "sType": "num-html", "mRender": function (data, type, full) {
                 return '<a href="/result/?id=' + data + '">' + data + '</a>';
             }},
-            { "sTitle": "Creation Time", "sClass": "center"},
-            { "sTitle": "DB Conf", "sClass": "center", "mRender": function (data, type, full) {
+            { "sTitle": data.columnnames[1], "sClass": "center"},
+            { "sTitle": data.columnnames[2], "sClass": "center", "mRender": function (data, type, full) {
                 return '<a href="/db_conf/?id=' + full[7] + '">' + data + '</a>';
             }},
-            { "sTitle": "DBMS Metrics", "sClass": "center", "mRender": function (data, type, full) {
+            { "sTitle": data.columnnames[3], "sClass": "center", "mRender": function (data, type, full) {
                 return '<a href="/dbms_metrics/?id=' + full[8] + '">' + data + '</a>';
             }},
-            { "sTitle": "Benchmark Conf", "sClass": "center", "mRender": function (data, type, full) {
+            { "sTitle": data.columnnames[4], "sClass": "center", "mRender": function (data, type, full) {
                 return '<a href="/benchmark_conf/?id=' + full[9] + '">' + data + '</a>';
             }},
-            { "sTitle": "Throughput", "sClass": "center", "mRender": function (data, type, full) {return data.toFixed(2);}},
-            { "sTitle": "p99 Latency", "sClass": "center", "mRender": function (data, type, full) {return data.toFixed(2);}},
+            { "sTitle": data.columnnames[5], "sClass": "center", "mRender": function (data, type, full) {return data.toFixed(2);}},
+            { "sTitle": data.columnnames[6], "sClass": "center", "mRender": function (data, type, full) {return data.toFixed(2);}},
         ],
         "bFilter": false,
         "bAutoWidth": true,
@@ -255,7 +254,8 @@ function setValuesOfInputFields(event) {
     
     // Set default selected db
     $("input:checkbox[name='db']").removeAttr('checked');
-    var dbs = event.parameters.db && event.parameters.db != "none" ? event.parameters.db.split(',') : defaults.db.split(',');
+    //var dbs = event.parameters.db && event.parameters.db != "none" ? event.parameters.db.split(',') : defaults.db.split(',');
+    var dbs = defaults.db.split(',');
     var sel = $("input[name='db']");
     $.each(dbs, function(i, db) {
         sel.filter("[value='" + db + "']").prop('checked', true);

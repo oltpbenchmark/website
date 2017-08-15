@@ -1,71 +1,62 @@
 {% extends "base.html" %}
 
+{% load util_functions %}
+
 {% block body %}
 
 <div class="container">
 <table class="table table-striped table-bordered table-condensed table-hover">
-    <caption><h4>Result Info</h4></caption>
+    <caption><h4>{{ labels.title }}</h4></caption>
     <tbody>
     <tr>
-        <td><div class="text-right">Result ID</div></td>
+        <td><div class="text-right">{{ labels.id }}</div></td>
         <td>{{ result.pk }}</td>
     </tr>
     <tr>
-        <td><div class="text-right">Project</div></td>
-        <td>{{ result.application.project.name }}</td>
-    </tr>
-
-    <tr>
-        <td><div class="text-right">Application</div></td>
+        <td><div class="text-right">{{ labels.application }}</div></td>
         <td>{{ result.application.name }}</td>
     </tr>
     <tr>
-        <td><div class="text-right">Benchmark Configuration</div></td>
+        <td><div class="text-right">{{ labels.benchmark_config }}</div></td>
         <td><a href="/benchmark_conf/?id={{ result.benchmark_config.pk }}">{{ result.benchmark_config.name }}</a></td>
     </tr>
     <tr>
-        <td><div class="text-top text-right">DBMS Configuration</div></td>
+        <td><div class="text-top text-right">{{ labels.dbms_config }}</div></td>
         <td><a href="/db_conf/?id={{ result.dbms_config.pk }}">{{ result.dbms_config.name }}</a></td>
     </tr>
     <tr>
-        <td><div class="text-top text-right">DBMS Metrics</div></td>
+        <td><div class="text-top text-right">{{ labels.dbms_metrics }}</div></td>
         <td><a href="/dbms_metrics/?id={{ result.dbms_metrics.pk }}">{{ result.dbms_metrics.name }}</a></td>
     </tr>
     <tr>
-        <td><div class="text-right">Experiment Time</div></td>
-        <td>{{ result.timestamp }}</td>
-    </tr>
-    <tr>
-        <td><div class="text-right">Upload Time</div></td>
+        <td><div class="text-right">{{ labels.creation_time }}</div></td>
         <td>{{ result.creation_time }}</td>
     </tr>
-    <!-- <tr>
-        <td><div class="text-right">Overall Throughout</div></td>
-        <td>{{ overall_throughput|floatformat:2 }} {{ metric_meta|get_item:"throughput"|get_item:"unit" }}</td>
-    </tr>
-    <tr>
-        <td><div class="text-right">Overall 99% Latency</div></td>
-        <td>{{ overall_p99_latency|floatformat:2 }} {{ metric_meta|get_item:"p99_latency"|get_item:"unit" }}</td>
-    </tr> -->
     {% for key, value in default_metrics.items %}
     <tr>
-        <td><div class="text-right">{{ metric_meta|get_item:key|get_item:"print" }}</div></td>
-        <td>{{ value|floatformat:2 }} {{ metric_meta|get_item:key|get_item:"unit" }}</td>
+        <td><div class="text-right">{{ metric_meta|get_item:key|get_attr:"pprint" }}</div></td>
+        <td>{{ value|floatformat:2 }} {{ metric_meta|get_item:key|get_attr:"unit" }}</td>
     </tr>
     {% endfor %}
     <tr>
-        <td><div class="text-right">Sampled data</div></td>
-        <td><a href="/get_result_data_file/?id={{ result.pk }}&type=sample">Download</a></td>
+        <td><div class="text-right">{{ labels.sampled_data }}</div></td>
+        <td><a href="/get_result_data_file/?id={{ result.pk }}&type=samples">Download</a></td>
     </tr>
     <tr>
-        <td><div class="text-right">Raw data</div></td>
+        <td><div class="text-right">{{ labels.raw_data }}</div></td>
         <td><a href="/get_result_data_file/?id={{ result.pk }}&type=raw">Download</a></td>
     </tr>
-    {% if task %}
+    {% if status %}
     <tr>
-        <td><div class="text-right">Status:</div></td>
-        <td><a href="/status/?id={{ result.pk }}">{{task.status}}</td>
-    </tr>   
+        <td><div class="text-right">{{ labels.status }}</div></td>
+        <td><a href="/status/?id={{ result.pk }}">{{ status }}</td>
+    </tr>
+    {% endif %}
+    {% if next_conf_available %}
+    <tr>
+        <td><div class="text-right">{{ labels.next_conf_available }}</div></td>
+        <td><a href="/get_result_data_file/?id={{ result.pk }}&type=next_conf">Download</a></td>
+    </tr>
     {% endif %}
     </tbody>
 </table>
@@ -111,8 +102,8 @@
     <div><h4>Plot Metrics</h4></div>
     <div class="checkbox boxbody">
         <ul>
-        {% for metric in metrics %}
-        <li><label><input type="checkbox" name="metric" value="{{ metric }}" /> {{ metric_meta|get_item:metric|get_item:"print" }}</label></li>
+        {% for metric, metric_info in metric_meta.items %}
+        <li><label><input type="checkbox" name="metric" value="{{ metric }}" /> {{ metric_info|get_attr:"pprint" }}</label></li>
         {% endfor %}
         </ul>
     </div>
@@ -146,8 +137,8 @@
    ResultTimeline.init({
         result: {{ result.pk }},
         data: {{ data|safe }},
+        all_metrics: {{metric_meta|keys|safe}}, 
         metrics: [{% for metric in default_metrics %}"{{ metric }}", {% endfor %}],
-        all_metrics: {{metrics|safe}},  
     });
 }); 
 </script>

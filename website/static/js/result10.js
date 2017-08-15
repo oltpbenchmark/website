@@ -7,27 +7,27 @@ function renderPlot(data, div_id) {
     var plotdata = [], series = [];
 
     plotdata.push(data.data[defaults.result]);
-    series.push({"label":  defaults.result});
+    series.push({"label":  "Result #" + defaults.result});
 
     $("input[name^='same_run']:checked").each(function() {
         var pk = $(this).val();
-        series.push({"label":  pk});
+        series.push({"label":  "Result #" + pk});
         plotdata.push(data.data[pk]);
     });
 
     var plotoptions = {
-        title: {text: data.metric, fontSize: '1.1em'},
+        title: {text: data.metric + " " + data.lessisbetter, fontSize: '1.1em'},
         series: series,
         axes:{
             yaxis:{
-                label: data.units + " " + data.lessisbetter,
+                label: data.units,
                 labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
                 autoscale: true,
                 min: 0,
-                tickOptions: {formatString:'%.2f'},
+                tickOptions: {formatString:'%.1f'},
             },
             xaxis:{
-                label: 'Time',
+                label: 'Time (seconds)',
                 autoscale: true,
                 min: 0,
             }

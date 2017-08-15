@@ -3,13 +3,16 @@ Common Django settings for the OtterTune project.
 
 """
 
-import os
-from os.path import abspath, dirname, exists, join
+import sys, os
+from os.path import abspath, dirname, exists, expanduser, join
 
 try:
-    from credentials import SECRET_KEY, DATABASES
-except ImportError:
-    from credentials_TEMPLATE import SECRET_KEY, DATABASES
+    from credentials import SECRET_KEY, DATABASES, ALLOWED_HOSTS
+except ImportError as err:
+    raise err('Copy settings/credentials_TEMPLATE.py to credentials.py and update settings.')
+
+# Add OtterTune library to path
+sys.path.insert(0, join(expanduser("~"), "git"))
 
 ## ==============================================
 ## PATH CONFIGURATION
@@ -24,6 +27,15 @@ UPLOAD_DIR = join(PROJECT_ROOT, 'data', 'media')
 # Required upload permissions
 FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o644
 FILE_UPLOAD_PERMISSIONS = 0o644
+
+# Path to data preloaded with manage.py loaddata
+PRELOAD_DIR = os.path.join(PROJECT_ROOT, 'preload')
+
+# This is where intermediate results are stored in our ML pipeline
+PIPELINE_DIR = join(PROJECT_ROOT, 'data', 'pipeline_results')
+
+# Path to the base DBMS configuration files
+CONFIG_DIR = join(PROJECT_ROOT, 'config')
 
 ## ==============================================
 ## DEBUG CONFIGURATION
@@ -48,10 +60,6 @@ MANAGERS = ADMINS
 ## ==============================================
 ## GENERAL CONFIGURATION
 ## ==============================================
-
-# Hosts/domain names that are valid for this site; required if DEBUG is False
-# See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = ['0.0.0.0']
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -181,13 +189,14 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'debug_toolbar',
-    #'django_extensions',
+    # 'django_extensions',
     'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
-    #'rest_framework',
-    #'south',
+    # 'rest_framework',
+    # 'south',
     'djcelery',
+    # 'django_celery_beat',
     'website',
 )
 

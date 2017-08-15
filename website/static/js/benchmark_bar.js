@@ -2,7 +2,7 @@ var BenchmarkBar = (function(window){
 
 function renderPlot(data, div_id) {
     var plotoptions = {
-        title: {text: data.metric, fontSize: '1.1em'},
+        title: {text: data.metric + " " + data.lessisbetter, fontSize: '1.1em'},
         seriesDefaults:{
             renderer:$.jqplot.BarRenderer,
             rendererOptions: {
@@ -12,13 +12,13 @@ function renderPlot(data, div_id) {
         },
         axes:{
             yaxis:{
-                label: data.unit + " " + data.lessisbetter,
+                label: data.unit,
                 labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
                 min: 0, autoscale:true,
             },
             xaxis:{
                 renderer: $.jqplot.CategoryAxisRenderer,
-                label: 'DB Conf ID',
+                label: 'DBMS Configuration',
                 labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
                 ticks: data.tick,
                 pad: 1.01,

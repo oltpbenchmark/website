@@ -3,7 +3,7 @@ import csv
 import json
 import shutil
 from collections import OrderedDict
-    
+
 
 HW = OrderedDict()
 with open('ec2_instance_types.csv', 'r') as f:
@@ -12,14 +12,12 @@ with open('ec2_instance_types.csv', 'r') as f:
         if i == 0:
             header = row
         else:
-            print row[0]
             entry = {}
             entry['type'] = i+1
             entry['name'] = row[0]
             entry['cpu'] = int(row[1])
             entry['memory'] = float(row[2].replace(',', ''))
             storage_str = row[3]
-            print "STORAGE_STR: {}".format(storage_str)
             storage_type = None
             if 'EBS' in storage_str:
                 storage_type = 'EBS'
@@ -36,7 +34,6 @@ with open('ec2_instance_types.csv', 'r') as f:
             else:
                 raise Exception('Unknown storage type for {}'.format(entry['name']))
             storage_list = None
-            print "STORAGE_TYPE = {}".format(storage_type)
             if storage_type == 'EBS':
                 entry['storage'] = '40,40'
             elif entry['name'] == 'f1.2xlarge':
@@ -52,10 +49,18 @@ with open('ec2_instance_types.csv', 'r') as f:
             HW[entry['name']] = entry
 
 # For types.HardwareTypes
-type_names = {v['type']: k for k,v in HW.iteritems()}
-type_names[1] = 'GENERIC'
-with open('type_names.txt', 'w') as f:
-    f.write(str(type_names))
+hw_consts = [('GENERIC', 1, 'generic')]
+for k,v in HW.iteritems():
+    hw_consts.append(('EC2_{}'.format(k.replace('.', '').upper()), v['type'], k))
+hw_str = ' '.join(['{} = {};'.format(k, v) for k,v,_ in hw_consts])
+type_names = ', '.join(['{}: \'{}\''.format(k,n) for k,_,n in hw_consts])
+#hw_str = 'GENERIC = 1; '
+#hw_str += ' '.join(['EC2_{} = {};'.format(k.replace('.', '').upper(), v['type']) for k,v in HW.iteritems()])
+#type_names = {v['type']: k for k,v in HW.iteritems()}
+#type_names['GENERIC'] = 'GENERIC'
+with open('hardware_types.txt', 'w') as f:
+    f.write(hw_str + '\n')
+    f.write('TYPE_NAMES = {' + type_names + '}')
 
 entries = []
 for k,v in HW.iteritems():
@@ -67,12 +72,12 @@ for k,v in HW.iteritems():
 with open('hardware.json', 'w') as f:
     json.dump(entries, f, encoding='utf-8', indent=4)
 
-shutil.copy('hardware.json', '../preload/hardware.json')
+shutil.copy('hardware.json', '../../preload/hardware.json')
 
-maxx = ''
-maxlen = 0
-for k,v in HW.iteritems():
-    if len(v['storage']) > maxlen:
-        print k,len(v['storage']), v['storage']
-        maxlen = len(v['storage'])
-        
+#maxx = ''
+#maxlen = 0
+#for k,v in HW.iteritems():
+#    if len(v['storage']) > maxlen:
+#        print k,len(v['storage']), v['storage']
+#        maxlen = len(v['storage'])
+
