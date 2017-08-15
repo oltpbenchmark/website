@@ -439,6 +439,12 @@ def handle_result_files(app, files, cluster_name):
         return HttpResponse('{} v{} is not yet supported.'.format(
             summary['DBMS Type'], dbms_version))
 
+    if dbms_object != app.dbms:
+        return HttpResponse('The DBMS must match the type and version '
+                            'specified when creating the application. '
+                            '(expected=' + app.dbms.full_name + ') '
+                            '(actual=' + dbms_object.full_name + ')')
+
     # Load parameters, metrics, benchmark, and samples
     db_parameters = JSONUtil.loads(
         ''.join(files['db_parameters_data'].chunks()))
