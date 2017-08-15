@@ -450,11 +450,9 @@ class Result(models.Model, BaseModel):
 
 class WorkloadClusterManager(models.Manager):
 
-    __DEFAULT_FMT = '{}_{}_UNASSIGNED'.format
-
     def create_workload_cluster(self, dbms, hardware, cluster_name=None):
         if cluster_name is None:
-            cluster_name = self.__DEFAULT_FMT(dbms.pk, hardware.pk)
+            cluster_name = WorkloadCluster.get_default(dbms.pk, hardware.pk)
         try:
             return WorkloadCluster.objects.get(cluster_name=cluster_name)
         except WorkloadCluster.DoesNotExist:
@@ -464,16 +462,27 @@ class WorkloadClusterManager(models.Manager):
 
 
 class WorkloadCluster(models.Model):
+    __DEFAULT_FMT = '{db}_{hw}_UNASSIGNED'.format
+
     objects = WorkloadClusterManager()
 
     dbms = models.ForeignKey(DBMSCatalog)
     hardware = models.ForeignKey(Hardware)
     cluster_name = models.CharField(max_length=128, unique=True)
 
+    @property
     def isdefault(self):
-        default_name = WorkloadClusterManager.__DEFAULT_FMT(
-            self.dbms.pk, self.hardware.pk)
-        return self.cluster_name == default_name
+        return self.cluster_name == self.default
+
+    @property
+    def default(self):
+        return self.__DEFAULT_FMT(db=self.dbms.pk,
+                                  hw=self.hardware.pk)
+
+    @staticmethod
+    def get_default(dbms_id, hw_id):
+        return WorkloadCluster.__DEFAULT_FMT(db=dbms_id,
+                                             hw=hw_id)
 
     def __unicode__(self):
         return self.cluster_name

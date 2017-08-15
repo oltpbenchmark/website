@@ -254,7 +254,8 @@ function setValuesOfInputFields(event) {
     
     // Set default selected db
     $("input:checkbox[name='db']").removeAttr('checked');
-    var dbs = event.parameters.db && event.parameters.db != "none" ? event.parameters.db.split(',') : defaults.db.split(',');
+    //var dbs = event.parameters.db && event.parameters.db != "none" ? event.parameters.db.split(',') : defaults.db.split(',');
+    var dbs = defaults.db.split(',');
     var sel = $("input[name='db']");
     $.each(dbs, function(i, db) {
         sel.filter("[value='" + db + "']").prop('checked', true);

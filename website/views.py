@@ -1,4 +1,5 @@
 import logging
+import pdb
 
 from collections import OrderedDict
 from pytz import timezone
@@ -19,10 +20,10 @@ from djcelery.models import TaskMeta
 
 from .forms import ApplicationForm, NewResultForm, ProjectForm
 from .models import (Application, BenchmarkConfig, DBConf, DBMSCatalog,
-                     DBMSMetrics, Hardware, Project, Result, ResultData,
-                     Statistics, WorkloadCluster)
+                     DBMSMetrics, Hardware, PipelineResult, Project, Result,
+                     ResultData, Statistics, WorkloadCluster)
 from tasks import aggregate_target_results, map_workload, configuration_recommendation
-from .types import DBMSType, StatsType, TaskType
+from .types import DBMSType, PipelineTaskType, StatsType, TaskType
 from .utils import DBMSUtil, JSONUtil, LabelUtil, MediaUtil
 from website.types import HardwareType
 
@@ -37,7 +38,8 @@ def get_item(dictionary, key):
 
 def ajax_new(request):
     new_id = request.GET['new_id']
-    ts = Statistics.objects.filter(result=new_id)
+    ts = Statistics.objects.filter(data_result=new_id,
+                                   type=StatsType.SAMPLES)
     data = {}
     metric_meta = Statistics.objects.metric_meta
     for metric, metric_info in metric_meta.iteritems():
@@ -206,11 +208,11 @@ def project_info(request):
 
 @login_required(login_url='/login/')
 def application(request):
-    p = Application.objects.get(pk=request.GET['id'])
-    if p.user != request.user:
+    app = Application.objects.get(pk=request.GET['id'])
+    if app.user != request.user:
         return render(request, '404.html')
 
-    project = p.project
+    project = app.project
 
     data = request.GET
 
@@ -240,8 +242,12 @@ def application(request):
 #              'print': field['print'], 'field': field['field']}
 #         filters.append(f)
 
-    defaultspe = "none" if len(benchmarks) == 0 else \
-        list(benchmarks.iteritems())[0][0]
+    if len(benchmarks) > 0:
+        default_bench, default_confs = benchmarks.iteritems().next()
+        default_confs = ','.join([str(c.pk) for c in default_confs])
+    else:
+        default_bench = 'show_none'
+        default_confs = 'none'
 
     default_metrics = Statistics.objects.default_metrics
     if application.target_objective not in default_metrics:
@@ -255,11 +261,11 @@ def application(request):
         'dbmss': dbs,
         'benchmarks': benchmarks,
         'lastrevisions': lastrevisions,
-        'defaultdbms': "none" if len(dbs) == 0 else dbs.keys()[0],
+        'defaultdbms': app.dbms.key,
         'defaultlast': 10,
-        'defaultequid': False,
-        'defaultbenchmark': 'grid',
-        'defaultspe': defaultspe,
+        'defaultequid': "on",
+        'defaultbenchmark': default_bench,
+        'defaultspe': default_confs,
         'metrics': metric_meta.keys(),
         'metric_meta': metric_meta,
         'defaultmetrics': default_metrics,
@@ -743,7 +749,21 @@ def update_benchmark_conf(request):
     return redirect('/benchmark_conf/?id=' + str(ben_conf.pk))
 
 
-def result_similar(a, b):
+def result_similar(a, b, compare_params):
+#     ranked_knobs = JSONUtil.loads(PipelineResult.get_latest(
+#         dbms_id, hw_id, PipelineTaskType.RANKED_KNOBS).value)[:10]
+    dbms_id = a.dbms.pk
+    db_conf_a = DBMSUtil.filter_tunable_params(
+        dbms_id, JSONUtil.loads(a.dbms_config.configuration))
+    db_conf_b = DBMSUtil.filter_tunable_params(
+        dbms_id, JSONUtil.loads(b.dbms_config.configuration))
+    for param in compare_params:
+        if db_conf_a[param] != db_conf_b[param]:
+            return False
+    return True
+
+
+def result_same(a, b):
     dbms_id = a.dbms.pk
     db_conf_a = DBMSUtil.filter_tunable_params(
         dbms_id, JSONUtil.loads(a.dbms_config.configuration))
@@ -755,13 +775,13 @@ def result_similar(a, b):
     return True
 
 
-def result_same(a, b):
-    db_conf_a = JSONUtil.loads(a.dbms_config.configuration)
-    db_conf_b = JSONUtil.loads(b.dbms_config.configuration)
-    for k, v in db_conf_a.iteritems():
-        if k not in db_conf_b or v != db_conf_b[k]:
-            return False
-    return True
+# def result_same(a, b):
+#     db_conf_a = JSONUtil.loads(a.dbms_config.configuration)
+#     db_conf_b = JSONUtil.loads(b.dbms_config.configuration)
+#     for k, v in db_conf_a.iteritems():
+#         if k not in db_conf_b or v != db_conf_b[k]:
+#             return False
+#     return True
 
 
 @login_required(login_url='/login/')
@@ -771,15 +791,19 @@ def update_similar(request):
 
 def result(request):
     target = get_object_or_404(Result, pk=request.GET['id'])
+    app = target.application
     data_package = {}
     results = Result.objects.filter(application=target.application,
-                                    dbms=target.dbms,
+                                    dbms=app.dbms,
                                     benchmark_config=target.benchmark_config)
-    same_dbconf_results = filter(lambda x: result_same(
-        x, target) and x.pk != target.pk, results)
-    similar_dbconf_results = filter(lambda x: result_similar(x, target) and
-                                    x.pk not in ([target.pk] +
-                                    [r.pk for r in same_dbconf_results]), results)
+    same_dbconf_results = filter(
+        lambda x: x.pk != target.pk and result_same(x, target), results)
+    ranked_knobs = JSONUtil.loads(PipelineResult.get_latest(
+        app.dbms, app.hardware, PipelineTaskType.RANKED_KNOBS).value)[:10]
+    similar_dbconf_results = filter(
+        lambda x: x.pk not in \
+        ([target.pk] + [r.pk for r in same_dbconf_results]) and \
+        result_similar(x, target, ranked_knobs), results)
 
     metric_meta = Statistics.objects.metric_meta
     for metric, metric_info in metric_meta.iteritems():
@@ -791,8 +815,7 @@ def result(request):
             'print': metric_info.pprint,
         }
 
-        same_id = []
-        same_id.append(str(target.pk))
+        same_id = [str(target.pk)]
         for x in same_id:
             key = metric + ',data,' + x
             tmp = cache.get(key)
@@ -911,13 +934,14 @@ def get_timeline_data(request):
 
     # Get all results related to the selected DBMS, sort by time
     results = Result.objects.filter(application=request.GET['proj'])
-    results = filter(lambda x: x.dbms.key in request.GET[
-                     'db'].split(','), results)
+#     results = filter(lambda x: x.dbms.key in request.GET[
+#                      'db'].split(','), results)
     results = sorted(results, cmp=lambda x, y: int(
         (x.timestamp - y.timestamp).total_seconds()))
 
     default_metrics = Statistics.objects.default_metrics
-    if application.tuning_session is True and application.target_objective not in default_metrics:
+    if application.tuning_session is True and \
+            application.target_objective not in default_metrics:
         default_metrics.append(application.target_objective)
     display_type = request.GET['ben']
     if display_type == 'show_none':
@@ -925,14 +949,14 @@ def get_timeline_data(request):
         metrics = default_metrics
         results = []
         pass
-    elif display_type == 'grid':
-        metrics = default_metrics
-        benchmarks = set()
-        benchmark_confs = []
-        for result in results:
-            benchmarks.add(result.benchmark_config.benchmark_type)
-            benchmark_confs.append(result.benchmark_config)
-        benchmarks = list(benchmarks)
+#     elif display_type == 'grid':
+#         metrics = default_metrics
+#         benchmarks = set()
+#         benchmark_confs = []
+#         for result in results:
+#             benchmarks.add(result.benchmark_config.benchmark_type)
+#             benchmark_confs.append(result.benchmark_config)
+#         benchmarks = list(benchmarks)
     else:
         metrics = request.GET.get(
             'met', ','.join(default_metrics)).split(',')
@@ -985,7 +1009,7 @@ def get_timeline_data(request):
                 d_r = d_r[-revs:]
                 out = [
                     [
-                        res.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+                        res.timestamp.strftime("%m-%d-%y %H:%M"),
                         getattr(res.summary_stats, metric) * met_info.scale,
                         "",
                         str(res.pk)

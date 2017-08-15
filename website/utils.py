@@ -342,6 +342,9 @@ class DBMSUtilImpl(object):
     def format_integer(self, int_value, param_info):
         return int(round(int_value))
 
+    def format_real(self, real_value, param_info):
+        return float(real_value)
+
     def format_string(self, string_value, param_info):
         raise NotImplementedError('Implement me!')
 
