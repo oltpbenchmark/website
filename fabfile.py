@@ -4,7 +4,6 @@ Admin tasks
 @author: dvanaken
 '''
 
-import os
 import os.path
 
 from collections import namedtuple

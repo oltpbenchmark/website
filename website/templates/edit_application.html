@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% load field_labels %}
+
 {% block body %}
 <div class="container">
 <form action="/update_application/" method="POST"> {% csrf_token %}
@@ -12,11 +14,11 @@
             <td>{{ form.description.label_tag }}</td>
             <td>{{ form.description }}</td>
         </tr>
-        <tr>
+        <tr id="dbms_row">
             <td>{{ form.dbms.label_tag }}</td>
             <td>{{ form.dbms }}</td>
         </tr>
-        <tr>
+        <tr id="hardware_row">
             <td>{{ form.hardware.label_tag }}</td>
             <td>{{ form.hardware }}</td>
         </tr>
@@ -24,12 +26,14 @@
             <td>{{ form.tuning_session.label_tag }}</td>
             <td>{{ form.tuning_session }}</td>
         </tr>
-        {% if application %}
-        <tr>
+        <tr id="target_obj_row">
+            <td>{{ form.target_objective.label_tag }}</td>
+            <td>{{ form.target_objective }}</td>
+        </tr>
+        <tr id="upload_code_row">
             <td>{{ form.gen_upload_code.label_tag }}</td>
             <td>{{ form.gen_upload_code }}</td>
         </tr>
-        {% endif %}
     </table>
     <button class="btn btn-default" type="submit" name="id" value="{{ application.pk }}&{{ project.pk }}">Submit</button>
     {% if application %}
@@ -39,4 +43,27 @@
     {% endif %}
 </form>
 </div>
+
+<script language="javascript">
+function show_content() {
+	console.log("In show_content()")
+	$("#target_obj_row").toggle()
+}
+
+$(function() {
+	if ("{{ application }}" != "None") {
+	    $("#dbms_row").hide();
+	    $("#hardware_row").hide();
+	} else {
+		$("#upload_code_row").hide();
+	}
+	
+	if (document.getElementById('id_tuning_session').checked) {
+		$("#target_obj_row").show()
+	} else {
+		$("#target_obj_row").hide()
+	}
+});
+</script>
+
 {% endblock body %}

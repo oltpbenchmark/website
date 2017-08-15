@@ -1,14 +1,38 @@
-from collections import OrderedDict
+from collections import namedtuple, OrderedDict
 
 import xml.dom.minidom
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.core.validators import (validate_comma_separated_integer_list,
                                     MinValueValidator)
 from django.db import models
 from django.utils.timezone import now
 
-from .types import (DBMSType, MetricType, VarType, HardwareType,
-                    KnobUnitType, PipelineTaskType, StatsType)
+from .types import (DBMSType, LabelStyleType, MetricType, HardwareType,
+                    KnobUnitType, PipelineTaskType, StatsType, VarType)
+
+
+class BaseModel(object):
+
+    @classmethod
+    def get_labels(cls, style=LabelStyleType.DEFAULT_STYLE):
+        from .utils import LabelUtil
+
+        labels = {}
+        fields = cls._meta.get_fields()
+        for field in fields:
+            try:
+                verbose_name = field.verbose_name
+                if field.name == 'id':
+                    verbose_name = cls._model_name() + ' id'
+                labels[field.name] = verbose_name
+            except:
+                pass
+        return LabelUtil.style_labels(labels, style)
+
+    @classmethod
+    def _model_name(cls):
+        return cls.__name__
 
 
 class DBMSCatalog(models.Model):
@@ -57,10 +81,10 @@ class MetricCatalog(models.Model):
     metric_type = models.IntegerField(choices=MetricType.choices())
 
 
-class Project(models.Model):
+class Project(models.Model, BaseModel):
     user = models.ForeignKey(User)
-    name = models.CharField(max_length=64)
-    description = models.TextField(null=True)
+    name = models.CharField(max_length=64, verbose_name="project name")
+    description = models.TextField(null=True, blank=True)
     creation_time = models.DateTimeField()
     last_update = models.DateTimeField()
 
@@ -87,11 +111,125 @@ class Hardware(models.Model):
     def __unicode__(self):
         return HardwareType.TYPE_NAMES[self.type]
 
+MetricMeta = namedtuple('MetricMeta', ['name', 'pprint', 'unit', 'short_unit', 'scale', 'improvement'])
 
-class Application(models.Model):
+class StatsManager(models.Manager):
+    THROUGHPUT  = 'throughput'
+    P99_LATENCY = 'p99_latency'
+    P95_LATENCY = 'p95_latency'
+    P90_LATENCY = 'p90_latency'
+    AVG_LATENCY = 'avg_latency'
+    MED_LATENCY = 'p50_latency'
+    MAX_LATENCY = 'max_latency'
+    P75_LATENCY = 'p75_latency'
+    P25_LATENCY = 'p25_latency'
+    MIN_LATENCY = 'min_latency'
+    TIME        = 'time'
+
+    UNIT_MILLISECONDS = ('milliseconds', 'ms')
+    UNIT_TXN_PER_SEC = ('transactions/second', 'txn/sec')
+
+    LATENCY_UNIT  = UNIT_MILLISECONDS
+    TPUT_UNIT     = UNIT_TXN_PER_SEC
+    LATENCY_SCALE = 0.001
+    TPUT_SCALE    = 1
+
+    LESS_IS_BETTER = '(less is better)'
+    MORE_IS_BETTER = '(more is better)'
+
+    THROUGHPUT_LABEL  = 'Throughput'
+    P99_LATENCY_LABEL = '99th Percentile Latency'
+    P95_LATENCY_LABEL = '95th Percentile Latency'
+    P90_LATENCY_LABEL = '90th Percentile Latency'
+    AVG_LATENCY_LABEL = 'Average Latency'
+    MED_LATENCY_LABEL = 'Median Latency'
+    MAX_LATENCY_LABEL = 'Maximum Latency'
+    P75_LATENCY_LABEL = '75th Percentile Latency'
+    P25_LATENCY_LABEL = '25th Percentile Latency'
+    MIN_LATENCY_LABEL = 'Minimum Latency'
+    TIME_LABEL        = 'Time'
+
+    DEFAULT_METRICS = [P99_LATENCY, THROUGHPUT]
+
+    METRIC_META = OrderedDict([
+        (THROUGHPUT,  MetricMeta(THROUGHPUT, THROUGHPUT_LABEL, TPUT_UNIT[0], TPUT_UNIT[1], TPUT_SCALE, MORE_IS_BETTER)),
+        (P99_LATENCY, MetricMeta(P99_LATENCY, P99_LATENCY_LABEL, LATENCY_UNIT[0], LATENCY_UNIT[1], LATENCY_SCALE, LESS_IS_BETTER)),
+        (P95_LATENCY, MetricMeta(P95_LATENCY, P95_LATENCY_LABEL, LATENCY_UNIT[0], LATENCY_UNIT[1], LATENCY_SCALE, LESS_IS_BETTER)),
+        (P90_LATENCY, MetricMeta(P90_LATENCY, P90_LATENCY_LABEL, LATENCY_UNIT[0], LATENCY_UNIT[1], LATENCY_SCALE, LESS_IS_BETTER)),
+        (P75_LATENCY, MetricMeta(P75_LATENCY, P75_LATENCY_LABEL, LATENCY_UNIT[0], LATENCY_UNIT[1], LATENCY_SCALE, LESS_IS_BETTER)),
+        (P25_LATENCY, MetricMeta(P25_LATENCY, P25_LATENCY_LABEL, LATENCY_UNIT[0], LATENCY_UNIT[1], LATENCY_SCALE, LESS_IS_BETTER)),
+        (MIN_LATENCY, MetricMeta(MIN_LATENCY, MIN_LATENCY_LABEL, LATENCY_UNIT[0], LATENCY_UNIT[1], LATENCY_SCALE, LESS_IS_BETTER)),
+        (MED_LATENCY, MetricMeta(MED_LATENCY, MED_LATENCY_LABEL, LATENCY_UNIT[0], LATENCY_UNIT[1], LATENCY_SCALE, LESS_IS_BETTER)),
+        (MAX_LATENCY, MetricMeta(MAX_LATENCY, MAX_LATENCY_LABEL, LATENCY_UNIT[0], LATENCY_UNIT[1], LATENCY_SCALE, LESS_IS_BETTER)),
+        (AVG_LATENCY, MetricMeta(AVG_LATENCY, AVG_LATENCY_LABEL, LATENCY_UNIT[0], LATENCY_UNIT[1], LATENCY_SCALE, LESS_IS_BETTER)),
+    ])
+
+    @property
+    def metric_meta(self):
+        return self.METRIC_META
+
+    @property
+    def default_metrics(self):
+        return list(self.DEFAULT_METRICS)
+
+    def get_meta(self, metric):
+        return self.METRIC_META[metric]
+
+    def create_summary_stats(self, summary, result, time):
+        stats = Statistics()
+        stats.data_result = result
+        stats.type = StatsType.SUMMARY
+        stats.time = int(time)
+        mets = self.get_external_metrics(summary)
+        for k, v in mets.iteritems():
+            setattr(stats, k, v)
+        stats.save()
+        return stats
+
+    def create_sample_stats(self, sample_csv, result):
+        label_map = {v.pprint: k for k, v in self.METRIC_META.iteritems()}
+        sample_lines = sample_csv.split('\n')
+        header = []
+        for label in sample_lines[0].split(','):
+            label = label.strip().rsplit(' ', 1)[0]
+            try:
+                header.append(label_map[label])
+            except KeyError:
+                if label == self.TIME_LABEL:
+                    header.append(self.TIME)
+
+        all_stats = []
+        for line in sample_lines[1:]:
+            if line == '':
+                continue
+            stats = Statistics()
+            stats.data_result = result
+            stats.type = StatsType.SAMPLES
+            entries = line.strip().split(',')
+            for name, entry in zip(header, entries):
+                if name == self.TIME:
+                    entry = int(entry)
+                else:
+                    entry = float(entry)
+                setattr(stats, name, entry)
+            stats.save()
+            all_stats.append(stats)
+        return all_stats
+
+    def get_external_metrics(self, summary):
+        stats = {}
+        for k, v in self.METRIC_META.iteritems():
+            if k == self.THROUGHPUT:
+                stats[k] = float(summary[v.pprint + ' (requests/second)'])
+            else:
+                stats[k] = float(summary['Latency Distribution'][v.pprint + ' (microseconds)'])
+        return stats
+
+
+class Application(models.Model, BaseModel):
     user = models.ForeignKey(User)
-    name = models.CharField(max_length=64)
-    description = models.TextField(null=True)
+    name = models.CharField(max_length=64, verbose_name="application name")
+    description = models.TextField(null=True, blank=True)
     dbms = models.ForeignKey(DBMSCatalog)
     hardware = models.ForeignKey(Hardware)
 
@@ -101,7 +239,21 @@ class Application(models.Model):
 
     upload_code = models.CharField(max_length=30, unique=True)
     tuning_session = models.BooleanField()
+    target_objective = models.CharField(
+            max_length=64,
+            choices=[(k, v.pprint) for k, v in \
+                     StatsManager.METRIC_META.iteritems()],
+            null=True)
     nondefault_settings = models.TextField(null=True)
+
+    def clean(self):
+        if self.tuning_session is False:
+            self.target_objective = None
+        else:
+            if self.target_objective is None:
+                raise ValidationError('If this is a tuning session then '
+                                      'the target objective cannot be null')
+#                 self.target_objective = StatsManager.P99_LATENCY
 
     def delete(self, using=None):
         targets = DBConf.objects.filter(application=self)
@@ -122,9 +274,19 @@ class Application(models.Model):
 class ExpManager(models.Manager):
 
     def create_name(self, config, key):
-        ts = config.creation_time.strftime("%Y-%m-%d,%H")
+        ts = config.creation_time.strftime("%m-%d-%y")
         return (key + '@' + ts + '#' + str(config.pk))
 
+
+class ExpModel(models.Model, BaseModel):
+    application = models.ForeignKey(Application)
+    name = models.CharField(max_length=50, verbose_name="configuration name")
+    description = models.CharField(max_length=512, null=True, blank=True)
+    creation_time = models.DateTimeField()
+    configuration = models.TextField()
+
+    def __unicode__(self):
+        return self.name
 
 class BenchmarkConfigManager(ExpManager):
 
@@ -133,49 +295,49 @@ class BenchmarkConfigManager(ExpManager):
             return BenchmarkConfig.objects.get(application=app,
                                                configuration=config)
         except BenchmarkConfig.DoesNotExist:
-            benchmark_config = BenchmarkConfig()
-            benchmark_config.name = ''
-            benchmark_config.application = app
-            benchmark_config.configuration = config
-            benchmark_config.benchmark_type = bench_type
-            benchmark_config.description = desc
-            benchmark_config.creation_time = now()
-
             dom = xml.dom.minidom.parseString(config)
             root = dom.documentElement
-            benchmark_config.isolation = (root.getElementsByTagName('isolation'))[
+            isolation = (root.getElementsByTagName('isolation'))[
                 0].firstChild.data
-            benchmark_config.scalefactor = (
+            scalefactor = (
                 root.getElementsByTagName('scalefactor'))[0].firstChild.data
-            benchmark_config.terminals = (root.getElementsByTagName('terminals'))[
+            terminals = (root.getElementsByTagName('terminals'))[
                 0].firstChild.data
-            benchmark_config.time = (root.getElementsByTagName('time'))[
+            time = (root.getElementsByTagName('time'))[
                 0].firstChild.data
-            benchmark_config.rate = (root.getElementsByTagName('rate'))[
+            rate = (root.getElementsByTagName('rate'))[
                 0].firstChild.data
-            benchmark_config.skew = (root.getElementsByTagName('skew'))
-            benchmark_config.skew = - \
-                1 if len(benchmark_config.skew) == 0 else benchmark_config.skew[
+            skew = (root.getElementsByTagName('skew'))
+            skew = - \
+                1 if len(skew) == 0 else skew[
                     0].firstChild.data
-            benchmark_config.transaction_types = [
+            transaction_types = [
                 t.firstChild.data for t in root.getElementsByTagName('name')]
-            benchmark_config.transaction_weights = [
+            transaction_weights = [
                 w.firstChild.data for w in root.getElementsByTagName('weights')]
-            benchmark_config.save()
+
+            benchmark_config = self.create(application=app,
+                                           configuration=config,
+                                           benchmark_type=bench_type,
+                                           description=desc,
+                                           creation_time=now(),
+                                           isolation=isolation,
+                                           scalefactor=scalefactor,
+                                           terminals=terminals,
+                                           time=time,
+                                           rate=rate,
+                                           skew=skew,
+                                           transaction_types=transaction_types,
+                                           transaction_weights=transaction_weights)
             benchmark_config.name = self.create_name(benchmark_config, bench_type)
             benchmark_config.save()
             return benchmark_config
 
-class BenchmarkConfig(models.Model):
+class BenchmarkConfig(ExpModel):
     objects = BenchmarkConfigManager()
 
-    application = models.ForeignKey(Application)
-    name = models.CharField(max_length=64)
-    description = models.CharField(max_length=512, null=True)
-    configuration = models.TextField()
     benchmark_type = models.CharField(max_length=64)
-    creation_time = models.DateTimeField()
-    isolation = models.CharField(max_length=64)
+    isolation = models.CharField(max_length=64, verbose_name="isolation level")
     scalefactor = models.FloatField()
     terminals = models.IntegerField()
     time = models.IntegerField(validators=[MinValueValidator(0)])
@@ -192,22 +354,10 @@ class BenchmarkConfig(models.Model):
         {'field': 'terminals', 'print': '# of Terminals'},
     ]
 
-    def __unicode__(self):
-        return self.name
 
-
-class DBModel(models.Model):
-
-    application = models.ForeignKey(Application)
-    dbms = models.ForeignKey(DBMSCatalog)
-    name = models.CharField(max_length=50)
-    description = models.CharField(max_length=512, null=True)
-    creation_time = models.DateTimeField()
-    configuration = models.TextField()
+class DBModel(ExpModel):
+    dbms = models.ForeignKey(DBMSCatalog, verbose_name="dbms")
     orig_config_diffs = models.TextField()
-
-    def __unicode__(self):
-        return self.name
 
 
 class DBConfManager(ExpManager):
@@ -218,14 +368,12 @@ class DBConfManager(ExpManager):
             return DBConf.objects.get(application=app,
                                       configuration=config)
         except DBConf.DoesNotExist:
-            conf = DBConf()
-            conf.application = app
-            conf.configuration = config
-            conf.orig_config_diffs = orig_config_diffs
-            conf.dbms = dbms
-            conf.creation_time = now()
-            conf.description = desc
-            conf.save()
+            conf = self.create(application=app,
+                               configuration=config,
+                               orig_config_diffs=orig_config_diffs,
+                               dbms=dbms,
+                               description=desc,
+                               creation_time=now())
             conf.name = self.create_name(conf, dbms.key)
             conf.save()
             return conf
@@ -239,17 +387,16 @@ class DBMSMetricsManager(ExpManager):
 
     def create_dbms_metrics(self, app, config, orig_config_diffs,
                             exec_time, dbms, desc=None):
-        metrics = DBMSMetrics()
-        metrics.application = app
-        metrics.configuration = config
-        metrics.orig_config_diffs = orig_config_diffs
-        metrics.dbms = dbms
-        metrics.creation_time = now()
-        metrics.execution_time = exec_time
-        metrics.description = desc
-        metrics.save()
+        metrics = self.create(application=app,
+                              configuration=config,
+                              orig_config_diffs=orig_config_diffs,
+                              dbms=dbms,
+                              execution_time=exec_time,
+                              description=desc,
+                              creation_time=now())
         metrics.name = self.create_name(metrics, dbms.key)
         metrics.save()
+        return metrics
 
 
 class DBMSMetrics(DBModel):
@@ -265,26 +412,23 @@ class ResultManager(models.Manager):
                       dbms_metrics, summary, samples, timestamp,
                       summary_stats=None, task_ids=None,
                       most_similar=None):
-        res = Result()
-        res.application = app
-        res.dbms = dbms
-        res.benchmark_config = bench_config
-        res.dbms_config = dbms_config
-        res.dbms_metrics = dbms_metrics
-        res.summary = summary
-        res.samples = samples
-        res.timestamp = timestamp
-        res.summary_stats = summary_stats
-        res.task_ids = task_ids
-        res.most_similar = most_similar
-        res.creation_time = now()
-        res.save()
-        return res
+        return self.create(application=app,
+                           dbms=dbms,
+                           benchmark_config=bench_config,
+                           dbms_config=dbms_config,
+                           dbms_metrics=dbms_metrics,
+                           summary=summary,
+                           samples=samples,
+                           timestamp=timestamp,
+                           summary_stats=summary_stats,
+                           task_ids=task_ids,
+                           most_similar=most_similar,
+                           creation_time=now())
 
-class Result(models.Model):
+class Result(models.Model, BaseModel):
     objects = ResultManager()
 
-    application = models.ForeignKey(Application)
+    application = models.ForeignKey(Application, verbose_name='application name')
     dbms = models.ForeignKey(DBMSCatalog)
     benchmark_config = models.ForeignKey(BenchmarkConfig)
     dbms_config = models.ForeignKey(DBConf)
@@ -314,12 +458,9 @@ class WorkloadClusterManager(models.Manager):
         try:
             return WorkloadCluster.objects.get(cluster_name=cluster_name)
         except WorkloadCluster.DoesNotExist:
-            cluster = WorkloadCluster()
-            cluster.dbms = dbms
-            cluster.hardware = hardware
-            cluster.cluster_name = cluster_name
-            cluster.save()
-            return cluster
+            return self.create(dbms=dbms,
+                               hardware=hardware,
+                               cluster_name=cluster_name)
 
 
 class WorkloadCluster(models.Model):
@@ -338,21 +479,7 @@ class WorkloadCluster(models.Model):
         return self.cluster_name
 
 
-class ResultDataManager(models.Manager):
-
-    def create_result_data(self, result, cluster,
-                           param_data, metric_data):
-        res_data = ResultData()
-        res_data.result = result
-        res_data.cluster = cluster
-        res_data.param_data = param_data
-        res_data.metric_data = metric_data
-        res_data.save()
-        return res_data
-
 class ResultData(models.Model):
-    objects = ResultDataManager()
-
     result = models.ForeignKey(Result)
     cluster = models.ForeignKey(WorkloadCluster)
     param_data = models.TextField()
@@ -382,110 +509,6 @@ class PipelineResult(models.Model):
         unique_together = ("dbms", "hardware",
                            "creation_timestamp", "task_type")
         get_latest_by = ('creation_timestamp')
-
-
-class StatsManager(models.Manager):
-    THROUGHPUT  = 'throughput'
-    P99_LATENCY = 'p99_latency'
-    P95_LATENCY = 'p95_latency'
-    P90_LATENCY = 'p90_latency'
-    AVG_LATENCY = 'avg_latency'
-    MED_LATENCY = 'p50_latency'
-    MAX_LATENCY = 'max_latency'
-    P75_LATENCY = 'p75_latency'
-    P25_LATENCY = 'p25_latency'
-    MIN_LATENCY = 'min_latency'
-    TIME        = 'time'
-
-    LATENCY_UNIT  = 'milliseconds'
-    TPUT_UNIT     = 'transactions/second'
-    LATENCY_SCALE = 0.001
-    TPUT_SCALE    = 1
-
-    LESS_IS_BETTER = '(less is better)'
-    MORE_IS_BETTER = '(more is better)'
-
-    THROUGHPUT_LABEL  = 'Throughput (requests/second)'
-    P99_LATENCY_LABEL = '99th Percentile Latency (microseconds)'
-    P95_LATENCY_LABEL = '95th Percentile Latency (microseconds)'
-    P90_LATENCY_LABEL = '90th Percentile Latency (microseconds)'
-    AVG_LATENCY_LABEL = 'Average Latency (microseconds)'
-    MED_LATENCY_LABEL = 'Median Latency (microseconds)'
-    MAX_LATENCY_LABEL = 'Maximum Latency (microseconds)'
-    P75_LATENCY_LABEL = '75th Percentile Latency (microseconds)'
-    P25_LATENCY_LABEL = '25th Percentile Latency (microseconds)'
-    MIN_LATENCY_LABEL = 'Minimum Latency (microseconds)'
-    TIME_LABEL        = 'Time (seconds)'
-
-    DEFAULT_METRICS = [P99_LATENCY, THROUGHPUT]
-
-    METRIC_META = OrderedDict([
-        (THROUGHPUT,  {'unit': TPUT_UNIT,   'improvement': MORE_IS_BETTER, 'scale': TPUT_SCALE,    'print': THROUGHPUT_LABEL}),
-        (P99_LATENCY, {'unit': LATENCY_UNIT, 'improvement': LESS_IS_BETTER, 'scale': LATENCY_SCALE, 'print': P99_LATENCY_LABEL}),
-        (P95_LATENCY, {'unit': LATENCY_UNIT, 'improvement': LESS_IS_BETTER, 'scale': LATENCY_SCALE, 'print': P95_LATENCY_LABEL}),
-        (P90_LATENCY, {'unit': LATENCY_UNIT, 'improvement': LESS_IS_BETTER, 'scale': LATENCY_SCALE, 'print': P90_LATENCY_LABEL}),
-        (P75_LATENCY, {'unit': LATENCY_UNIT, 'improvement': LESS_IS_BETTER, 'scale': LATENCY_SCALE, 'print': P75_LATENCY_LABEL}),
-        (P25_LATENCY, {'unit': LATENCY_UNIT, 'improvement': LESS_IS_BETTER, 'scale': LATENCY_SCALE, 'print': P25_LATENCY_LABEL}),
-        (MIN_LATENCY, {'unit': LATENCY_UNIT, 'improvement': LESS_IS_BETTER, 'scale': LATENCY_SCALE, 'print': MIN_LATENCY_LABEL}),
-        (MED_LATENCY, {'unit': LATENCY_UNIT, 'improvement': LESS_IS_BETTER, 'scale': LATENCY_SCALE, 'print': MED_LATENCY_LABEL}),
-        (MAX_LATENCY, {'unit': LATENCY_UNIT, 'improvement': LESS_IS_BETTER, 'scale': LATENCY_SCALE, 'print': MAX_LATENCY_LABEL}),
-        (AVG_LATENCY, {'unit': LATENCY_UNIT, 'improvement': LESS_IS_BETTER, 'scale': LATENCY_SCALE, 'print': AVG_LATENCY_LABEL}),
-    ])
-
-    def __init__(self):
-        super(StatsManager, self).__init__()
-        self.label_map = OrderedDict()
-        for mname, md in StatsManager.METRIC_META.iteritems():
-            self.label_map[md['print']] = mname
-            md['print'] = md['print'].rsplit(' ', 1)[0]
-        self.label_map[StatsManager.TIME_LABEL] = StatsManager.TIME
-
-    def create_summary_stats(self, summary, result, time):
-        flat_summary = summary.copy()
-        flat_summary.update(summary['Latency Distribution'])
-        del flat_summary['Latency Distribution']
-
-        stats = Statistics()
-        stats.data_result = result
-        stats.type = StatsType.SUMMARY
-        stats.time = int(time)
-        for name, entry in flat_summary.iteritems():
-            if name in self.label_map:
-                setattr(stats, self.label_map[name], float(entry))
-        stats.save()
-        return stats
-
-    def create_sample_stats(self, sample_csv, result):
-        sample_lines = sample_csv.split('\n')
-        header = [h.strip() for h in sample_lines[0].split(',')]
-        header = [self.label_map[h] for h in header if h in self.label_map]
-
-        all_stats = []
-        for line in sample_lines[1:]:
-            if line == '':
-                continue
-            stats = Statistics()
-            stats.data_result = result
-            stats.type = StatsType.SAMPLES
-            entries = line.strip().split(',')
-            for name, entry in zip(header, entries):
-                if name == self.TIME:
-                    entry = int(entry)
-                else:
-                    entry = float(entry)
-                setattr(stats, name, entry)
-            stats.save()
-            all_stats.append(stats)
-        return all_stats
-
-    def get_external_metrics(self, summary):
-        stats = {self.label_map[k]: float(v) for k,v in \
-                 summary['Latency Distribution'].iteritems()}
-        stats[self.THROUGHPUT] = float(summary[self.THROUGHPUT_LABEL])
-        for mname in StatsManager.METRIC_META.keys():
-            if mname not in stats:
-                raise Exception('Missing external metric: {}'.format(mname))
-        return stats
 
 
 class Statistics(models.Model):

@@ -5,10 +5,8 @@ Created on Jul 25, 2017
 '''
 
 from django import forms
-from django.utils.translation import ugettext_lazy as _
 
-from .models import Application, DBMSCatalog, Hardware
-from .types import DBMSType, HardwareType
+from .models import Application, Project
 
 class NewResultForm(forms.Form):
     upload_code = forms.CharField(max_length=30)
@@ -21,42 +19,43 @@ class NewResultForm(forms.Form):
     cluster_name = forms.CharField(max_length=128, required=False)
 
 
-class TuningSessionCheckbox(forms.Form):
-    tuning_session = forms.BooleanField(
-        required=False, label="Tuning Session:", widget=forms.CheckboxInput())
+class ProjectForm(forms.ModelForm):
+
+    class Meta:
+        model = Project
+
+        fields = ['name', 'description']
+
+        widgets = {
+            'name': forms.TextInput(attrs={'required': True}),
+            'description': forms.Textarea(attrs={'maxlength': 500,
+                                                 'rows': 5}),
+        }
 
 
 class ApplicationForm(forms.ModelForm):
-
-    dbms = forms.ModelChoiceField(queryset=DBMSCatalog.objects.all(),
-                                  initial=DBMSCatalog.objects.get(type=DBMSType.POSTGRES,
-                                                                  version='9.6'),
-                                  label='DBMS')
-
-    hardware = forms.ModelChoiceField(queryset=Hardware.objects.all(),
-                                      initial=Hardware.objects.get(type=HardwareType.EC2_M3XLARGE),
-                                      label='Hardware')
 
     gen_upload_code = forms.BooleanField(widget=forms.CheckboxInput,
                                          initial=False,
                                          required=False,
                                          label='Get new upload code')
 
+    def __init__(self, *args, **kwargs):
+        super(ApplicationForm, self).__init__(*args, **kwargs)
+        self.fields['description'].required = False
+        self.fields['target_objective'].required = False
+
     class Meta:
         model = Application
 
-        fields = ('name', 'description', 'tuning_session', 'dbms', 'hardware')
+        fields = ('name', 'description', 'tuning_session', 'dbms', 'hardware', 'target_objective')
 
         widgets = {
             'name': forms.TextInput(attrs={'required': True}),
-            'description': forms.Textarea(attrs={'title': 'Description',
-                                                 'required': False,
-                                                 'maxlength': 500,
+            'description': forms.Textarea(attrs={'maxlength': 500,
                                                  'rows': 5}),
-            'tuning_session': forms.CheckboxInput(),
+            'tuning_session': forms.CheckboxInput(attrs={'onclick': 'show_content();'}),
         }
         labels = {
-            'name': _('Application name'),
-            'description': _('Description'),
-            'tuning_session': _('Tuning session'),
+            'dbms': 'DBMS',
         }

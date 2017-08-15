@@ -16,11 +16,13 @@ from random import choice
 
 import mimetypes
 from django.http import StreamingHttpResponse
+from django.utils.text import capfirst
 from wsgiref.util import FileWrapper
 
 from .models import DBMSCatalog, KnobCatalog, MetricCatalog
 from .settings import CONFIG_DIR, UPLOAD_DIR
-from .types import BooleanType, DBMSType, MetricType, VarType, KnobUnitType
+from .types import (BooleanType, DBMSType, LabelStyleType, MetricType,
+                    VarType, KnobUnitType)
 
 LOG = logging.getLogger(__name__)
 
@@ -507,16 +509,12 @@ class Postgres96UtilImpl(PostgresUtilImpl):
 
 class DBMSUtil(object):
 
-    __DBMS_UTILS_IMPLS = None#{}
-#     {
-#         DBMSCatalog.objects.get(
-#             type=DBMSType.POSTGRES, version='9.6').pk: Postgres96UtilImpl()
-#     }
+    __DBMS_UTILS_IMPLS = None
 
     @staticmethod
     def __utils(dbms_id):
         if DBMSUtil.__DBMS_UTILS_IMPLS is None:
-            DBMSUtil.DBMS_UTILS_IMPLS = {
+            DBMSUtil.__DBMS_UTILS_IMPLS = {
                 DBMSCatalog.objects.get(
                     type=DBMSType.POSTGRES, version='9.6').pk: Postgres96UtilImpl()
             } 
@@ -583,3 +581,23 @@ class DBMSUtil(object):
     def filter_tunable_params(dbms_id, params):
         return DBMSUtil.__utils(dbms_id).filter_tunable_params(params)
 
+
+class LabelUtil(object):
+
+    @staticmethod
+    def style_labels(label_map, style=LabelStyleType.DEFAULT_STYLE):
+        style_labels = {}
+        for name, verbose_name in label_map.iteritems():
+            if style == LabelStyleType.TITLE:
+                label = verbose_name.title()
+            elif style == LabelStyleType.CAPFIRST:
+                label = capfirst(verbose_name)
+            elif style == LabelStyleType.LOWER:
+                label = verbose_name.lower()
+            else:
+                raise Exception('Invalid style: {}'.format(style))
+            if style != LabelStyleType.LOWER and 'dbms' in label.lower():
+                label = label.replace('dbms', 'DBMS')
+                label = label.replace('Dbms', 'DBMS')
+            style_labels[name] = label
+        return style_labels

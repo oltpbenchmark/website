@@ -6,13 +6,13 @@
       onsubmit="return confirm('Are you sure you want to delete these projects and all targets/results under this project?')">
       {% csrf_token %}
 <table id="project_table" class="table table-bordered table-striped table-hover table-nonfluid">
-    <caption><h4>Your Projects</h4></caption>
+    <caption><h4>{{ labels.title }}</h4></caption>
     <tr>
         <th><input type="checkbox" onClick="toggle(this, 'projects')" /></th>
-        <th>Project Name</th>
-        <th>Description</th>
-        <th>Last Update</th>
-        <th>Creation Time</th>
+        <th>{{ labels.name }}</th>
+        <th>{{ labels.description }}</th>
+        <th>{{ labels.creation_time }}</th>
+        <th>{{ labels.last_update }}</th>
     </tr>
     {% for project in projects %}
         <tr>
@@ -24,8 +24,8 @@
         </tr>
     {% endfor %}
 </table>
-<button class="btn btn-default" type="submit">Delete selected projects</button>
-<a class="btn btn-default" href="/edit_project/?id=">Create a new project</a>
+<button class="btn btn-default" type="submit">{{ labels.button_delete }}</button>
+<a class="btn btn-default" href="/edit_project/?id=">{{ labels.button_create }}</a>
 </form>
 </div>
 

@@ -17,13 +17,14 @@ from django.utils.timezone import now
 from django.views.decorators.csrf import csrf_exempt
 from djcelery.models import TaskMeta
 
-from .forms import ApplicationForm, NewResultForm
+from .forms import ApplicationForm, NewResultForm, ProjectForm
 from .models import (Application, BenchmarkConfig, DBConf, DBMSCatalog,
-                     DBMSMetrics, Project, Result, ResultData,
+                     DBMSMetrics, Hardware, Project, Result, ResultData,
                      Statistics, WorkloadCluster)
 from tasks import aggregate_target_results, map_workload, configuration_recommendation
 from .types import DBMSType, StatsType, TaskType
-from .utils import DBMSUtil, JSONUtil, MediaUtil
+from .utils import DBMSUtil, JSONUtil, LabelUtil, MediaUtil
+from website.types import HardwareType
 
 log = logging.getLogger(__name__)
 
@@ -38,7 +39,7 @@ def ajax_new(request):
     new_id = request.GET['new_id']
     ts = Statistics.objects.filter(result=new_id)
     data = {}
-    metric_meta = Statistics.objects.METRIC_META
+    metric_meta = Statistics.objects.metric_meta
     for metric, metric_info in metric_meta.iteritems():
         if len(ts) > 0:
             offset = ts[0].time
@@ -48,7 +49,7 @@ def ajax_new(request):
             for t in ts:
                 data[metric].append(
                     [t.time - offset,
-                        getattr(t, metric) * metric_info['scale']])
+                        getattr(t, metric) * metric_info.scale])
     return HttpResponse(JSONUtil.dumps(data), content_type='application/json')
 
 
@@ -107,7 +108,16 @@ def logout_view(request):
 
 @login_required(login_url='/login/')
 def home(request):
-    context = {"projects": Project.objects.filter(user=request.user)}
+    labels = Project.get_labels()
+    labels.update(LabelUtil.style_labels({
+        'button_create': 'create a new project',
+        'button_delete': 'delete selected projects',
+    }))
+    labels['title'] = 'Your Projects'
+    context = {
+        "projects": Project.objects.filter(user=request.user),
+        "labels": labels
+    }
     context.update(csrf(request))
     return render(request, 'home.html', context)
 
@@ -170,9 +180,17 @@ def project(request):
     project_id = request.GET['id']
     applications = Application.objects.filter(project=project_id)
     project = Project.objects.get(pk=project_id)
-    context = {"applications": applications,
-               "project": project,
-               "proj_id": project_id}
+    labels = Application.get_labels()
+    labels.update(LabelUtil.style_labels({
+        'button_delete': 'delete selected applications',
+        'button_create': 'create a new application',
+    }))
+    labels['title'] = "Your Applications"
+    context = {
+        "applications": applications,
+        "project": project,
+        "labels": labels,
+        }
     context.update(csrf(request))
     return render(request, 'home_application.html', context)
 
@@ -213,7 +231,7 @@ def application(request):
 
     lastrevisions = [10, 50, 100]
     dbs = OrderedDict(sorted(dbs.items()))
-    filters = []
+#     filters = []
 #     for field in BenchmarkConfig.FILTER_FIELDS:
 #         value_dict = {}
 #         for res in results:
@@ -225,22 +243,31 @@ def application(request):
     defaultspe = "none" if len(benchmarks) == 0 else \
         list(benchmarks.iteritems())[0][0]
 
-    metric_meta = Statistics.objects.METRIC_META
-    context = {'project': project,
-               'dbmss': dbs,
-               'benchmarks': benchmarks,
-               'lastrevisions': lastrevisions,
-               'defaultdbms': "none" if len(dbs) == 0 else dbs.keys()[0],
-               'defaultlast': 10,
-               'defaultequid': False,
-               'defaultbenchmark': 'grid',
-               'defaultspe': defaultspe,
-               'metrics': metric_meta.keys(),
-               'metric_meta': metric_meta,
-               'defaultmetrics': Statistics.objects.DEFAULT_METRICS,
-               'filters': filters,
-               'application': application,
-               'results': results}
+    default_metrics = Statistics.objects.default_metrics
+    if application.target_objective not in default_metrics:
+        default_metrics.append(application.target_objective)
+
+    labels = Application.get_labels()
+    labels['title'] = "Application Info"
+    metric_meta = Statistics.objects.metric_meta
+    context = {
+        'project': project,
+        'dbmss': dbs,
+        'benchmarks': benchmarks,
+        'lastrevisions': lastrevisions,
+        'defaultdbms': "none" if len(dbs) == 0 else dbs.keys()[0],
+        'defaultlast': 10,
+        'defaultequid': False,
+        'defaultbenchmark': 'grid',
+        'defaultspe': defaultspe,
+        'metrics': metric_meta.keys(),
+        'metric_meta': metric_meta,
+        'defaultmetrics': default_metrics,
+        'filters': [],
+        'application': application,
+        'results': results,
+        'labels': labels,
+    }
 
     context.update(csrf(request))
     return render(request, 'application.html', context)
@@ -255,32 +282,10 @@ def edit_project(request):
             if project.user != request.user:
                 return render(request, '404.html')
             context['project'] = project
+            context['labels'] = Project.get_labels()
     except Project.DoesNotExist:
         pass
     return render(request, 'edit_project.html', context)
-
-
-# @login_required(login_url='/login/')
-# def edit_application(request):
-#     project = get_object_or_404(Project, pk=request.GET['pid'])
-#     if project.user != request.user:
-#         return Http404()
-#     if request.GET['id'] != '':
-#         app = Application.objects.get(pk=int(request.GET['id']))
-#         form = ApplicationForm(instance=app)
-# #         form.fields['dbms'].widget.attrs['disabled'] = True
-# #         form.fields['dbms'].widget.attrs['readonly'] = True
-# #         form.fields['hardware'].widget.attrs['disabled'] = True
-# #         form.fields['hardware'].widget.attrs['readonly'] = True
-#     else:
-#         app = None
-#         form = ApplicationForm()
-#     context = {
-#         'project': project,
-#         'application': app,
-#         'form': form,
-#     }
-#     return render(request, 'edit_application.html', context)
 
 
 @login_required(login_url='/login/')
@@ -303,36 +308,42 @@ def delete_application(request):
 
 @login_required(login_url='/login/')
 def update_project(request):
-    gen_upload_code = False
-    if 'id_new_code' in request.POST:
-        proj_id = request.POST['id_new_code']
-        gen_upload_code = True
-    else:
+    if request.method == 'POST':
         proj_id = request.POST['id']
-
-    if proj_id == '':
-        p = Project()
-        p.creation_time = now()
-        p.user = request.user
-        gen_upload_code = True
+        if proj_id == '':
+            form = ProjectForm(request.POST)
+            if not form.is_valid():
+                return HttpResponse(str(form))
+            project = form.save(commit=False)
+            project.user = request.user
+            ts = now()
+            project.creation_time = ts
+            project.last_update = ts
+            project.save()
+        else:
+            project = Project.objects.get(pk=int(proj_id))
+            if project.user != request.user:
+                return Http404()
+            form = ProjectForm(request.POST, instance=project)
+            if not form.is_valid():
+                return HttpResponse(str(form))
+            project.last_update = now()
+            project.save()
+        return redirect('/project/?id=' + str(project.pk))
     else:
-        p = Project.objects.get(pk=proj_id)
-        if p.user != request.user:
-            return render(request, '404.html')
+        proj_id = request.GET['id']
+        if proj_id == '':
+            project = None
+            form = ProjectForm()
+        else:
+            project = Project.objects.get(pk=int(proj_id))
+            form = ProjectForm(instance=project)
+        context = {
+            'project': project,
+            'form': form,
+        }
+        return render(request, 'edit_project.html', context)
 
-    if gen_upload_code:
-        p.upload_code = MediaUtil.upload_code_generator(size=20)
-
-    p.name = request.POST['name']
-    p.description = request.POST['description']
-    p.last_update = now()
-    p.save()
-    applications = Application.objects.filter(project=p)
-
-    context = {'project': p,
-               'proj_id': p.pk,
-               'applications': applications}
-    return render(request, 'home_application.html', context)
 
 @login_required(login_url='/login/')
 def update_application(request):
@@ -370,26 +381,22 @@ def update_application(request):
         if request.GET['id'] != '':
             app = Application.objects.get(pk=int(request.GET['id']))
             form = ApplicationForm(instance=app)
-#             form.fields['dbms'].widget.attrs['disabled'] = True
-#             form.fields['dbms'].widget.attrs['readonly'] = True
-#             form.fields['hardware'].widget.attrs['disabled'] = True
-#             form.fields['hardware'].widget.attrs['readonly'] = True
         else:
             app = None
-            form = ApplicationForm()
+            form = ApplicationForm(
+                initial={
+                    'dbms': DBMSCatalog.objects.get(
+                        type=DBMSType.POSTGRES, version='9.6'),
+                    'hardware': Hardware.objects.get(
+                        type=HardwareType.EC2_M3XLARGE),
+                    'target_objective': Statistics.objects.P99_LATENCY,
+                })
         context = {
             'project': project,
             'application': app,
             'form': form,
         }
         return render(request, 'edit_application.html', context)
-
-
-def write_file(contents, output_file, chunk_size=512):
-    des = open(output_file, 'w')
-    for chunk in contents.chunks():
-        des.write(chunk)
-    des.close()
 
 
 @csrf_exempt
@@ -416,8 +423,6 @@ def new_result(request):
 def handle_result_files(app, files, cluster_name):
     from celery import chain
 
-    print 'FILES TYPE: {}'.format(type(files))
-    print 'FILE TYPE: {}'.format(type(files['summary_data']))
     # Load summary file and verify that the database/version is supported
     summary = JSONUtil.loads(''.join(files['summary_data'].chunks()))
     dbms_type = DBMSType.type(summary['DBMS Type'])
@@ -477,9 +482,14 @@ def handle_result_files(app, files, cluster_name):
         dbms_object.pk, db_metrics_dict, external_metrics,
         int(benchmark_config.time))
 
-    ResultData.objects.create_result_data(
-        result, wkld_cluster, JSONUtil.dumps(param_data, pprint=True, sort=True),
-        JSONUtil.dumps(metric_data, pprint=True, sort=True))
+    ResultData.objects.create(result=result,
+                              cluster=wkld_cluster,
+                              param_data=JSONUtil.dumps(param_data,
+                                                        pprint=True,
+                                                        sort=True),
+                              metric_data=JSONUtil.dumps(metric_data,
+                                                         pprint=True,
+                                                         sort=True))
 
     nondefault_settings = DBMSUtil.get_nondefault_settings(dbms_object.pk,
                                                            db_conf_dict)
@@ -522,16 +532,6 @@ def handle_result_files(app, files, cluster_name):
         response.status))
 
 
-def file_iterator(file_name, chunk_size=512):
-    with open(file_name) as f:
-        while True:
-            c = f.read(chunk_size)
-            if c:
-                yield c
-            else:
-                break
-
-
 def filter_db_var(kv_pair, key_filters):
     for f in key_filters:
         if f.match(kv_pair[0]):
@@ -540,124 +540,109 @@ def filter_db_var(kv_pair, key_filters):
 
 
 @login_required(login_url='/login/')
-def dbms_metrics_view(request):
-
-    def combine_dicts(d1, d2):
-        d3 = dict(d1)
-        d3.update(d2)
-        return OrderedDict(sorted(d3.iteritems()))
-
-    dbms_metrics = get_object_or_404(DBMSMetrics, pk=request.GET['id'])
-    if dbms_metrics.application.user != request.user:
-        raise Http404()
-
-    dbms_id = dbms_metrics.dbms.pk
-    metric_dict = JSONUtil.loads(dbms_metrics.configuration)
-    numeric_dict = DBMSUtil.filter_numeric_metrics(
-        dbms_id, metric_dict, normalize=True)
-#     numeric_dict, other_dict = dbms_metrics.get_numeric_configuration(
-#         normalize=True, return_both=True)
-#     metric_dict = combine_dicts(numeric_dict, other_dict)
-
-    if 'compare' in request.GET and request.GET['compare'] != 'none':
-        compare_obj = DBMSMetrics.objects.get(pk=request.GET['compare'])
-        comp_dict = JSONUtil.loads(compare_obj.configuration)
-        comp_numeric_dict = DBMSUtil.filter_numeric_metrics(
-            dbms_id, comp_dict, normalize=True)
-
-        metrics = [(k, v, comp_dict[k]) for k, v in metric_dict.iteritems()]
-        numeric_metrics = [(k, v, comp_numeric_dict[k])
-                           for k, v in numeric_dict.iteritems()]
-    else:
-        metrics = list(metric_dict.iteritems())
-        numeric_metrics = list(numeric_dict.iteritems())
-
-    peer_metrics = DBMSMetrics.objects.filter(
-        dbms=dbms_metrics.dbms, application=dbms_metrics.application)
-    peer_metrics = filter(lambda x: x.pk != dbms_metrics.pk, peer_metrics)
-
-    context = {'metrics': metrics,
-               'numeric_metrics': numeric_metrics,
-               'dbms_metrics': dbms_metrics,
-               'compare': request.GET.get('compare', 'none'),
-               'peer_dbms_metrics': peer_metrics}
-    return render(request, 'dbms_metrics.html', context)
+def db_conf_view(request):
+    labels = DBConf.get_labels()
+    labels.update(LabelUtil.style_labels({
+        'featured_info': 'tunable dbms parameters',
+        'all_info': 'all dbms parameters',
+    }))
+    labels['title'] = 'DBMS Configuration'
+    context = {
+        'labels': labels,
+        'info_type': 'db_conf'}
+    return db_info_view(request, context)
 
 
 @login_required(login_url='/login/')
-def db_conf_view(request):
+def dbms_metrics_view(request):
+    labels = DBMSMetrics.get_labels()
+    labels.update(LabelUtil.style_labels({
+        'featured_info': 'numeric dbms metrics',
+        'all_info': 'all dbms metrics',
+    }))
+    labels['title'] = 'DBMS Metrics'
+    context = {
+        'labels': labels,
+        'info_type': 'dbms_metrics'}
+    return db_info_view(request, context)
 
-    def combine_dicts(d1, d2):
-        d3 = dict(d1)
-        d3.update(d2)
-        return OrderedDict(sorted(d3.iteritems()))
 
-    db_conf = get_object_or_404(DBConf, pk=request.GET['id'])
-    if db_conf.application.user != request.user:
+def db_info_view(request, context):
+    if context['info_type'] == 'db_conf':
+        model_class = DBConf
+        filter_fn = DBMSUtil.filter_tunable_params
+        addl_args = []
+    else:
+        model_class = DBMSMetrics
+        filter_fn = DBMSUtil.filter_numeric_metrics
+        addl_args = [True]
+    db_info = get_object_or_404(model_class, pk=request.GET['id'])
+    if db_info.application.user != request.user:
         raise Http404()
 
-    dbms_id = db_conf.dbms.pk
-    params_dict = JSONUtil.loads(db_conf.configuration)
-    tuning_dict = DBMSUtil.filter_tunable_params(dbms_id, params_dict)
+    dbms_id = db_info.dbms.pk
+    all_info_dict = JSONUtil.loads(db_info.configuration)
+    args = [dbms_id, all_info_dict] + addl_args
+    featured_dict = filter_fn(*args)
 
     if 'compare' in request.GET and request.GET['compare'] != 'none':
-        compare_obj = DBConf.objects.get(pk=request.GET['compare'])
+        compare_obj = model_class.objects.get(pk=request.GET['compare'])
         comp_dict = JSONUtil.loads(compare_obj.configuration)
-        comp_tuning_dict = DBMSUtil.filter_tunable_params(dbms_id, comp_dict)
+        args = [dbms_id, comp_dict] + addl_args
+        comp_featured_dict = filter_fn(*args)
 
-        params = [(k, v, comp_dict[k]) for k, v in params_dict.iteritems()]
-        tuning_params = [(k, v, comp_tuning_dict[k])
-                         for k, v in tuning_dict.iteritems()]
+        all_info = [(k, v, comp_dict[k]) for k, v in all_info_dict.iteritems()]
+        featured_info = [(k, v, comp_featured_dict[k])
+                         for k, v in featured_dict.iteritems()]
     else:
-        params = list(params_dict.iteritems())
-        tuning_params = list(tuning_dict.iteritems())
-    peer_params = DBConf.objects.filter(
-        dbms=db_conf.dbms, application=db_conf.application)
-    peer_params = filter(lambda x: x.pk != db_conf.pk, peer_params)
+        all_info = list(all_info_dict.iteritems())
+        featured_info = list(featured_dict.iteritems())
+    peer_info = model_class.objects.filter(
+        dbms=db_info.dbms, application=db_info.application)
+    peer_info = filter(lambda x: x.pk != db_info.pk, peer_info)
 
-    context = {'parameters': params,
-               'featured_par': tuning_params,
-               'db_conf': db_conf,
-               'compare': request.GET.get('compare', 'none'),
-               'peer_db_conf': peer_params}
-    return render(request, 'db_conf.html', context)
-
+    context['all_info'] = all_info
+    context['featured_info'] = featured_info
+    context['db_info'] = db_info
+    context['compare'] = request.GET.get('compare', 'none')
+    context['peer_db_info'] = peer_info
+    return render(request, 'db_info.html', context)
+    
+        
 
 @login_required(login_url='/login/')
 def benchmark_configuration(request):
     benchmark_conf = get_object_or_404(BenchmarkConfig, pk=request.GET['id'])
-
-    if benchmark_conf.application.user != request.user:
+    app = benchmark_conf.application
+    if app.user != request.user:
         return render(request, '404.html')
 
-    dbms_objects = DBMSCatalog.objects.all()
+    db_confs = DBConf.objects.filter(dbms=app.dbms,
+                                     application=benchmark_conf.application)
     all_db_confs = []
-    dbs = {}
-    for dbms_object in dbms_objects:
-        dbms_name = dbms_object.full_name
-        dbs[dbms_name] = {}
+    conf_map = {}
+    for conf in db_confs:
+        results = Result.objects.filter(application=app,
+                                        dbms_config=conf,
+                                        benchmark_config=benchmark_conf)
+        if len(results) == 0:
+            continue
+        result = results.latest('timestamp')
+        all_db_confs.append(conf.pk)
+        conf_map[conf.name] = [conf, result]
+    if len(conf_map) > 0:
+        dbs = { app.dbms.full_name: conf_map}
+    else:
+        dbs = {}
 
-        db_confs = DBConf.objects.filter(
-            application=benchmark_conf.application, dbms=dbms_object)
-        for db_conf in db_confs:
-            rs = Result.objects.filter(
-                dbms_config=db_conf, benchmark_config=benchmark_conf)
-            if len(rs) < 1:
-                continue
-            r = rs.latest('timestamp')
-            all_db_confs.append(db_conf.pk)
-            dbs[dbms_name][db_conf.name] = [db_conf, r]
-
-        if len(dbs[dbms_name]) < 1:
-            dbs.pop(dbms_name)
-
-    metric_meta = Statistics.objects.METRIC_META
+    labels = BenchmarkConfig.get_labels()
+    labels['title'] = 'Benchmark Configuration'
     context = {'benchmark': benchmark_conf,
                'dbs': dbs,
-               'metrics': metric_meta.keys(),
-               'metric_meta': metric_meta,
+               'metric_meta': Statistics.objects.metric_meta,
                'default_dbconf': all_db_confs,
-               'default_metrics': ['throughput', 'p99_latency']}
+               'default_metrics': ['throughput', 'p99_latency'],
+               'labels': labels}
     return render(request, 'benchmark_conf.html', context)
 
 # Data Format
@@ -674,24 +659,31 @@ def get_benchmark_data(request):
     data = request.GET
 
     benchmark_conf = get_object_or_404(BenchmarkConfig, pk=data['id'])
-
-    if benchmark_conf.application.user != request.user:
+    app = benchmark_conf.application
+    if app.user != request.user:
         return render(request, '404.html')
 
     results = Result.objects.filter(benchmark_config=benchmark_conf)
     results = sorted(results, cmp=lambda x,
                      y: int(y.summary_stats.throughput - x.summary_stats.throughput))
 
+    metrics = data.get('met')
+    if metrics is not None:
+        metrics = metrics.split(',')
+    else:
+        metrics = Statistics.objects.default_metrics
+    if app.tuning_session and app.target_objective not in metrics:
+        metrics.append(app.target_objective)
+        
     data_package = {'results': [],
                     'error': 'None',
-                    'metrics': data.get('met', 'throughput,p99_latency').split(',')}
-
-    metric_meta = Statistics.objects.METRIC_META
+                    'metrics': metrics}
     for met in data_package['metrics']:
+        met_info = Statistics.objects.get_meta(met)
         data_package['results'].append({'data': [[]], 'tick': [],
-                                        'unit': metric_meta[met]['unit'],
-                                        'lessisbetter': metric_meta[met]['improvement'],
-                                        'metric': metric_meta[met]['print']})
+                                        'unit': met_info.unit,
+                                        'lessisbetter': met_info.improvement,
+                                        'metric': met_info.pprint})
 
         added = {}
         db_confs = data['db'].split(',')
@@ -701,8 +693,8 @@ def get_benchmark_data(request):
                 continue
             added[r.dbms_config.pk] = True
             data_package['results'][-1]['data'][0].append([
-                i, getattr(r.summary_stats, met) * metric_meta[met]['scale'],
-                r.pk, getattr(r.summary_stats, met) * metric_meta[met]['scale']])
+                i, getattr(r.summary_stats, met) * met_info.scale,
+                r.pk, getattr(r.summary_stats, met) * met_info.scale])
             data_package['results'][-1]['tick'].append(r.dbms_config.name)
             i -= 1
         data_package['results'][-1]['data'].reverse()
@@ -783,14 +775,14 @@ def result(request):
                                     x.pk not in ([target.pk] +
                                     [r.pk for r in same_dbconf_results]), results)
 
-    metric_meta = Statistics.objects.METRIC_META
+    metric_meta = Statistics.objects.metric_meta
     for metric, metric_info in metric_meta.iteritems():
         data_package[metric] = {
             'data': {},
-            'units': metric_info['unit'],
-            'lessisbetter': metric_info['improvement'],
-            'metric': metric_info['print'],
-            'print': metric_info['print'],
+            'units': metric_info.unit,
+            'lessisbetter': metric_info.improvement,
+            'metric': metric_info.pprint,
+            'print': metric_info.pprint,
         }
 
         same_id = []
@@ -811,12 +803,13 @@ def result(request):
                 data_package[metric]['data'][int(x)] = []
                 for t in ts:
                     data_package[metric]['data'][int(x)].append(
-                        [t.time - offset, getattr(t, metric) * metric_meta[metric]['scale']])
+                        [t.time - offset, getattr(t, metric) * metric_info.scale])
                 cache.set(key, data_package[metric]['data'][int(x)], 60 * 5)
 
     default_metrics = {}
-    for met in Statistics.objects.DEFAULT_METRICS:
-        default_metrics[met] = getattr(target.summary_stats, met) * metric_meta[met]['scale']
+    for met in Statistics.objects.default_metrics:
+        default_metrics[met] = (getattr(target.summary_stats, met) *
+                                Statistics.objects.get_meta(metric).scale)
 
     status = None
     if target.task_ids is not None:
@@ -827,19 +820,28 @@ def result(request):
             if task is not None:
                 tasks.append(task)
         status, _ = get_task_status(tasks)
+        if status is None:
+            status = 'UNAVAILABLE'
 
     next_conf_available = True if status == 'SUCCESS' else False
-
+    labels = Result.get_labels()
+    labels.update(LabelUtil.style_labels({
+        'sampled_data': 'sampled data',
+        'raw_data': 'raw data',
+        'status': 'status',
+        'next_conf_available': 'next configuration'
+    }))
+    labels['title'] = 'Result Info'
     context = {
         'result': target,
-        'metrics': metric_meta.keys(),
         'metric_meta': metric_meta,
         'default_metrics': default_metrics,
         'data': JSONUtil.dumps(data_package),
         'same_runs': same_dbconf_results,
         'status': status,
         'next_conf_available': next_conf_available,
-        'similar_runs': similar_dbconf_results
+        'similar_runs': similar_dbconf_results,
+        'labels': labels,
     }
     return render(request, 'result.html', context)
 
@@ -874,7 +876,26 @@ def get_result_data_file(request):
 #            data as a map<DBMS name, result list>
 @login_required(login_url='/login/')
 def get_timeline_data(request):
-    data_package = {'error': 'None', 'timelines': []}
+    result_labels = Result.get_labels()
+    table_metrics = [Statistics.objects.THROUGHPUT, Statistics.objects.P99_LATENCY]
+    columnnames = [
+        result_labels['id'],
+        result_labels['creation_time'],
+        result_labels['dbms_config'],
+        result_labels['dbms_metrics'],
+        result_labels['benchmark_config'],
+    ]
+    for met in table_metrics:
+        met_info = Statistics.objects.get_meta(met)
+        columnnames.append(
+            met_info.pprint + ' (' + 
+            met_info.short_unit + ')') 
+
+    data_package = {
+        'error': 'None',
+        'timelines': [], 
+        'columnnames': columnnames,
+    }
 
     application = get_object_or_404(Application, pk=request.GET['proj'])
     if application.user != request.user:
@@ -889,92 +910,85 @@ def get_timeline_data(request):
     results = sorted(results, cmp=lambda x, y: int(
         (x.timestamp - y.timestamp).total_seconds()))
 
-    table_results = []
+    default_metrics = Statistics.objects.default_metrics
+    if application.tuning_session is True and application.target_objective not in default_metrics:
+        default_metrics.append(application.target_objective)
     display_type = request.GET['ben']
     if display_type == 'show_none':
+        benchmarks = []
+        metrics = default_metrics
+        results = []
         pass
+    elif display_type == 'grid':
+        metrics = default_metrics
+        benchmarks = set()
+        benchmark_confs = []
+        for result in results:
+            benchmarks.add(result.benchmark_config.benchmark_type)
+            benchmark_confs.append(result.benchmark_config)
+        benchmarks = list(benchmarks)
     else:
+        metrics = request.GET.get(
+            'met', ','.join(default_metrics)).split(',')
+        benchmarks = [display_type]
+        benchmark_confs = filter(lambda x: x != '', request.GET[
+                                 'spe'].strip().split(','))
+        results = filter(lambda x: str(x.benchmark_config.pk)
+                         in benchmark_confs, results)
+    
+    result_list = []
+    for x in results:
+        entry = [
+            x.pk,
+            x.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+            x.dbms_config.name,
+            x.dbms_metrics.name,
+            x.benchmark_config.name]
+        for met in table_metrics:
+            entry.append(getattr(x.summary_stats, met) *
+                         Statistics.objects.get_meta(met).scale)
+        entry.extend([
+            x.dbms_config.pk,
+            x.dbms_metrics.pk,
+            x.benchmark_config.pk
+        ])
+        result_list.append(entry)
+    data_package['results'] = result_list
 
-        if display_type == 'grid':
-            benchmarks = set()
-            benchmark_confs = []
-            for result in results:
-                benchmarks.add(result.benchmark_config.benchmark_type)
-                benchmark_confs.append(result.benchmark_config)
-        else:
-            benchmarks = [display_type]
-            benchmark_confs = filter(lambda x: x != '', request.GET[
-                                     'spe'].strip().split(','))
-            results = filter(lambda x: str(x.benchmark_config.pk)
-                             in benchmark_confs, results)
-
-#         if len(results) >= 1:
-
-        for f in filter(lambda x: x != '', request.GET.getlist('add[]', [])):
-            key, value = f.split(':')
-            if value == 'select_all':
+    # For plotting charts
+    for metric in metrics:
+        met_info = Statistics.objects.get_meta(metric)
+        for bench in benchmarks:
+            b_r = filter(
+                lambda x: x.benchmark_config.benchmark_type == bench, results)
+            if len(b_r) == 0:
                 continue
-            results = filter(lambda x: getattr(
-                x.benchmark_config, key) == value, results)
 
-        table_results = results
-        default_metrics = Statistics.objects.DEFAULT_METRICS
-        if len(benchmarks) == 1:
-            metrics = request.GET.get(
-                'met', ','.join(default_metrics)).split(',')
-        else:
-            metrics = default_metrics
+            data = {
+                'benchmark': bench,
+                'units': met_info.unit,
+                'lessisbetter': met_info.improvement,
+                'data': {},
+                'baseline': "None",
+                'metric': metric,
+                'print_metric': met_info.pprint,
+            }
 
-        # For the data table
-        metric_meta = Statistics.objects.METRIC_META
-        tput_scale = metric_meta[Statistics.objects.THROUGHPUT]['scale']
-        lat_scale = metric_meta[Statistics.objects.P99_LATENCY]['scale']
-        data_package['results'] = [
-            [x.pk,
-             x.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
-             x.dbms_config.name,
-             x.dbms_metrics.name,
-             x.benchmark_config.name,
-             x.summary_stats.throughput * tput_scale,
-             x.summary_stats.p99_latency * lat_scale,
-             x.dbms_config.pk,
-             x.dbms_metrics.pk,
-             x.benchmark_config.pk
-             ]
-            for x in table_results]
+            for db in request.GET['db'].split(','):
+                d_r = filter(lambda x: x.dbms.key == db, b_r)
+                d_r = d_r[-revs:]
+                out = [
+                    [
+                        res.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+                        getattr(res.summary_stats, metric) * met_info.scale,
+                        "",
+                        str(res.pk)
+                    ]
+                    for res in d_r]
 
-        # For plotting charts
-        for metric in metrics:
-            for bench in benchmarks:
-                b_r = filter(
-                    lambda x: x.benchmark_config.benchmark_type == bench, results)
-                if len(b_r) == 0:
-                    continue
+                if len(out) > 0:
+                    data['data'][db] = out
 
-                data = {
-                    'benchmark': bench,
-                    'units': metric_meta[metric]['unit'],
-                    'lessisbetter': metric_meta[metric]['improvement'],
-                    'data': {},
-                    'baseline': "None",
-                    'metric': metric_meta[metric]['print']
-                }
-
-                for db in request.GET['db'].split(','):
-                    d_r = filter(lambda x: x.dbms.key == db, b_r)
-                    d_r = d_r[-revs:]
-                    out = [
-                        [
-                            res.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
-                            getattr(res.summary_stats, metric) * metric_meta[metric]['scale'],
-                            "",
-                            str(res.pk)
-                        ]
-                        for res in d_r]
-
-                    if len(out) > 0:
-                        data['data'][db] = out
-
-                data_package['timelines'].append(data)
+            data_package['timelines'].append(data)
 
     return HttpResponse(JSONUtil.dumps(data_package), content_type='application/json')
