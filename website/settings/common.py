@@ -7,12 +7,12 @@ import sys, os
 from os.path import abspath, dirname, exists, expanduser, join
 
 try:
-    from credentials import SECRET_KEY, DATABASES, ALLOWED_HOSTS
+    from credentials import (ADMINS, ALLOWED_HOSTS, DATABASES, DEBUG, LOG_FILE, MANAGERS, OTTERTUNE_LIBS, SECRET_KEY)
 except ImportError as err:
     raise err('Copy settings/credentials_TEMPLATE.py to credentials.py and update settings.')
 
 # Add OtterTune library to path
-sys.path.insert(0, join(expanduser("~"), "git"))
+sys.path.insert(0, OTTERTUNE_LIBS)
 
 ## ==============================================
 ## PATH CONFIGURATION
@@ -24,10 +24,6 @@ PROJECT_ROOT = dirname(dirname(dirname(abspath(__file__))))
 # Absolute path to directory where all oltpbench data is uploaded
 UPLOAD_DIR = join(PROJECT_ROOT, 'data', 'media')
 
-# Required upload permissions
-FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o644
-FILE_UPLOAD_PERMISSIONS = 0o644
-
 # Path to data preloaded with manage.py loaddata
 PRELOAD_DIR = os.path.join(PROJECT_ROOT, 'preload')
 
@@ -37,25 +33,16 @@ PIPELINE_DIR = join(PROJECT_ROOT, 'data', 'pipeline_results')
 # Path to the base DBMS configuration files
 CONFIG_DIR = join(PROJECT_ROOT, 'config')
 
+# Required upload permissions
+FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o664
+FILE_UPLOAD_PERMISSIONS = 0o664
+
 ## ==============================================
 ## DEBUG CONFIGURATION
 ## ==============================================
 
-DEBUG = True
 TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 INTERNAL_IPS = ['127.0.0.1']
-
-## ==============================================
-## MANAGER CONFIGURATION
-## ==============================================
-
-# Admin and managers for this project. These people receive private
-# site alerts.
-ADMINS = (
-    # ('Your Name', 'your_email@example.com'),
-)
-
-MANAGERS = ADMINS
 
 ## ==============================================
 ## GENERAL CONFIGURATION
@@ -135,16 +122,12 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            # insert your TEMPLATE_DIRS here
-            # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-            # Always use forward slashes, even on Windows.
-            # Don't forget to use absolute paths, not relative paths.
+            # TEMPLATE_DIRS (use absolute paths)
             join(PROJECT_ROOT, 'website', 'template')
         ],
         'OPTIONS': {
                 'context_processors': [
-                # Insert your TEMPLATE_CONTEXT_PROCESSORS here or use this
-                # list if you haven't customized them:
+                # TEMPLATE_CONTEXT_PROCESSORS
                 'django.contrib.auth.context_processors.auth',
                 'django.template.context_processors.debug',
                 'django.template.context_processors.i18n',
@@ -201,7 +184,7 @@ INSTALLED_APPS = (
 )
 
 ## ==============================================
-## CELERY CONFIGURATION
+## RABBITMQ/CELERY CONFIGURATION
 ## ==============================================
 
 import djcelery
@@ -226,11 +209,6 @@ djcelery.setup_loader()
 ## LOGGING CONFIGURATION
 ## ==============================================
 
-# Create logging directory
-LOG_DIR = join(PROJECT_ROOT, 'log')
-if not exists(LOG_DIR):
-    os.mkdir(LOG_DIR)
-
 # A website logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
 # the site admins on every HTTP 500 error when DEBUG=False.
@@ -249,7 +227,7 @@ LOGGING = {
         'logfile': {
             'level':'DEBUG',
             'class':'logging.handlers.RotatingFileHandler',
-            'filename': join(LOG_DIR, 'website.log'),
+            'filename': LOG_FILE,
             'maxBytes': 50000,
             'backupCount': 2,
             'formatter': 'standard',

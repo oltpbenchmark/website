@@ -29,9 +29,34 @@ DATABASES = {
 }
 
 ## ==============================================
+## DEBUG CONFIGURATION
+## ==============================================
+
+DEBUG = False
+
+## ==============================================
+## MANAGER CONFIGURATION
+## ==============================================
+
+# Admin and managers for this project. These people receive private
+# site alerts.
+ADMINS = (
+    # ('Your Name', 'your_email@example.com'),
+)
+MANAGERS = ADMINS
+
+## ==============================================
 ## GENERAL CONFIGURATION
 ## ==============================================
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = []
+
+## ==============================================
+## OTTERTUNE PATH CONFIGURATION
+## ==============================================
+
+LOG_FILE = '/path/to/website/log'
+
+OTTERTUNE_LIBS = '/path/to/ottertune/MLlibs'

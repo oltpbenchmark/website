@@ -5,9 +5,8 @@ Admin tasks
 '''
 
 import os.path
-
 from collections import namedtuple
-from fabric.api import env, execute, local, quiet, settings, task
+from fabric.api import env, execute, local, quiet, settings, sudo, task
 from fabric.state import output as fabric_output
 
 from website.settings import PRELOAD_DIR, PROJECT_ROOT
@@ -22,19 +21,22 @@ fabric_output.update({
 Status = namedtuple('Status', ['RUNNING', 'STOPPED'])
 STATUS = Status(0, 1)
 
-# Supervisor setup and base commands
-SUPERVISOR_CONFIG = '-c config/supervisord.conf'
-SUPERVISOR_CMD = 'supervisorctl ' + SUPERVISOR_CONFIG
+if local('hostname', capture=True).strip() == 'ottertune':
+    PREFIX = 'sudo -u celery '
+    SUPERVISOR_CONFIG = '-c config/prod_supervisord.conf'
+else:
+    PREFIX = ''
+    SUPERVISOR_CONFIG = '-c config/supervisord.conf'
 
 
-@task
-def check_requirements():
-    # Make sure supervisor is initialized
-    with settings(warn_only=True):
-        local('supervisord ' + SUPERVISOR_CONFIG)
+# Setup and base commands
+SUPERVISOR_CMD = (PREFIX + 'supervisorctl ' + SUPERVISOR_CONFIG +
+                  ' {action} celeryd').format
+RABBITMQ_CMD = 'sudo rabbitmqctl {action}'.format
 
-# Always check requirements
-check_requirements()
+# Make sure supervisor is initialized
+with settings(warn_only=True), quiet():
+    local(PREFIX + 'supervisord ' + SUPERVISOR_CONFIG)
 
 
 @task
@@ -46,13 +48,14 @@ def start_rabbitmq(detached=True):
 
 @task
 def stop_rabbitmq():
-    local('sudo rabbitmqctl stop')
+    with settings(warn_only=True):
+        local(RABBITMQ_CMD(action='stop'))
 
 
 @task
 def status_rabbitmq():
     with settings(warn_only=True), quiet():
-        res = local('sudo rabbitmqctl status')
+        res = local(RABBITMQ_CMD(action='status'), capture=True)
     if res.return_code == 2 or res.return_code == 69:
         status = STATUS.STOPPED
     elif res.return_code == 0:
@@ -70,19 +73,20 @@ def start_celery(detached=True):
         start_rabbitmq()
     detached = parse_bool(detached)
     if detached:
-        local(SUPERVISOR_CMD + ' start celeryd')
+        local(SUPERVISOR_CMD(action='start'))
     else:
-        local('python manage.py celery worker -l info')
+        local(PREFIX + 'python manage.py celery worker -l info')
 
 
 @task
 def stop_celery():
-    local(SUPERVISOR_CMD + ' stop celeryd')
+    local(SUPERVISOR_CMD(action='stop'))
 
 
 @task
 def status_celery():
-    cmd = SUPERVISOR_CMD + ' status celeryd | tr -s \' \' | cut -d \' \' -f2'
+    local(SUPERVISOR_CMD(action='status') +
+          ' | tr -s \' \' | cut -d \' \' -f2')
     res = local(cmd, capture=True)
     try:
         status = STATUS._asdict()[res.stdout]
@@ -98,7 +102,7 @@ def status_celery():
 
 
 @task
-def start_server():
+def start_debug_server():
     if status_celery() == STATUS.STOPPED:
         start_celery()
     local('python manage.py runserver 0.0.0.0:8000')
@@ -120,8 +124,9 @@ def parse_bool(value):
 
 
 def print_status(status, task_name):
-    print "{} status: {}".format(task_name,
-                                 STATUS._fields[STATUS.index(status)])
+    print "{} status: {}".format(
+        task_name,
+        STATUS._fields[STATUS.index(status)])
 
 
 @task
@@ -169,13 +174,3 @@ def process_data():
     execute(aggregate_results)
     execute(create_workload_mapping_data)
 
-
-@task
-def test_workload_mapping():
-    cmd = ('from website.tasks import aggregate_target_results, '
-           'map_workload, configuration_recommendation; res = '
-           'aggregate_target_results(23); res = map_workload(res); '
-           'res = configuration_recommendation(res)')
-    local(('export PYTHONPATH={}\:$PYTHONPATH; '
-           'django-admin shell --settings=website.settings '
-           '-c\"{}\"').format(PROJECT_ROOT, cmd))
