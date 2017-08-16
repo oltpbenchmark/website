@@ -7,9 +7,11 @@ import sys, os
 from os.path import abspath, dirname, exists, expanduser, join
 
 try:
-    from credentials import (ADMINS, ALLOWED_HOSTS, DATABASES, DEBUG, LOG_FILE, MANAGERS, OTTERTUNE_LIBS, SECRET_KEY)
+    from credentials import (ADMINS, ALLOWED_HOSTS, DATABASES, DEBUG,
+                             LOG_FILE, MANAGERS, OTTERTUNE_LIBS, SECRET_KEY)
 except ImportError as err:
-    raise err('Copy settings/credentials_TEMPLATE.py to credentials.py and update settings.')
+    raise err('Copy settings/credentials_TEMPLATE.py to '
+              'credentials.py and update settings.')
 
 # Add OtterTune library to path
 sys.path.insert(0, OTTERTUNE_LIBS)
@@ -21,19 +23,22 @@ sys.path.insert(0, OTTERTUNE_LIBS)
 # Absolute path to this Django project directory.
 PROJECT_ROOT = dirname(dirname(dirname(abspath(__file__))))
 
-# Absolute path to directory where all oltpbench data is uploaded
-UPLOAD_DIR = join(PROJECT_ROOT, 'data', 'media')
+# Directory holding all uploaded and intermediate result files
+DATA_ROOT = join(PROJECT_ROOT, 'data')
 
-# Path to data preloaded with manage.py loaddata
-PRELOAD_DIR = os.path.join(PROJECT_ROOT, 'preload')
+# Absolute path to directory where all oltpbench data is uploaded
+UPLOAD_DIR = join(DATA_ROOT, 'media')
 
 # This is where intermediate results are stored in our ML pipeline
-PIPELINE_DIR = join(PROJECT_ROOT, 'data', 'pipeline_results')
+PIPELINE_DIR = join(DATA_ROOT, 'pipeline_results')
+
+# Path to data preloaded with manage.py loaddata
+PRELOAD_DIR = join(PROJECT_ROOT, 'preload')
 
 # Path to the base DBMS configuration files
 CONFIG_DIR = join(PROJECT_ROOT, 'config')
 
-# Required upload permissions
+# File/directory upload permissions
 FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o664
 FILE_UPLOAD_PERMISSIONS = 0o664
 
@@ -77,7 +82,7 @@ USE_TZ = True
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/var/www/example.com/media/"
-MEDIA_ROOT = join(PROJECT_ROOT, 'data', 'media')
+MEDIA_ROOT = join(DATA_ROOT, 'media')
 MEDIA_ROOT_URL = '/media/'
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
