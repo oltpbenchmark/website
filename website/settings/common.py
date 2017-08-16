@@ -10,8 +10,9 @@ try:
     from credentials import (ADMINS, ALLOWED_HOSTS, DATABASES, DEBUG,
                              LOG_FILE, MANAGERS, OTTERTUNE_LIBS, SECRET_KEY)
 except ImportError as err:
-    raise err('Copy settings/credentials_TEMPLATE.py to '
-              'credentials.py and update settings.')
+    print ('Copy settings/credentials_TEMPLATE.py to '
+           'credentials.py and update settings.')
+    raise
 
 # Add OtterTune library to path
 sys.path.insert(0, OTTERTUNE_LIBS)
