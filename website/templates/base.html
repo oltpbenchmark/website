@@ -1,65 +1,79 @@
 <!DOCTYPE html>
 <html>
 
-<script type="text/javascript"
-	src="{{ STATIC_URL }}js/jquery-1.10.2.min.js"></script>
-<script type="text/javascript"
-	src="{{ STATIC_URL }}js/jquery-migrate-1.2.1.min.js"></script>
+<!-- Javascript imports -->
+<script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.10.2.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/jquery-migrate-1.2.1.min.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/bootstrap.min.js"></script>
-<script type="text/javascript"
-	src="{{ STATIC_URL }}js/bootstrap-select.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/bootstrap-select.min.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}js/common.js"></script>
-<script type="text/javascript"
-	src="{{ STATIC_URL }}js/jquery.address-1.5.min.js"></script>
-<script type='text/javascript'>
-	var STATIC_URL = '{{ STATIC_URL }}';
-</script>
-
-<link rel="stylesheet" href="{{ STATIC_URL }}css/base.css">
-
-<!--[if lt IE 9]><script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/jqplot/excanvas.min.js"></script><![endif]-->
-<script language="javascript" type="text/javascript"
-	src="{{ STATIC_URL }}js/jqplot/jquery.jqplot.min.js"></script>
-<link rel="stylesheet" type="text/css"
-	href="{{ STATIC_URL }}js/jqplot/jquery.jqplot.min.css" />
+<script type="text/javascript" src="{{ STATIC_URL }}js/jquery.address-1.5.min.js"></script>
+<script language="javascript" type="text/javascript" src="{{ STATIC_URL }}js/jqplot/jquery.jqplot.min.js"></script>
+<script type='text/javascript'>var STATIC_URL = '{{ STATIC_URL }}';</script>
 
 <head>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <title>{% block title %}OLTPBench Result Repository{% endblock %}</title>
+<!-- CSS imports -->
+<link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrap-select.min.css">
+<link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}js/jqplot/jquery.jqplot.min.css" />
+<link rel="stylesheet" href="{{ STATIC_URL }}css/base.css">
+<style>
+.btn-sm2,
+.btn-group-sm > .btn {
+  padding: 6px 9px;
+  font-size: 13px;
+  line-height: 1.5;
+  border-radius: 3px;
+}
+.navbar-btn2 {
+  padding: 4px 6px;
+  margin-top:12.5px;
+  margin-bottom:12.5px;
+}
+
+.navbar-form2 {
+  padding: 4px 6px;
+  margin-top:12.5px;
+  margin-bottom:12.5px;
+}
+
+.form-control2 {
+  margin: 0 0 0 0;
+  height: 32px;
+  width: 150px;
+}
+</style>
 {% block extra_head %}{% endblock %}
 </head>
+
 <body>
 
-	<div class="navbar navbar-inverse navbar-static-top" role="navigation">
-		<div class="container">
-			<div class="navbar-header">
-				<a class="navbar-brand" href="/">OtterTune</a>
-			</div>
-			<div class="navbar-collapse collapse">
-				{% if user.is_authenticated %}
-				<div class="navbar-right">
-					<p class="navbar-text">Hi, {{ user.username }}</p>
-					<a class="btn btn-default navbar-btn" href="/logout/">Sign Out</a>
-				</div>
-				{% else %}
-				<form class="navbar-form navbar-right" action="/login/"
-					method="POST">
-					{% csrf_token %}
-					<div class="form-group">
-						<input type="text" placeholder="Username" class="form-control"
-							name="username">
-					</div>
-					<div class="form-group">
-						<input type="password" placeholder="Password" class="form-control"
-							name="password">
-					</div>
-					<button type="submit" class="btn btn-success">Sign in</button>
-				</form>
-				{% endif %}
-			</div>
-			<!--/.navbar-collapse -->
-		</div>
+<!-- Navigation -->
+<nav class="navbar navbar-default fixed-top topnav" role="navigation">
+<div class="container">
+    <div class="navbar-header">
+	   <a class="navbar-brand .text-warning" href="{% url 'home' %}">OtterTune</a>
 	</div>
+    <div class="navbar-collapse collapse">
+        <div class="navbar-right">
+            {% if user.is_authenticated %}
+            <span class="navbar-text">Hello, {{ user.username }}</span>
+            <a class="btn btn-default navbar-btn2" href="{% url 'logout' %}">Sign Out</a>
+            {% else %}
+            <form class="form-inline navbar-form2" role="form" action="{% url 'login' %}" method="POST" style="margin:0 0 0 0">
+                {% csrf_token %}
+                <input type="text" placeholder="username" class="form-control form-control2" name="username">
+                <input type="password" placeholder="password" class="form-control form-control2" name="password">
+                <button type="submit" class="btn btn-default navbar-btn2"">Sign in</button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+</div>
+</div>
+</nav>
 	
 	{% if form.errors %}
 	{% for field in form %}

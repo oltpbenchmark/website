@@ -93,6 +93,11 @@ function renderMiniplot(plotid, data) {
 
 var fixed_header = null;
 
+function gen_url(result_id) {
+//	return '{% url "result" ' + defaults.proj + ' ' + defaults.app + ' ' + result_id + ' %}'
+	return "{% url 'result' proj_id app_id result_id %}".replace("proj_id", defaults.proj_id).replace("app_id", defaults.app_id).replace("result_id", result_id)
+}
+
 function render(data) {
     disable_options(false);
 
@@ -133,17 +138,22 @@ function render(data) {
         "aaData": data.results,
         "aoColumns": [
             { "sTitle": data.columnnames[0], "sClass": "center", "sType": "num-html", "mRender": function (data, type, full) {
-                return '<a href="/result/?id=' + data + '">' + data + '</a>';
+//                return '<a href="/result/?id=' + data + '">' + data + '</a>';
+            	return '<a href="/projects/' + defaults.proj + '/apps/' + defaults.app + '/results/' + data + '">' + data + '</a>';
+//                return '<a href="' + gen_url(data) + '">' + data + '</a>';
             }},
             { "sTitle": data.columnnames[1], "sClass": "center"},
             { "sTitle": data.columnnames[2], "sClass": "center", "mRender": function (data, type, full) {
-                return '<a href="/db_conf/?id=' + full[7] + '">' + data + '</a>';
+//                return '<a href="/db_conf/?id=' + full[7] + '">' + data + '</a>';
+                return '<a href="/projects/' + defaults.proj + '/apps/' + defaults.app + '/db_confs/' + full[7] + '">' + data + '</a>';
             }},
             { "sTitle": data.columnnames[3], "sClass": "center", "mRender": function (data, type, full) {
-                return '<a href="/dbms_metrics/?id=' + full[8] + '">' + data + '</a>';
+//                return '<a href="/dbms_metrics/?id=' + full[8] + '">' + data + '</a>';
+            	return '<a href="/projects/' + defaults.proj + '/apps/' + defaults.app + '/db_metrics/' + full[8] + '">' + data + '</a>';
             }},
             { "sTitle": data.columnnames[4], "sClass": "center", "mRender": function (data, type, full) {
-                return '<a href="/benchmark_conf/?id=' + full[9] + '">' + data + '</a>';
+//                return '<a href="/benchmark_conf/?id=' + full[9] + '">' + data + '</a>';
+                return '<a href="/projects/' + defaults.proj + '/apps/' + defaults.app + '/bench_confs/' + full[9] + '">' + data + '</a>';
             }},
             { "sTitle": data.columnnames[5], "sClass": "center", "mRender": function (data, type, full) {return data.toFixed(2);}},
             { "sTitle": data.columnnames[6], "sClass": "center", "mRender": function (data, type, full) {return data.toFixed(2);}},
@@ -192,8 +202,7 @@ function disable_options(value) {
 
 function getConfiguration() {
     var config = {
-       // proj: defaults.proj,
-        proj:defaults.proj,
+        app:defaults.app,
         db: readCheckbox("input[name='db']:checked"),
         ben: $("input[name='benchmark']:checked").val(),
         spe: readCheckbox("input[name^='specific']:checked"),

@@ -18,15 +18,17 @@
     </tr>
     <tr>
         <td><div class="text-right">{{ labels.benchmark_config }}</div></td>
-        <td><a href="/benchmark_conf/?id={{ result.benchmark_config.pk }}">{{ result.benchmark_config.name }}</a></td>
+        <td><a href="{% url 'bench_conf' project_id app_id result.benchmark_config.pk %}">{{ result.benchmark_config.name }}</a></td>
     </tr>
     <tr>
         <td><div class="text-top text-right">{{ labels.dbms_config }}</div></td>
-        <td><a href="/db_conf/?id={{ result.dbms_config.pk }}">{{ result.dbms_config.name }}</a></td>
+<!--         <td><a href="/db_conf/?id={{ result.dbms_config.pk }}">{{ result.dbms_config.name }}</a></td> -->
+        <td><a href="{% url 'db_confs' project_id app_id result.dbms_config.pk %}">{{ result.dbms_config.name }}</a></td>
     </tr>
     <tr>
         <td><div class="text-top text-right">{{ labels.dbms_metrics }}</div></td>
-        <td><a href="/dbms_metrics/?id={{ result.dbms_metrics.pk }}">{{ result.dbms_metrics.name }}</a></td>
+<!--         <td><a href="/dbms_metrics/?id={{ result.dbms_metrics.pk }}">{{ result.dbms_metrics.name }}</a></td> -->
+        <td><a href="{% url 'db_metrics' project_id app_id result.dbms_metrics.pk %}">{{ result.dbms_metrics.name }}</a></td>
     </tr>
     <tr>
         <td><div class="text-right">{{ labels.creation_time }}</div></td>
@@ -49,7 +51,9 @@
     {% if status %}
     <tr>
         <td><div class="text-right">{{ labels.status }}</div></td>
-        <td><a href="/status/?id={{ result.pk }}">{{ status }}</td>
+<!--         <td><a href="/status/?id={{ result.pk }}">{{ status }}</td> -->
+        <td><a href="{% url 'status' project_id app_id result.pk %}">{{ status }}</td>
+        
     </tr>
     {% endif %}
     {% if next_conf_available %}
@@ -75,7 +79,7 @@
     <div class="checkbox boxbody">
         <ul>
         {% for run in same_runs%}
-        <li><label><input type="checkbox" name="same_run" value="{{ run.pk }}" /> {{ run.pk }}@{{ run.timestamp }}<a href="/result/?id={{ run.pk }}">(view)</a></label></li>
+        <li><label><input type="checkbox" name="same_run" value="{{ run.pk }}" /> {{ run.pk }}@{{ run.timestamp }}<a href="{% url 'result' project_id app_id run.pk %}">(view)</a></label></li>
  	{% endfor %}
 </ul>
     </div>
@@ -93,7 +97,7 @@
     <div class="checkbox boxbody">
         <ul  >
        {% for run in similar_runs %}
-        <li><label><input type="checkbox" name="same_run" value="{{ run.pk }}" /> {{ run.pk }}@{{ run.timestamp }}<a href="/result/?id={{ run.pk }}">(view)</a></label></li>
+        <li><label><input type="checkbox" name="same_run" value="{{ run.pk }}" /> {{ run.pk }}@{{ run.timestamp }}<a href="{% url 'result' project_id app_id run.pk %}">(view)</a></label></li>
         {% endfor %}
         </ul>
     </div>

@@ -85,9 +85,8 @@ def stop_celery():
 
 @task
 def status_celery():
-    local(SUPERVISOR_CMD(action='status') +
-          ' | tr -s \' \' | cut -d \' \' -f2')
-    res = local(cmd, capture=True)
+    res = local(SUPERVISOR_CMD(action='status') +
+                ' | tr -s \' \' | cut -d \' \' -f2', capture=True)
     try:
         status = STATUS._asdict()[res.stdout]
     except KeyError as e:

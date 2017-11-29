@@ -6,8 +6,8 @@
 <div class="container">
     <div class="container" style="overflow: auto;">
     <table class="table table-striped table-bordered table-condensed table-hover">
-        <caption><h4>{{ labels.title }} (<a href="/edit_{{ info_type }}/?id={{ db_info.pk }}">edit</a>)</h4></caption>
-<!--         <caption><h4>{{ labels.title }}</h4></caption> -->
+<!--         <caption><h4>{{ labels.title }} (<a href="/edit_{{ info_type }}/?id={{ db_info.pk }}">edit</a>)</h4></caption> -->
+        <caption><h4>{{ labels.title }}</h4></caption>
         <tbody>
         <tr>
             <td><div class="text-right">{{ labels.name }}</div></td>
@@ -59,7 +59,11 @@
             {% else %}
             <tr>
             {% endif %}
-                <td style="word-wrap:break-word;">{{ pair.0 }}</td>
+                {% if info_type == "db_confs" %}
+                <td style="word-wrap:break-word;"><a href="{% url 'dbconf_ref' db_info.dbms.name db_info.dbms.version pair.0 %}">{{ pair.0 }}</a></td>
+                {% else %}
+                <td style="word-wrap:break-word;"><a href="{% url 'dbmetrics_ref' db_info.dbms.name db_info.dbms.version pair.0 %}">{{ pair.0 }}</a></td>
+                {% endif %}
                 <td style="word-wrap:break-word;">{{ pair.1|safe_floatformat }}</td>
                 {% if compare != "none" %}
                 <td style="word-wrap:break-word;">{{ pair.2|safe_floatformat }}</td>
@@ -85,7 +89,11 @@
             {% else %}
             <tr>
             {% endif %}
-                <td style="word-wrap:break-word;">{{ pair.0 }}</td>
+                {% if info_type == "db_confs" %}
+                <td style="word-wrap:break-word;"><a href="{% url 'dbconf_ref' db_info.dbms.name db_info.dbms.version pair.0 %}">{{ pair.0 }}</a></td>
+                {% else %}
+                <td style="word-wrap:break-word;"><a href="{% url 'dbmetrics_ref' db_info.dbms.name db_info.dbms.version pair.0 %}">{{ pair.0 }}</a></td>
+                {% endif %}
                 <td style="word-wrap:break-word;">{{ pair.1|safe_floatformat }}</td>
                 {% if compare != "none" %}
                 <td style="word-wrap:break-word;">{{ pair.2|safe_floatformat }}</td>
@@ -111,7 +119,7 @@ function switch_content() {
 }
 
 function compare_db_info() {
-    url = "/{{ info_type }}/?id={{ db_info.pk }}&compare=" + $("select[id='compare']").val();
+	url = "/projects/{{ db_info.application.project.pk }}/apps/{{ db_info.application.pk }}/{{ info_type }}/{{db_info.pk}}/?compare=" + $("select[id='compare']").val();
     window.location = url;
 }
 </script>

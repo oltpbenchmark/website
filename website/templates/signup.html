@@ -2,49 +2,18 @@
 {% block body %}
 
 <div class="container">
-
-	<!-- use: class="well form-horizontal" for gray background -->
-	<form class="well form-horizontal" action="/signup/" method="post"
-		id="contact_form">{% csrf_token %}
+	<form class="gray-border form-horizontal " action="{% url 'signup' %}" method="post" id="contact_form">{% csrf_token %}
 		<fieldset>
 
 			<!-- Form Name -->
-			<legend><center><h2>
-				<b>Create Your Account</b>
-			</h2></center></legend>
-			<br>
+			<h2 class="text-center"><b>Create Your Account</b></h2>
 
-			<!-- Text input-->
-
-			<!-- <div class="form-group"> -->
-			<!--   <label class="col-md-4 control-label">First Name</label>   -->
-			<!--   <div class="col-md-4 inputGroupContainer"> -->
-			<!--   <div class="col-md-4 input-group"> -->
-			<!--   <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span> -->
-			<!--   <input  name="first_name" placeholder="Jay" class="form-control"  type="text"> -->
-			<!--     </div> -->
-			<!--   </div> -->
-			<!-- </div> -->
-
-			<!-- Text input-->
-
-			<!-- <div class="form-group"> -->
-			<!--   <label class="col-md-4 control-label" >Last Name</label>  -->
-			<!--     <div class="col-md-6 inputGroupContainer"> -->
-			<!--     <div class="input-group"> -->
-			<!--   <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span> -->
-			<!--   <input name="last_name" placeholder="Catsby" class="form-control"  type="text"> -->
-			<!--     </div> -->
-			<!--   </div> -->
-			<!-- </div> -->
-
-			<!-- Text input-->
-
-			<div class="form-group">
+<!--             <div class="form-group text-center h2" style="margin-bottom:30px">Create Your Account</div> -->
+            
+			<div class="form-group" >
 				<label class="col-xs-3 control-label">Username</label>
 				<div class="col-xs-6 input-group">
-					<input name="username" placeholder="catsby" class="form-control"
-						type="text">
+					<input name="username" placeholder="catsby" class="form-control" type="text">
 				</div>
 			</div>
 
@@ -53,8 +22,7 @@
 			<div class="form-group">
 				<label class="col-xs-3 control-label">E-Mail Address</label>
 				<div class="col-xs-6 input-group">
-					<input name="email" placeholder="catsby@cs.cmu.edu"
-						class="form-control" type="email">
+					<input name="email" placeholder="catsby@cs.cmu.edu" class="form-control" type="email">
 				</div>
 			</div>
 
@@ -63,8 +31,7 @@
 			<div class="form-group">
 				<label class="col-xs-3 control-label">Password</label>
 				<div class="col-xs-6 input-group">
-					<input name="password1" placeholder="iheartcatnip"
-						class="form-control" type="password">
+					<input name="password1" placeholder="iheartcatnip" class="form-control" type="password">
 				</div>
 			</div>
 
@@ -73,85 +40,17 @@
 			<div class="form-group">
 				<label class="col-xs-3 control-label">Confirm Password</label>
 				<div class="col-xs-6 input-group">
-					<input name="password2" placeholder="iheartcatnip"
-						class="form-control" type="password">
+					<input name="password2" placeholder="iheartcatnip" class="form-control" type="password">
 				</div>
-			</div>
-
-
-			<!-- <div class="form-group"> -->
-			<!-- <label class="col-md-4 control-label">Affiliation</label> -->
-			<!-- <div class="col-md-6 inputGroupContainer"> -->
-			<!-- <div class="input-group"> -->
-			<!-- <span class="input-group-addon"><i class="glyphicon glyphicon-globe"></i></span> -->
-			<!-- <input name="affiliation" placeholder="Affiliation" class="form-control"  type="text"> -->
-			<!-- </div> -->
-			<!-- </div> -->
-			<!-- </div> -->
-
-			<!-- <div class="form-group">  -->
-			<!--   <label class="col-md-4 control-label">Department / Office</label> -->
-			<!--     <div class="col-md-6 selectContainer"> -->
-			<!--     <div class="input-group"> -->
-			<!--         <span class="input-group-addon"><i class="glyphicon glyphicon-globe"></i></span> -->
-			<!--     <select name="department" class="form-control selectpicker"> -->
-			<!--       <option value="">Select your Department/Office</option> -->
-			<!--       <option>Department of Engineering</option> -->
-			<!--       <option>Department of Agriculture</option> -->
-			<!--       <option >Accounting Office</option> -->
-			<!--       <option >Tresurer's Office</option> -->
-			<!--       <option >MPDC</option> -->
-			<!--       <option >MCTC</option> -->
-			<!--       <option >MCR</option> -->
-			<!--       <option >Mayor's Office</option> -->
-			<!--       <option >Tourism Office</option> -->
-			<!--     </select> -->
-			<!--   </div> -->
-			<!-- </div> -->
-			<!-- </div> -->
-
-			<!-- Select Basic -->
-
-			<!-- Success message -->
-			<div class="alert alert-success" role="alert" id="success_message">
-				Success <i class="glyphicon glyphicon-thumbs-up"></i> Success!.
 			</div>
 
 			<!-- Button -->
-			<div class="form-group">
-				<label class="col-xs-4 control-label"></label>
-				<div class="col-xs-3">
-					&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
-					<button type="submit" class="btn btn-success" name="submit" value="submit-value">
-						&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbspSign Up <span
-							class="glyphicon glyphicon-send"></span>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
-					</button>
-				</div>
+			<div class="form-group text-center">
+				<button type="submit" class="btn btn-success" name="submit" value="submit-value">Sign up <span class="glyphicon glyphicon-send"></span></button>
 			</div>
 
 		</fieldset>
 	</form>
 </div>
-
-<!-- <div class="container">
-    <div class="col-sm-5">
-
-    <form action="/signup/" method="POST" class="form-signin"> {% csrf_token %}
-    	<div class="form-group">
-        <input type="text" class="form-control" placeholder="Username" name="username" required autofocus>
-		</div>
-		<div class="form-group">
-		<input type="email" placeholder="Email" class="form-control" name="email">
-        </div>
-        <div class="form-group">
-        <input type="password" class="form-control" placeholder="Password" name="password1" required>
-        </div>
-        <div class="form-group">
-        <input type="password" class="form-control" placeholder="Confirm password" name="password2" required>
-        </div>
-        <button class="btn btn-primary" type="submit" name="submit" value="submit-value">Sign up</button>
-    </form>
-    </div>
-</div> -->
 
 {% endblock body %}
