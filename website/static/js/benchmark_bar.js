@@ -75,7 +75,9 @@ function render(data) {
 function OnMarkerClickHandler(ev, gridpos, datapos, neighbor, plot) {
     if (neighbor) {
         result_id = neighbor.data[2];
-        window.location = "/result/?id=" + result_id;
+        // return '<a href="/projects/' + defaults.proj + '/apps/' + defaults.app + '/results/' + data + '">' + data + '</a>';
+//        window.location = "/result/?id=" + result_id;
+        window.location = '/projects/' + defaults.proj + '/apps/' + defaults.app + '/results/' + result_id;
     }
 }
 

@@ -55,28 +55,28 @@ class DBMSCatalog(models.Model):
         return self.full_name
 
 
-class KnobCatalog(models.Model):
+class KnobCatalog(models.Model, BaseModel):
     dbms = models.ForeignKey(DBMSCatalog)
     name = models.CharField(max_length=64)
-    vartype = models.IntegerField(choices=VarType.choices())
+    vartype = models.IntegerField(choices=VarType.choices(), verbose_name="variable type")
     unit = models.IntegerField(choices=KnobUnitType.choices())
     category = models.TextField(null=True)
-    summary = models.TextField(null=True)
+    summary = models.TextField(null=True, verbose_name='description')
     description = models.TextField(null=True)
     scope = models.CharField(max_length=16)
-    minval = models.CharField(max_length=32, null=True)
-    maxval = models.CharField(max_length=32, null=True)
-    default = models.TextField()
-    enumvals = models.TextField(null=True)
+    minval = models.CharField(max_length=32, null=True, verbose_name="minimum value")
+    maxval = models.CharField(max_length=32, null=True, verbose_name="maximum value")
+    default = models.TextField(verbose_name="default value")
+    enumvals = models.TextField(null=True, verbose_name="valid values")
     context = models.CharField(max_length=32)
-    tunable = models.BooleanField()
+    tunable = models.BooleanField(verbose_name="tunable")
 
 
-class MetricCatalog(models.Model):
+class MetricCatalog(models.Model, BaseModel):
     dbms = models.ForeignKey(DBMSCatalog)
     name = models.CharField(max_length=64)
     vartype = models.IntegerField(choices=VarType.choices())
-    summary = models.TextField(null=True)
+    summary = models.TextField(null=True, verbose_name='description')
     scope = models.CharField(max_length=16)
     metric_type = models.IntegerField(choices=MetricType.choices())
 

@@ -6,7 +6,7 @@
 
 <div id="benchmark_info" class="container">
 <table class="table table-striped table-bordered table-condensed table-hover">
-    <caption><h4>{{ labels.title }} (<a href="/edit_benchmark_conf/?id={{ benchmark.pk }}">edit</a>)</h4></caption>
+    <caption><h4>{{ labels.title }} (<a href="{% url 'edit_bench_conf' proj_id app_id benchmark.pk %}">edit</a>)</h4></caption>
     <tbody>
     <tr>
         <td><div class="text-right">{{ labels.name }}</div></td>
@@ -28,7 +28,7 @@
     </tr>
     <tr>
         <td><div class="text-right">{{ labels.scalefactor }}</div></td>
-        <td>{{ benchmark.scalefactor }}</td>
+        <td>{{ benchmark.scalefactor|floatformat:-2 }}</td>
     </tr>
     <tr>
         <td><div class="text-right">{{ labels.terminals }}</div></td>
@@ -110,6 +110,8 @@ $(function() {
         benchmark: {{ benchmark.pk }},
         db_confs: [{% for db in default_dbconf %}"{{ db }}", {% endfor %}],
         metrics: [{% for metric in default_metrics %}"{{ metric }}", {% endfor %}],
+        proj_id: {{proj_id}},
+        app_id: {{ app_id }},
     });
 });
 </script>

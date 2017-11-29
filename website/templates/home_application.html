@@ -2,7 +2,7 @@
 
 {% block body %}
 <div id="application_list" class="container">
-<form action="/delete_application/" method="POST"
+<form action="{% url 'delete_application' project.pk %}" method="POST"
       onsubmit="return confirm('Are you sure you want to delete these applications and all targets/results under this application?')">
       {% csrf_token %}
 <table style="table-layout: auto; width: 100%;" id="application_table" class="table table-bordered table-striped table-hover table-nonfluid">
@@ -19,7 +19,7 @@
     {% for application in applications %}
         <tr>
             <td style="vertical-align:middle"><input type="checkbox" name="applications" value="{{ application.pk }}" /></td>
-            <td style="vertical-align:middle"><a href="/application/?id={{application.pk}}">{{ application.name }}</a></td>
+            <td style="vertical-align:middle"><a href="{% url 'application' project.pk application.pk %}">{{ application.name }}</a></td>
             <td style="vertical-align:middle">{{ application.dbms.full_name }}</td>
             <td style="vertical-align:middle">{{ application.hardware.name }}</td>
             <td style="vertical-align:middle">{{ application.tuning_session }}</td>
@@ -29,7 +29,8 @@
     {% endfor %}
 </table>
 <button class="btn btn-default" type="submit" name="id" value="{{ project.pk }}">{{ labels.button_delete }}</button>
-<a class="btn btn-default" href="/edit_application/?pid={{ project.pk }}&id=">{{ labels.button_create }}</a>
+<a class="btn btn-default" href="{% url 'new_application' project.pk %}">{{ labels.button_create }}</a>
+<!-- <a class="btn btn-default" href="/edit_application/?pid={{ project.pk }}&id=">{{ labels.button_create }}</a> -->
 </form>
 </div>
 

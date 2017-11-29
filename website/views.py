@@ -9,10 +9,11 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
-from django.http import HttpResponse, QueryDict, Http404
+from django.http import Http404, HttpResponse, QueryDict
 from django.shortcuts import redirect, render, get_object_or_404
 from django.template.context_processors import csrf
 from django.template.defaultfilters import register
+from django.urls import reverse, reverse_lazy
 from django.utils.datetime_safe import datetime
 from django.utils.timezone import now
 from django.views.decorators.csrf import csrf_exempt
@@ -20,10 +21,10 @@ from djcelery.models import TaskMeta
 
 from .forms import ApplicationForm, NewResultForm, ProjectForm
 from .models import (Application, BenchmarkConfig, DBConf, DBMSCatalog,
-                     DBMSMetrics, Hardware, PipelineResult, Project, Result,
+                     DBMSMetrics, Hardware, KnobCatalog, MetricCatalog, PipelineResult, Project, Result,
                      ResultData, Statistics, WorkloadCluster)
 from tasks import aggregate_target_results, map_workload, configuration_recommendation
-from .types import DBMSType, PipelineTaskType, StatsType, TaskType
+from .types import DBMSType, KnobUnitType, MetricType, PipelineTaskType, StatsType, TaskType, VarType
 from .utils import DBMSUtil, JSONUtil, LabelUtil, MediaUtil
 from website.types import HardwareType
 
@@ -57,7 +58,8 @@ def ajax_new(request):
 
 def signup_view(request):
     if request.user.is_authenticated():
-        return redirect('/')
+        return redirect(reverse('home'))
+#         return redirect('/')
     if request.method == 'POST':
         post = request.POST
         form = UserCreationForm(post)
@@ -69,9 +71,8 @@ def signup_view(request):
             request.POST = new_post
             return login_view(request)
         else:
-            log.info("Invalid request: {}".format(
-                ', '.join(form.error_messages)))
-
+            log.warn(form.is_valid())
+            log.warn(form.errors)
     else:
         form = UserCreationForm()
     token = {}
@@ -83,13 +84,15 @@ def signup_view(request):
 
 def login_view(request):
     if request.user.is_authenticated():
-        return redirect('/')
+        return redirect(reverse('home'))
+#         return redirect('/')
     if request.method == 'POST':
         post = request.POST
         form = AuthenticationForm(None, post)
         if form.is_valid():
             login(request, form.get_user())
-            return redirect('/')
+            return redirect(reverse('home'))
+#             return redirect('/')
         else:
             log.info("Invalid request: {}".format(
                 ', '.join(form.error_messages)))
@@ -102,13 +105,17 @@ def login_view(request):
     return render(request, 'login.html', token)
 
 
-@login_required(login_url='/login/')
+@login_required(login_url=reverse_lazy('login'))
 def logout_view(request):
     logout(request)
-    return redirect("/login/")
+    return redirect(reverse('login'))
 
 
-@login_required(login_url='/login/')
+@login_required(login_url=reverse_lazy('login'))
+def redirect_home(request):
+    return redirect(reverse('home'))
+
+@login_required(login_url=reverse_lazy('login'))
 def home(request):
     labels = Project.get_labels()
     labels.update(LabelUtil.style_labels({
@@ -142,9 +149,9 @@ def get_task_status(tasks):
     return overall_status, num_completed
 
 
-@login_required(login_url='/login/')
-def ml_info(request):
-    result_id = request.GET['id']
+@login_required(login_url=reverse_lazy('login'))
+def ml_info(request, project_id, app_id, result_id):
+#     result_id = request.GET['id']
     res = Result.objects.get(pk=result_id)
 
     task_ids = res.task_ids.split(',')
@@ -177,9 +184,9 @@ def ml_info(request):
     return render(request, "ml_info.html", context)
 
 
-@login_required(login_url='/login/')
-def project(request):
-    project_id = request.GET['id']
+@login_required(login_url=reverse_lazy('login'))
+def project(request, project_id):
+#     project_id = request.GET['id']
     applications = Application.objects.filter(project=project_id)
     project = Project.objects.get(pk=project_id)
     labels = Application.get_labels()
@@ -197,27 +204,16 @@ def project(request):
     return render(request, 'home_application.html', context)
 
 
-@login_required(login_url='/login/')
-def project_info(request):
-    project_id = request.GET['id']
-    project = Project.objects.get(pk=project_id)
-    context = {}
-    context['project'] = project
-    return render(request, 'project_info.html', context)
-
-
-@login_required(login_url='/login/')
-def application(request):
-    app = Application.objects.get(pk=request.GET['id'])
-    if app.user != request.user:
+@login_required(login_url=reverse_lazy('login'))
+def application(request, project_id, app_id):
+    project = get_object_or_404(Project, pk=project_id)
+    app = get_object_or_404(Application, pk=app_id)
+#     app_id = Application.objects.get(pk=request.GET['id'])
+    if project.user != request.user:
         return render(request, '404.html')
-
-    project = app.project
-
+#     project = app.project
     data = request.GET
-
-    application = Application.objects.get(pk=data['id'])
-    results = Result.objects.filter(application=application)
+    results = Result.objects.filter(application=app)
     dbs = {}
     benchmarks = {}
 
@@ -250,8 +246,8 @@ def application(request):
         default_confs = 'none'
 
     default_metrics = Statistics.objects.default_metrics
-    if application.target_objective not in default_metrics:
-        default_metrics.append(application.target_objective)
+    if app.target_objective not in default_metrics:
+        default_metrics.append(app.target_objective)
 
     labels = Application.get_labels()
     labels['title'] = "Application Info"
@@ -270,7 +266,7 @@ def application(request):
         'metric_meta': metric_meta,
         'defaultmetrics': default_metrics,
         'filters': [],
-        'application': application,
+        'application': app,
         'results': results,
         'labels': labels,
     }
@@ -279,44 +275,43 @@ def application(request):
     return render(request, 'application.html', context)
 
 
-@login_required(login_url='/login/')
-def edit_project(request):
-    context = {}
-    try:
-        if request.GET['id'] != '':
-            project = Project.objects.get(pk=request.GET['id'])
-            if project.user != request.user:
-                return render(request, '404.html')
-            context['project'] = project
-            context['labels'] = Project.get_labels()
-    except Project.DoesNotExist:
-        pass
-    return render(request, 'edit_project.html', context)
+# @login_required(login_url=reverse_lazy('login'))
+# def edit_project(request):
+#     context = {}
+#     try:
+#         if request.GET['id'] != '':
+#             project = Project.objects.get(pk=request.GET['id'])
+#             if project.user != request.user:
+#                 return render(request, '404.html')
+#             context['project'] = project
+#             context['labels'] = Project.get_labels()
+#     except Project.DoesNotExist:
+#         pass
+#     return render(request, 'edit_project.html', context)
 
 
-@login_required(login_url='/login/')
+@login_required(login_url=reverse_lazy('login'))
 def delete_project(request):
     for pk in request.POST.getlist('projects', []):
         project = Project.objects.get(pk=pk)
         if project.user == request.user:
             project.delete()
-    return redirect('/')
+    return redirect(reverse('home'))
 
 
-@login_required(login_url='/login/')
+@login_required(login_url=reverse_lazy('login'))
 def delete_application(request):
     for pk in request.POST.getlist('applications', []):
         application = Application.objects.get(pk=pk)
         if application.user == request.user:
             application.delete()
-    return redirect('/project/?id=' + request.POST['id'])
+    return redirect(reverse('delete_application'))
 
 
-@login_required(login_url='/login/')
-def update_project(request):
+@login_required(login_url=reverse_lazy('login'))
+def update_project(request, project_id=''):
     if request.method == 'POST':
-        proj_id = request.POST['id']
-        if proj_id == '':
+        if project_id == '':
             form = ProjectForm(request.POST)
             if not form.is_valid():
                 return HttpResponse(str(form))
@@ -327,7 +322,7 @@ def update_project(request):
             project.last_update = ts
             project.save()
         else:
-            project = Project.objects.get(pk=int(proj_id))
+            project = Project.objects.get(pk=int(project_id))
             if project.user != request.user:
                 return Http404()
             form = ProjectForm(request.POST, instance=project)
@@ -335,14 +330,13 @@ def update_project(request):
                 return HttpResponse(str(form))
             project.last_update = now()
             project.save()
-        return redirect('/project/?id=' + str(project.pk))
+        return redirect(reverse('project', kwargs={'project_id': project.pk}))
     else:
-        proj_id = request.GET['id']
-        if proj_id == '':
+        if project_id == '':
             project = None
             form = ProjectForm()
         else:
-            project = Project.objects.get(pk=int(proj_id))
+            project = Project.objects.get(pk=int(project_id))
             form = ProjectForm(instance=project)
         context = {
             'project': project,
@@ -351,11 +345,10 @@ def update_project(request):
         return render(request, 'edit_project.html', context)
 
 
-@login_required(login_url='/login/')
-def update_application(request):
+@login_required(login_url=reverse_lazy('login'))
+def update_application(request, project_id, app_id=''):
+    project = get_object_or_404(Project, pk=project_id)
     if request.method == 'POST':
-        app_id, proj_id = request.POST['id'].split('&')
-        project = Project.objects.get(pk=int(proj_id))
         if project.user != request.user:
             return Http404()
         if app_id == '':
@@ -379,13 +372,14 @@ def update_application(request):
                 app.upload_code = MediaUtil.upload_code_generator()
             app.last_update = now()
             app.save()
-        return redirect('/application/?id=' + str(app.pk))
+        return redirect(reverse('application', kwargs={'project_id': project_id, 'app_id': app.pk}))
+#         return redirect('/application/?id=' + str(app.pk))
     else:
-        project = get_object_or_404(Project, pk=request.GET['pid'])
+#         project = get_object_or_404(Project, pk=project_id)
         if project.user != request.user:
             return Http404()
-        if request.GET['id'] != '':
-            app = Application.objects.get(pk=int(request.GET['id']))
+        if app_id != '':
+            app = Application.objects.get(pk=app_id)
             form = ApplicationForm(instance=app)
         else:
             app = None
@@ -551,8 +545,64 @@ def filter_db_var(kv_pair, key_filters):
     return False
 
 
-@login_required(login_url='/login/')
-def db_conf_view(request):
+@login_required(login_url=reverse_lazy('login'))
+def db_conf_ref(request, dbms_name, version, param_name):
+    param = get_object_or_404(KnobCatalog, dbms__type=DBMSType.type(dbms_name), dbms__version=version, name=param_name)
+    labels = KnobCatalog.get_labels()
+    list_items = OrderedDict()
+    if param.category is not None:
+        list_items[labels['category']] = param.category
+    list_items[labels['scope']] = param.scope
+    list_items[labels['tunable']] = param.tunable
+    list_items[labels['vartype']] = VarType.name(param.vartype)
+    if param.unit != KnobUnitType.OTHER:
+        list_items[labels['unit']] = param.unit
+    list_items[labels['default']] = param.default
+    if param.minval is not None:
+        list_items[labels['minval']] = param.minval
+    if param.maxval is not None:
+        list_items[labels['maxval']] = param.maxval
+    if param.enumvals is not None:
+        list_items[labels['enumvals']] = param.enumvals
+    if param.summary is not None:
+        description = param.summary
+        if param.description is not None:
+            description += param.description
+        list_items[labels['summary']] = description
+    
+    context = {
+        'title': param.name,
+        'dbms': param.dbms,
+        'is_used': param.tunable,
+        'used_label': 'TUNABLE', #labels['tunable'],
+        'list_items': list_items,
+    }
+    return render(request, 'dbms_reference.html', context)
+
+
+@login_required(login_url=reverse_lazy('login'))
+def db_metrics_ref(request, dbms_name, version, metric_name):
+    metric = get_object_or_404(MetricCatalog, dbms__type=DBMSType.type(dbms_name), dbms__version=version, name=metric_name)
+    labels = MetricCatalog.get_labels()
+    list_items = OrderedDict()
+    list_items[labels['scope']] = metric.scope
+    list_items[labels['vartype']] = VarType.name(metric.vartype)
+    list_items[labels['summary']] = metric.summary
+    context = {
+        'title': metric.name,
+        'dbms': metric.dbms,
+        'is_used': metric.metric_type == MetricType.COUNTER,
+        'used_label': MetricType.name(metric.metric_type), #labels['tunable'],
+        'list_items': list_items,
+    }
+    return render(request, 'dbms_reference.html', context=context)
+
+
+@login_required(login_url=reverse_lazy('login'))
+def db_conf_view(request, project_id, app_id, dbconf_id):
+    db_info = get_object_or_404(DBConf, pk=dbconf_id)
+    if db_info.application.user != request.user:
+        raise Http404()
     labels = DBConf.get_labels()
     labels.update(LabelUtil.style_labels({
         'featured_info': 'tunable dbms parameters',
@@ -561,12 +611,16 @@ def db_conf_view(request):
     labels['title'] = 'DBMS Configuration'
     context = {
         'labels': labels,
-        'info_type': 'db_conf'}
-    return db_info_view(request, context)
+        'info_type': 'db_confs'
+    }
+    return db_info_view(request, context, db_info)
 
 
-@login_required(login_url='/login/')
-def dbms_metrics_view(request):
+@login_required(login_url=reverse_lazy('login'))
+def db_metrics_view(request, project_id, app_id, dbmet_id, compare=None):
+    db_info = get_object_or_404(DBMSMetrics, pk=dbmet_id)
+    if db_info.application.user != request.user:
+        raise Http404()
     labels = DBMSMetrics.get_labels()
     labels.update(LabelUtil.style_labels({
         'featured_info': 'numeric dbms metrics',
@@ -575,12 +629,13 @@ def dbms_metrics_view(request):
     labels['title'] = 'DBMS Metrics'
     context = {
         'labels': labels,
-        'info_type': 'dbms_metrics'}
-    return db_info_view(request, context)
+        'info_type': 'db_metrics'
+    }
+    return db_info_view(request, context, db_info)
 
 
-def db_info_view(request, context):
-    if context['info_type'] == 'db_conf':
+def db_info_view(request, context, db_info):
+    if context['info_type'] == 'db_confs':
         model_class = DBConf
         filter_fn = DBMSUtil.filter_tunable_params
         addl_args = []
@@ -588,9 +643,6 @@ def db_info_view(request, context):
         model_class = DBMSMetrics
         filter_fn = DBMSUtil.filter_numeric_metrics
         addl_args = [True]
-    db_info = get_object_or_404(model_class, pk=request.GET['id'])
-    if db_info.application.user != request.user:
-        raise Http404()
 
     dbms_id = db_info.dbms.pk
     all_info_dict = JSONUtil.loads(db_info.configuration)
@@ -598,7 +650,9 @@ def db_info_view(request, context):
     featured_dict = filter_fn(*args)
 
     if 'compare' in request.GET and request.GET['compare'] != 'none':
-        compare_obj = model_class.objects.get(pk=request.GET['compare'])
+#     if compare != None:
+        comp_id = request.GET['compare']
+        compare_obj = model_class.objects.get(pk=comp_id)
         comp_dict = JSONUtil.loads(compare_obj.configuration)
         args = [dbms_id, comp_dict] + addl_args
         comp_featured_dict = filter_fn(*args)
@@ -607,6 +661,7 @@ def db_info_view(request, context):
         featured_info = [(k, v, comp_featured_dict[k])
                          for k, v in featured_dict.iteritems()]
     else:
+        comp_id = None
         all_info = list(all_info_dict.iteritems())
         featured_info = list(featured_dict.iteritems())
     peer_info = model_class.objects.filter(
@@ -616,15 +671,15 @@ def db_info_view(request, context):
     context['all_info'] = all_info
     context['featured_info'] = featured_info
     context['db_info'] = db_info
-    context['compare'] = request.GET.get('compare', 'none')
+    context['compare'] = comp_id
     context['peer_db_info'] = peer_info
     return render(request, 'db_info.html', context)
     
         
 
-@login_required(login_url='/login/')
-def benchmark_configuration(request):
-    benchmark_conf = get_object_or_404(BenchmarkConfig, pk=request.GET['id'])
+@login_required(login_url=reverse_lazy('login'))
+def benchmark_configuration(request, project_id, app_id, bench_id):
+    benchmark_conf = get_object_or_404(BenchmarkConfig, pk=bench_id)
     app = benchmark_conf.application
     if app.user != request.user:
         return render(request, '404.html')
@@ -654,7 +709,9 @@ def benchmark_configuration(request):
                'metric_meta': Statistics.objects.metric_meta,
                'default_dbconf': all_db_confs,
                'default_metrics': ['throughput', 'p99_latency'],
-               'labels': labels}
+               'labels': labels,
+               'proj_id': project_id,
+               'app_id': app_id}
     return render(request, 'benchmark_conf.html', context)
 
 # Data Format
@@ -666,7 +723,7 @@ def benchmark_configuration(request):
 #            Result list for the metric in a folded list
 
 
-@login_required(login_url='/login/')
+@login_required(login_url=reverse_lazy('login'))
 def get_benchmark_data(request):
     data = request.GET
 
@@ -715,7 +772,7 @@ def get_benchmark_data(request):
     return HttpResponse(JSONUtil.dumps(data_package), content_type='application/json')
 
 
-@login_required(login_url='/login/')
+@login_required(login_url=reverse_lazy('login'))
 def get_benchmark_conf_file(request):
     bench_id = request.GET['id']
     benchmark_conf = get_object_or_404(BenchmarkConfig, pk=request.GET['id'])
@@ -729,7 +786,7 @@ def get_benchmark_conf_file(request):
     return response
 
 
-@login_required(login_url='/login/')
+@login_required(login_url=reverse_lazy('login'))
 def edit_benchmark_conf(request):
     context = {}
     if request.GET['id'] != '':
@@ -740,14 +797,17 @@ def edit_benchmark_conf(request):
     return render(request, 'edit_benchmark.html', context)
 
 
-@login_required(login_url='/login/')
-def update_benchmark_conf(request):
-    ben_conf = BenchmarkConfig.objects.get(pk=request.POST['id'])
-    ben_conf.name = request.POST['name']
-    ben_conf.description = request.POST['description']
-    ben_conf.save()
-    return redirect('/benchmark_conf/?id=' + str(ben_conf.pk))
-
+@login_required(login_url=reverse_lazy('login'))
+def update_benchmark_conf(request, project_id, app_id, bench_id):
+    bench_conf = get_object_or_404(BenchmarkConfig, pk=bench_id)
+    if request.method == "POST":
+        bench_conf.name = request.POST['name']
+        bench_conf.description = request.POST['description']
+        bench_conf.save()
+        return redirect(reverse('bench_conf', kwargs={ 'project_id': project_id, 'app_id': app_id, 'bench_id': bench_id }))
+    else:
+        context['benchmark'] = ben_conf
+    return render(request, 'edit_benchmark.html', context)
 
 def result_similar(a, b, compare_params):
 #     ranked_knobs = JSONUtil.loads(PipelineResult.get_latest(
@@ -784,14 +844,16 @@ def result_same(a, b):
 #     return True
 
 
-@login_required(login_url='/login/')
+@login_required(login_url=reverse_lazy('login'))
 def update_similar(request):
     raise Http404()
 
-
-def result(request):
-    target = get_object_or_404(Result, pk=request.GET['id'])
+@login_required(login_url=reverse_lazy('login'))
+def result(request, project_id, app_id, result_id):
+    target = get_object_or_404(Result, pk=result_id)
     app = target.application
+    if app.user != request.user:
+        raise Http404()
     data_package = {}
     results = Result.objects.filter(application=target.application,
                                     dbms=app.dbms,
@@ -871,11 +933,13 @@ def result(request):
         'next_conf_available': next_conf_available,
         'similar_runs': similar_dbconf_results,
         'labels': labels,
+        'project_id': app.project.pk,
+        'app_id': app.pk
     }
     return render(request, 'result.html', context)
 
 
-@login_required(login_url='/login/')
+@login_required(login_url=reverse_lazy('login'))
 def get_result_data_file(request):
     target = get_object_or_404(Result, pk=request.GET['id'])
     if target.application.user != request.user:
@@ -903,7 +967,7 @@ def get_result_data_file(request):
 #        data for each benchmark & metric pair
 #            meta data for the pair
 #            data as a map<DBMS name, result list>
-@login_required(login_url='/login/')
+@login_required(login_url=reverse_lazy('login'))
 def get_timeline_data(request):
     result_labels = Result.get_labels()
     table_metrics = [Statistics.objects.THROUGHPUT, Statistics.objects.P99_LATENCY]
@@ -926,14 +990,14 @@ def get_timeline_data(request):
         'columnnames': columnnames,
     }
 
-    application = get_object_or_404(Application, pk=request.GET['proj'])
+    application = get_object_or_404(Application, pk=request.GET['app'])
     if application.user != request.user:
         return HttpResponse(JSONUtil.dumps(data_package), content_type='application/json')
 
     revs = int(request.GET['revs'])
 
     # Get all results related to the selected DBMS, sort by time
-    results = Result.objects.filter(application=request.GET['proj'])
+    results = Result.objects.filter(application=application)
 #     results = filter(lambda x: x.dbms.key in request.GET[
 #                      'db'].split(','), results)
     results = sorted(results, cmp=lambda x, y: int(
