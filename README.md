@@ -63,7 +63,7 @@ python manage.py createsuperuser
 ##### 6. Preload the static database data
 
 ```
-python manage.py loaddata ./script/preload/*
+python manage.py loaddata ./preload/*
 ```
     
 ##### 7. Start the message broker, celery worker, and website server
