@@ -16,7 +16,7 @@ ts = '2016-12-04 11:00'
 convert = True
 task_type = 2
 
-model = 'website.PipelineResult'
+model = 'oltpbench.PipelineResult'
 validate = True
 extra_exceptions = {
     'checkpoint_segments',

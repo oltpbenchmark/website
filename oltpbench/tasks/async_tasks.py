@@ -8,11 +8,11 @@ from django.utils.timezone import now
 from djcelery.models import TaskMeta
 from sklearn.preprocessing import StandardScaler
 
-from website.models import (DBMSCatalog, Hardware, KnobCatalog, PipelineResult,
+from oltpbench.models import (DBMSCatalog, Hardware, KnobCatalog, PipelineResult,
                             Result, ResultData, WorkloadCluster)
-from website.settings import PIPELINE_DIR
-from website.types import KnobUnitType, PipelineTaskType, VarType
-from website.utils import (ConversionUtil, DataUtil, DBMSUtil, JSONUtil,
+from oltpbench.settings import PIPELINE_DIR
+from oltpbench.types import KnobUnitType, PipelineTaskType, VarType
+from oltpbench.utils import (ConversionUtil, DataUtil, DBMSUtil, JSONUtil,
                            MediaUtil,PostgresUtilImpl)
 
 

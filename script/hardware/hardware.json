@@ -9,7 +9,7 @@
             "type": 2, 
             "cpu": 1
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -21,7 +21,7 @@
             "type": 3, 
             "cpu": 1
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -33,7 +33,7 @@
             "type": 4, 
             "cpu": 1
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -45,7 +45,7 @@
             "type": 5, 
             "cpu": 2
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -57,7 +57,7 @@
             "type": 6, 
             "cpu": 2
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -69,7 +69,7 @@
             "type": 7, 
             "cpu": 4
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -81,7 +81,7 @@
             "type": 8, 
             "cpu": 8
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -93,7 +93,7 @@
             "type": 9, 
             "cpu": 2
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -105,7 +105,7 @@
             "type": 10, 
             "cpu": 4
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -117,7 +117,7 @@
             "type": 11, 
             "cpu": 8
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -129,7 +129,7 @@
             "type": 12, 
             "cpu": 16
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -141,7 +141,7 @@
             "type": 13, 
             "cpu": 40
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -153,7 +153,7 @@
             "type": 14, 
             "cpu": 64
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -165,7 +165,7 @@
             "type": 15, 
             "cpu": 1
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -177,7 +177,7 @@
             "type": 16, 
             "cpu": 2
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -189,7 +189,7 @@
             "type": 17, 
             "cpu": 4
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -201,7 +201,7 @@
             "type": 18, 
             "cpu": 8
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -213,7 +213,7 @@
             "type": 19, 
             "cpu": 2
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -225,7 +225,7 @@
             "type": 20, 
             "cpu": 4
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -237,7 +237,7 @@
             "type": 21, 
             "cpu": 8
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -249,7 +249,7 @@
             "type": 22, 
             "cpu": 16
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -261,7 +261,7 @@
             "type": 23, 
             "cpu": 36
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -273,7 +273,7 @@
             "type": 24, 
             "cpu": 2
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -285,7 +285,7 @@
             "type": 25, 
             "cpu": 4
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -297,7 +297,7 @@
             "type": 26, 
             "cpu": 8
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -309,7 +309,7 @@
             "type": 27, 
             "cpu": 16
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -321,7 +321,7 @@
             "type": 28, 
             "cpu": 32
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -333,7 +333,7 @@
             "type": 29, 
             "cpu": 4
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -345,7 +345,7 @@
             "type": 30, 
             "cpu": 32
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -357,7 +357,7 @@
             "type": 31, 
             "cpu": 64
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -369,7 +369,7 @@
             "type": 32, 
             "cpu": 8
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -381,7 +381,7 @@
             "type": 33, 
             "cpu": 32
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -393,7 +393,7 @@
             "type": 34, 
             "cpu": 64
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -405,7 +405,7 @@
             "type": 35, 
             "cpu": 128
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -417,7 +417,7 @@
             "type": 36, 
             "cpu": 2
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -429,7 +429,7 @@
             "type": 37, 
             "cpu": 4
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -441,7 +441,7 @@
             "type": 38, 
             "cpu": 8
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -453,7 +453,7 @@
             "type": 39, 
             "cpu": 16
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -465,7 +465,7 @@
             "type": 40, 
             "cpu": 32
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -477,7 +477,7 @@
             "type": 41, 
             "cpu": 64
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -489,7 +489,7 @@
             "type": 42, 
             "cpu": 2
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -501,7 +501,7 @@
             "type": 43, 
             "cpu": 4
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -513,7 +513,7 @@
             "type": 44, 
             "cpu": 8
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -525,7 +525,7 @@
             "type": 45, 
             "cpu": 16
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -537,7 +537,7 @@
             "type": 46, 
             "cpu": 32
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -549,7 +549,7 @@
             "type": 47, 
             "cpu": 2
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -561,7 +561,7 @@
             "type": 48, 
             "cpu": 4
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -573,7 +573,7 @@
             "type": 49, 
             "cpu": 8
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -585,7 +585,7 @@
             "type": 50, 
             "cpu": 16
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -597,7 +597,7 @@
             "type": 51, 
             "cpu": 32
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -609,7 +609,7 @@
             "type": 52, 
             "cpu": 64
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -621,7 +621,7 @@
             "type": 53, 
             "cpu": 4
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -633,7 +633,7 @@
             "type": 54, 
             "cpu": 8
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -645,7 +645,7 @@
             "type": 55, 
             "cpu": 16
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -657,7 +657,7 @@
             "type": 56, 
             "cpu": 36
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -669,7 +669,7 @@
             "type": 57, 
             "cpu": 8
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }, 
     {
         "fields": {
@@ -681,6 +681,6 @@
             "type": 58, 
             "cpu": 64
         }, 
-        "model": "website.Hardware"
+        "model": "oltpbench.Hardware"
     }
 ]

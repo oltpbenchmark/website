@@ -65,7 +65,7 @@ with open('hardware_types.txt', 'w') as f:
 entries = []
 for k,v in HW.iteritems():
     entries.append({
-        "model": "website.Hardware",
+        "model": "oltpbench.Hardware",
         'fields': v
     })
 

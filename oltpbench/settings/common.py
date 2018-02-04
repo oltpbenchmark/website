@@ -99,7 +99,7 @@ MEDIA_URL = '/media/'
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/var/www/example.com/static/"
-STATIC_ROOT = join(PROJECT_ROOT, 'website', 'data', 'static')
+STATIC_ROOT = join(PROJECT_ROOT, 'oltpbench', 'data', 'static')
 
 # URL prefix for static files.
 # Example: "http://example.com/static/", "http://static.example.com/"
@@ -129,7 +129,7 @@ TEMPLATES = [
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
             # TEMPLATE_DIRS (use absolute paths)
-            join(PROJECT_ROOT, 'website', 'template')
+            join(PROJECT_ROOT, 'oltpbench', 'template')
         ],
         'OPTIONS': {
                 'context_processors': [
@@ -186,7 +186,7 @@ INSTALLED_APPS = (
     # 'south',
     'djcelery',
     # 'django_celery_beat',
-    'website',
+    'oltpbench',
 )
 
 ## ==============================================
@@ -215,7 +215,7 @@ djcelery.setup_loader()
 ## LOGGING CONFIGURATION
 ## ==============================================
 
-# A website logging configuration. The only tangible logging
+# A oltpbench logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
 # the site admins on every HTTP 500 error when DEBUG=False.
 # See http://docs.djangoproject.com/en/dev/topics/logging for
@@ -260,7 +260,7 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': False,
         },
-        'website.views': {
+        'oltpbench.views': {
             'handlers': ['console', 'logfile'],
             'propagate': False,
             'level': 'DEBUG',
@@ -291,14 +291,14 @@ LOGGING = {
 ## URL CONFIGURATION
 ## ==============================================
 
-ROOT_URLCONF = 'website.urls'
+ROOT_URLCONF = 'oltpbench.urls'
 
 ## ==============================================
 ## WSGI CONFIGURATION
 ## ==============================================
 
 # Python dotted path to the WSGI application used by Django's runserver.
-WSGI_APPLICATION = 'website.wsgi.application'
+WSGI_APPLICATION = 'oltpbench.wsgi.application'
 
 ## ==============================================
 ## PASSWORD VALIDATORS

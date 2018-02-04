@@ -14,7 +14,7 @@ ts = '2016-12-04 11:00'
 convert = True
 task_type = 1
 
-model = 'website.PipelineResult'
+model = 'oltpbench.PipelineResult'
 
 summary_map = {
     'throughput_req_per_sec': 'Throughput (requests/second)',

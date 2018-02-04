@@ -63,7 +63,7 @@ for view_name, mets in sorted(metrics.iteritems()):
 
     for metric_name in mets:
         entry = {}
-        entry['model'] = 'website.MetricCatalog'
+        entry['model'] = 'oltpbench.MetricCatalog'
         mstats = stats[metric_name]
         fields = {}
         fields['name'] = '{}.{}'.format(view_name, metric_name)
@@ -94,7 +94,7 @@ with open('postgres-96_numeric_metric_names.json', 'w') as f:
     json.dump(numeric_metric_names, f, indent=4)
 
 #sorted_metrics = [{
-#    'model': 'website.PipelineResult',
+#    'model': 'oltpbench.PipelineResult',
 #    'fields': {
 #        "dbms": 1,
 #        "task_type": 2,

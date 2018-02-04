@@ -26,7 +26,7 @@ from .models import (Application, BenchmarkConfig, DBConf, DBMSCatalog,
 from tasks import aggregate_target_results, map_workload, configuration_recommendation
 from .types import DBMSType, KnobUnitType, MetricType, PipelineTaskType, StatsType, TaskType, VarType
 from .utils import DBMSUtil, JSONUtil, LabelUtil, MediaUtil
-from website.types import HardwareType
+from oltpbench.types import HardwareType
 
 log = logging.getLogger(__name__)
 

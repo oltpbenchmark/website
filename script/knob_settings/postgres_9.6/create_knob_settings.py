@@ -531,7 +531,7 @@ json_settings = []
 sorted_knob_names = []
 for pname, pinfo in sorted(params.iteritems()):
     entry = {}
-    entry['model'] = 'website.KnobCatalog'
+    entry['model'] = 'oltpbench.KnobCatalog'
     fields = dict(pinfo)
     if fields['tunable'] == 'yes':
         fields['tunable'] = True
@@ -551,7 +551,7 @@ with open("postgres-96_knobs.json", "w") as f:
 shutil.copy("postgres-96_knobs.json", "../../../preload/postgres-96_knobs.json")
 
 #sorted_knobs = [{
-#    'model': 'website.PipelineResult',
+#    'model': 'oltpbench.PipelineResult',
 #    'fields': {
 #        "dbms": 1,
 #        "task_type": 1,

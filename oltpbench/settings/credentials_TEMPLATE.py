@@ -57,6 +57,6 @@ ALLOWED_HOSTS = []
 ## OTTERTUNE PATH CONFIGURATION
 ## ==============================================
 
-LOG_FILE = '/path/to/website/log'
+LOG_FILE = '/path/to/oltpbench/log'
 
 OTTERTUNE_LIBS = '/path/to/ottertune/MLlibs'

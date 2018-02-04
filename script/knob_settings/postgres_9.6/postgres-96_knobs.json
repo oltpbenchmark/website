@@ -16,7 +16,7 @@
             "unit": "3", 
             "description": "Also controls interpretation of ambiguous date inputs."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -35,7 +35,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -54,7 +54,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -73,7 +73,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -92,7 +92,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -111,7 +111,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -130,7 +130,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -149,7 +149,7 @@
             "unit": "2", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -168,7 +168,7 @@
             "unit": "3", 
             "description": "When turned on, unquoted NULL in an array input value means a null value; otherwise it is taken literally."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -187,7 +187,7 @@
             "unit": "2", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -206,7 +206,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -225,7 +225,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -244,7 +244,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -263,7 +263,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -282,7 +282,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -301,7 +301,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -320,7 +320,7 @@
             "unit": "2", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -339,7 +339,7 @@
             "unit": "2", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -358,7 +358,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -377,7 +377,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -396,7 +396,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -415,7 +415,7 @@
             "unit": "1", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -434,7 +434,7 @@
             "unit": "1", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -453,7 +453,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -472,7 +472,7 @@
             "unit": "2", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -491,7 +491,7 @@
             "unit": "1", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -510,7 +510,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -529,7 +529,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -548,7 +548,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -567,7 +567,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -586,7 +586,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -605,7 +605,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -624,7 +624,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -643,7 +643,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -662,7 +662,7 @@
             "unit": "1", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -681,7 +681,7 @@
             "unit": "2", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -700,7 +700,7 @@
             "unit": "2", 
             "description": "Write a message to the server log if checkpoints caused by the filling of checkpoint segment files happens more frequently than this number of seconds. Zero turns off the warning."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -719,7 +719,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -738,7 +738,7 @@
             "unit": "3", 
             "description": "Each level includes all the levels that follow it. The later the level, the fewer messages are sent."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -757,7 +757,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -776,7 +776,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -795,7 +795,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -814,7 +814,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -833,7 +833,7 @@
             "unit": "3", 
             "description": "Table scans will be skipped if their constraints guarantee that no rows match the query."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -852,7 +852,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -871,7 +871,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -890,7 +890,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -909,7 +909,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -928,7 +928,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -947,7 +947,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -966,7 +966,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -985,7 +985,7 @@
             "unit": "2", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1004,7 +1004,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1023,7 +1023,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1042,7 +1042,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1061,7 +1061,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1080,7 +1080,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1099,7 +1099,7 @@
             "unit": "3", 
             "description": "This applies to table columns that have not had a column-specific target set via ALTER TABLE SET STATISTICS."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1118,7 +1118,7 @@
             "unit": "3", 
             "description": "An empty string selects the database's default tablespace."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1137,7 +1137,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1156,7 +1156,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1175,7 +1175,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1194,7 +1194,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1213,7 +1213,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1232,7 +1232,7 @@
             "unit": "3", 
             "description": "If a dynamically loadable module needs to be opened and the specified name does not have a directory component (i.e., the name does not contain a slash), the system will search this path for the specified file."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1251,7 +1251,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1270,7 +1270,7 @@
             "unit": "1", 
             "description": "That is, the portion of the kernel's disk cache that will be used for PostgreSQL data files. This is measured in disk pages, which are normally 8 kB each."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1289,7 +1289,7 @@
             "unit": "3", 
             "description": "For RAID arrays, this should be approximately the number of drive spindles in the array."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1308,7 +1308,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1327,7 +1327,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1346,7 +1346,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1365,7 +1365,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1384,7 +1384,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1403,7 +1403,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1422,7 +1422,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1441,7 +1441,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1460,7 +1460,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1479,7 +1479,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1498,7 +1498,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1517,7 +1517,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1536,7 +1536,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1555,7 +1555,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1574,7 +1574,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1593,7 +1593,7 @@
             "unit": "3", 
             "description": "This affects real, double precision, and geometric data types. The parameter value is added to the standard number of digits (FLT_DIG or DBL_DIG as appropriate)."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1612,7 +1612,7 @@
             "unit": "3", 
             "description": "If possible, run query using a parallel worker and with parallel restrictions."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1631,7 +1631,7 @@
             "unit": "3", 
             "description": "The planner will merge subqueries into upper queries if the resulting FROM list would have no more than this many items."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1650,7 +1650,7 @@
             "unit": "3", 
             "description": "The server will use the fsync() system call in several places to make sure that updates are physically written to disk. This insures that a database cluster will recover to a consistent state after an operating system or hardware crash."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1669,7 +1669,7 @@
             "unit": "3", 
             "description": "A page write in process during an operating system crash might be only partially written to disk.  During recovery, the row changes stored in WAL are not enough to recover.  This option writes pages when first modified after a checkpoint to WAL so full recovery is possible."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1688,7 +1688,7 @@
             "unit": "3", 
             "description": "This algorithm attempts to do planning without exhaustive searching."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1707,7 +1707,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1726,7 +1726,7 @@
             "unit": "3", 
             "description": "Zero selects a suitable default value."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1745,7 +1745,7 @@
             "unit": "3", 
             "description": "Zero selects a suitable default value."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1764,7 +1764,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1783,7 +1783,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1802,7 +1802,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1821,7 +1821,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1840,7 +1840,7 @@
             "unit": "1", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1859,7 +1859,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1878,7 +1878,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1897,7 +1897,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1916,7 +1916,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1935,7 +1935,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1954,7 +1954,7 @@
             "unit": "2", 
             "description": "A value of 0 turns off the timeout."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1973,7 +1973,7 @@
             "unit": "3", 
             "description": "Detection of a checksum failure normally causes PostgreSQL to report an error, aborting the current transaction. Setting ignore_checksum_failure to true causes the system to ignore the failure (but still report a warning), and continue processing. This behavior could cause crashes or other serious problems. Only has an effect if checksums are enabled."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -1992,7 +1992,7 @@
             "unit": "3", 
             "description": "It does not prevent updating the indexes, so it is safe to use.  The worst consequence is slowness."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2011,7 +2011,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2030,7 +2030,7 @@
             "unit": "3", 
             "description": "The planner will flatten explicit JOIN constructs into lists of FROM items whenever a list of no more than this many items would result."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2049,7 +2049,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2068,7 +2068,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2087,7 +2087,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2106,7 +2106,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2125,7 +2125,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2144,7 +2144,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2163,7 +2163,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2182,7 +2182,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2201,7 +2201,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2220,7 +2220,7 @@
             "unit": "3", 
             "description": "Skips privilege checks when reading or modifying large objects, for compatibility with PostgreSQL releases prior to 9.0."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2239,7 +2239,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2258,7 +2258,7 @@
             "unit": "2", 
             "description": "A value of 0 turns off the timeout."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2277,7 +2277,7 @@
             "unit": "2", 
             "description": "Zero prints all actions. -1 turns autovacuum logging off."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2296,7 +2296,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2315,7 +2315,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2334,7 +2334,7 @@
             "unit": "3", 
             "description": "Valid values are combinations of \"stderr\", \"syslog\", \"csvlog\", and \"eventlog\", depending on the platform."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2353,7 +2353,7 @@
             "unit": "3", 
             "description": "Can be specified as relative to the data directory or as absolute path."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2372,7 +2372,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2391,7 +2391,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2410,7 +2410,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2429,7 +2429,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2448,7 +2448,7 @@
             "unit": "3", 
             "description": "The parameter value is expected to be a numeric mode specification in the form accepted by the chmod and umask system calls. (To use the customary octal format the number must start with a 0 (zero).)"
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2467,7 +2467,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2486,7 +2486,7 @@
             "unit": "3", 
             "description": "By default, connection logs only show the IP address of the connecting host. If you want them to show the host name you can turn this on, but depending on your host name resolution setup it might impose a non-negligible performance penalty."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2505,7 +2505,7 @@
             "unit": "3", 
             "description": "If blank, no prefix is used."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2524,7 +2524,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2543,7 +2543,7 @@
             "unit": "2", 
             "description": "Zero prints all queries. -1 turns this feature off."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2562,7 +2562,7 @@
             "unit": "3", 
             "description": "Each level includes all the levels that follow it. The later the level, the fewer messages are sent."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2581,7 +2581,7 @@
             "unit": "3", 
             "description": "Each level includes all the levels that follow it. The later the level, the fewer messages are sent."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2600,7 +2600,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2619,7 +2619,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2638,7 +2638,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2657,7 +2657,7 @@
             "unit": "2", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2676,7 +2676,7 @@
             "unit": "1", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2695,7 +2695,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2714,7 +2714,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2733,7 +2733,7 @@
             "unit": "1", 
             "description": "Zero logs all files. The default is -1 (turning this feature off)."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2752,7 +2752,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2771,7 +2771,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2790,7 +2790,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2809,7 +2809,7 @@
             "unit": "1", 
             "description": "This includes operations such as VACUUM and CREATE INDEX."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2828,7 +2828,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2847,7 +2847,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2866,7 +2866,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2885,7 +2885,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2904,7 +2904,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2923,7 +2923,7 @@
             "unit": "3", 
             "description": "The shared lock table is sized on the assumption that at most max_locks_per_transaction * max_connections distinct objects will need to be locked at any one time."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2942,7 +2942,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2961,7 +2961,7 @@
             "unit": "3", 
             "description": "The shared predicate lock table is sized on the assumption that at most max_pred_locks_per_transaction * max_connections distinct objects will need to be locked at any one time."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2980,7 +2980,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -2999,7 +2999,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3018,7 +3018,7 @@
             "unit": "1", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3037,7 +3037,7 @@
             "unit": "2", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3056,7 +3056,7 @@
             "unit": "2", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3075,7 +3075,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3094,7 +3094,7 @@
             "unit": "1", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3113,7 +3113,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3132,7 +3132,7 @@
             "unit": "1", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3151,7 +3151,7 @@
             "unit": "1", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3170,7 +3170,7 @@
             "unit": "2", 
             "description": "A value of -1 disables this feature."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3189,7 +3189,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3208,7 +3208,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3227,7 +3227,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3246,7 +3246,7 @@
             "unit": "3", 
             "description": "When a password is specified in CREATE USER or ALTER USER without writing either ENCRYPTED or UNENCRYPTED, this parameter determines whether the password is to be encrypted."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3265,7 +3265,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3284,7 +3284,7 @@
             "unit": "2", 
             "description": "This allows attaching a debugger to the process."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3303,7 +3303,7 @@
             "unit": "2", 
             "description": "This allows attaching a debugger to the process."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3322,7 +3322,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3341,7 +3341,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3360,7 +3360,7 @@
             "unit": "3", 
             "description": "When more tuples than this are present, quicksort will be used."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3379,7 +3379,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3398,7 +3398,7 @@
             "unit": "3", 
             "description": "When enabled, row security will be applied to all users."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3417,7 +3417,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3436,7 +3436,7 @@
             "unit": "1", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3455,7 +3455,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3474,7 +3474,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3493,7 +3493,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3512,7 +3512,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3531,7 +3531,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3550,7 +3550,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3569,7 +3569,7 @@
             "unit": "1", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3588,7 +3588,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3607,7 +3607,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3626,7 +3626,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3645,7 +3645,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3664,7 +3664,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3683,7 +3683,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3702,7 +3702,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3721,7 +3721,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3740,7 +3740,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3759,7 +3759,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3778,7 +3778,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3797,7 +3797,7 @@
             "unit": "2", 
             "description": "A value of 0 turns off the timeout."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3816,7 +3816,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3835,7 +3835,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3854,7 +3854,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3873,7 +3873,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3892,7 +3892,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3911,7 +3911,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3930,7 +3930,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3949,7 +3949,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3968,7 +3968,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -3987,7 +3987,7 @@
             "unit": "3", 
             "description": "This controls the number of consecutive keepalive retransmits that can be lost before a connection is considered dead. A value of 0 uses the system default."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4006,7 +4006,7 @@
             "unit": "2", 
             "description": "A value of 0 uses the system default."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4025,7 +4025,7 @@
             "unit": "2", 
             "description": "A value of 0 uses the system default."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4044,7 +4044,7 @@
             "unit": "1", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4063,7 +4063,7 @@
             "unit": "1", 
             "description": "-1 means no limit."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4082,7 +4082,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4101,7 +4101,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4120,7 +4120,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4139,7 +4139,7 @@
             "unit": "3", 
             "description": "Each level includes all the levels that follow it. The later the level, the fewer messages are sent."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4158,7 +4158,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4177,7 +4177,7 @@
             "unit": "3", 
             "description": "Enables the collection of information on the currently executing command of each session, along with the time at which that command began execution."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4196,7 +4196,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4215,7 +4215,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4234,7 +4234,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4253,7 +4253,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4272,7 +4272,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4291,7 +4291,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4310,7 +4310,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4329,7 +4329,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4348,7 +4348,7 @@
             "unit": "3", 
             "description": "When turned on, expressions of the form expr = NULL (or NULL = expr) are treated as expr IS NULL, that is, they return true if expr evaluates to the null value, and false otherwise. The correct behavior of expr = NULL is to always return null (unknown)."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4367,7 +4367,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4386,7 +4386,7 @@
             "unit": "3", 
             "description": "The owning user of the socket is always the user that starts the server."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4405,7 +4405,7 @@
             "unit": "3", 
             "description": "Unix-domain sockets use the usual Unix file system permission set. The parameter value is expected to be a numeric mode specification in the form accepted by the chmod and umask system calls. (To use the customary octal format the number must start with a 0 (zero).)"
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4424,7 +4424,7 @@
             "unit": "3", 
             "description": "Enables updating of the process title every time a new SQL command is received by the server."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4443,7 +4443,7 @@
             "unit": "2", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4462,7 +4462,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4481,7 +4481,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4500,7 +4500,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4519,7 +4519,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4538,7 +4538,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4557,7 +4557,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4576,7 +4576,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4595,7 +4595,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4614,7 +4614,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4633,7 +4633,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4652,7 +4652,7 @@
             "unit": "1", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4671,7 +4671,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4690,7 +4690,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4709,7 +4709,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4728,7 +4728,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4747,7 +4747,7 @@
             "unit": "2", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4766,7 +4766,7 @@
             "unit": "2", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4785,7 +4785,7 @@
             "unit": "2", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4804,7 +4804,7 @@
             "unit": "1", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4823,7 +4823,7 @@
             "unit": "2", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4842,7 +4842,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4861,7 +4861,7 @@
             "unit": "2", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4880,7 +4880,7 @@
             "unit": "1", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4899,7 +4899,7 @@
             "unit": "1", 
             "description": "This much memory can be used by each internal sort operation and hash table before switching to temporary disk files."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4918,7 +4918,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4937,7 +4937,7 @@
             "unit": "3", 
             "description": ""
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }, 
     {
         "fields": {
@@ -4956,6 +4956,6 @@
             "unit": "3", 
             "description": "Detection of a damaged page header normally causes PostgreSQL to report an error, aborting the current transaction. Setting zero_damaged_pages to true causes the system to instead report a warning, zero out the damaged page, and continue processing. This behavior will destroy data, namely all the rows on the damaged page."
         }, 
-        "model": "website.KnobCatalog"
+        "model": "oltpbench.KnobCatalog"
     }
 ]

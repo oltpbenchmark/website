@@ -8,7 +8,7 @@
             "metric_type": 1, 
             "scope": "global"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -19,7 +19,7 @@
             "metric_type": 1, 
             "scope": "global"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -30,7 +30,7 @@
             "metric_type": 2, 
             "scope": "global"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -41,7 +41,7 @@
             "metric_type": 2, 
             "scope": "global"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -52,7 +52,7 @@
             "metric_type": 2, 
             "scope": "global"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -63,7 +63,7 @@
             "metric_type": 2, 
             "scope": "global"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -74,7 +74,7 @@
             "metric_type": 2, 
             "scope": "global"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -85,7 +85,7 @@
             "metric_type": 1, 
             "scope": "global"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -96,7 +96,7 @@
             "metric_type": 1, 
             "scope": "global"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -107,7 +107,7 @@
             "metric_type": 1, 
             "scope": "global"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -118,7 +118,7 @@
             "metric_type": 1, 
             "scope": "global"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -129,7 +129,7 @@
             "metric_type": 1, 
             "scope": "global"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -140,7 +140,7 @@
             "metric_type": 1, 
             "scope": "global"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -151,7 +151,7 @@
             "metric_type": 1, 
             "scope": "global"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -162,7 +162,7 @@
             "metric_type": 1, 
             "scope": "global"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -173,7 +173,7 @@
             "metric_type": 1, 
             "scope": "global"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -184,7 +184,7 @@
             "metric_type": 1, 
             "scope": "global"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -195,7 +195,7 @@
             "metric_type": 2, 
             "scope": "global"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -206,7 +206,7 @@
             "metric_type": 2, 
             "scope": "database"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -217,7 +217,7 @@
             "metric_type": 2, 
             "scope": "database"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -228,7 +228,7 @@
             "metric_type": 1, 
             "scope": "database"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -239,7 +239,7 @@
             "metric_type": 1, 
             "scope": "database"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -250,7 +250,7 @@
             "metric_type": 1, 
             "scope": "database"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -261,7 +261,7 @@
             "metric_type": 1, 
             "scope": "database"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -272,7 +272,7 @@
             "metric_type": 2, 
             "scope": "database"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -283,7 +283,7 @@
             "metric_type": 1, 
             "scope": "database"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -294,7 +294,7 @@
             "metric_type": 2, 
             "scope": "database"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -305,7 +305,7 @@
             "metric_type": 1, 
             "scope": "database"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -316,7 +316,7 @@
             "metric_type": 1, 
             "scope": "database"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -327,7 +327,7 @@
             "metric_type": 1, 
             "scope": "database"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -338,7 +338,7 @@
             "metric_type": 1, 
             "scope": "database"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -349,7 +349,7 @@
             "metric_type": 1, 
             "scope": "database"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -360,7 +360,7 @@
             "metric_type": 1, 
             "scope": "database"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -371,7 +371,7 @@
             "metric_type": 1, 
             "scope": "database"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -382,7 +382,7 @@
             "metric_type": 1, 
             "scope": "database"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -393,7 +393,7 @@
             "metric_type": 1, 
             "scope": "database"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -404,7 +404,7 @@
             "metric_type": 1, 
             "scope": "database"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -415,7 +415,7 @@
             "metric_type": 2, 
             "scope": "database"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -426,7 +426,7 @@
             "metric_type": 1, 
             "scope": "database"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -437,7 +437,7 @@
             "metric_type": 1, 
             "scope": "database"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -448,7 +448,7 @@
             "metric_type": 2, 
             "scope": "database"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -459,7 +459,7 @@
             "metric_type": 1, 
             "scope": "database"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -470,7 +470,7 @@
             "metric_type": 1, 
             "scope": "database"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -481,7 +481,7 @@
             "metric_type": 1, 
             "scope": "database"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -492,7 +492,7 @@
             "metric_type": 2, 
             "scope": "index"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -503,7 +503,7 @@
             "metric_type": 2, 
             "scope": "index"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -514,7 +514,7 @@
             "metric_type": 2, 
             "scope": "index"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -525,7 +525,7 @@
             "metric_type": 2, 
             "scope": "index"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -536,7 +536,7 @@
             "metric_type": 1, 
             "scope": "index"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -547,7 +547,7 @@
             "metric_type": 1, 
             "scope": "index"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -558,7 +558,7 @@
             "metric_type": 1, 
             "scope": "index"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -569,7 +569,7 @@
             "metric_type": 2, 
             "scope": "index"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -580,7 +580,7 @@
             "metric_type": 2, 
             "scope": "table"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -591,7 +591,7 @@
             "metric_type": 1, 
             "scope": "table"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -602,7 +602,7 @@
             "metric_type": 1, 
             "scope": "table"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -613,7 +613,7 @@
             "metric_type": 2, 
             "scope": "table"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -624,7 +624,7 @@
             "metric_type": 1, 
             "scope": "table"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -635,7 +635,7 @@
             "metric_type": 1, 
             "scope": "table"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -646,7 +646,7 @@
             "metric_type": 2, 
             "scope": "table"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -657,7 +657,7 @@
             "metric_type": 1, 
             "scope": "table"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -668,7 +668,7 @@
             "metric_type": 1, 
             "scope": "table"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -679,7 +679,7 @@
             "metric_type": 1, 
             "scope": "table"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -690,7 +690,7 @@
             "metric_type": 1, 
             "scope": "table"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -701,7 +701,7 @@
             "metric_type": 2, 
             "scope": "table"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -712,7 +712,7 @@
             "metric_type": 1, 
             "scope": "table"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -723,7 +723,7 @@
             "metric_type": 2, 
             "scope": "table"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -734,7 +734,7 @@
             "metric_type": 1, 
             "scope": "table"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -745,7 +745,7 @@
             "metric_type": 1, 
             "scope": "table"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -756,7 +756,7 @@
             "metric_type": 1, 
             "scope": "table"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -767,7 +767,7 @@
             "metric_type": 2, 
             "scope": "table"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -778,7 +778,7 @@
             "metric_type": 2, 
             "scope": "table"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -789,7 +789,7 @@
             "metric_type": 1, 
             "scope": "table"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -800,7 +800,7 @@
             "metric_type": 1, 
             "scope": "table"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -811,7 +811,7 @@
             "metric_type": 1, 
             "scope": "table"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -822,7 +822,7 @@
             "metric_type": 2, 
             "scope": "index"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -833,7 +833,7 @@
             "metric_type": 2, 
             "scope": "index"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -844,7 +844,7 @@
             "metric_type": 2, 
             "scope": "index"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -855,7 +855,7 @@
             "metric_type": 1, 
             "scope": "index"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -866,7 +866,7 @@
             "metric_type": 2, 
             "scope": "index"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -877,7 +877,7 @@
             "metric_type": 1, 
             "scope": "index"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -888,7 +888,7 @@
             "metric_type": 2, 
             "scope": "index"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -899,7 +899,7 @@
             "metric_type": 2, 
             "scope": "table"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -910,7 +910,7 @@
             "metric_type": 1, 
             "scope": "table"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -921,7 +921,7 @@
             "metric_type": 1, 
             "scope": "table"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -932,7 +932,7 @@
             "metric_type": 1, 
             "scope": "table"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -943,7 +943,7 @@
             "metric_type": 1, 
             "scope": "table"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -954,7 +954,7 @@
             "metric_type": 1, 
             "scope": "table"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -965,7 +965,7 @@
             "metric_type": 2, 
             "scope": "table"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -976,7 +976,7 @@
             "metric_type": 1, 
             "scope": "table"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -987,7 +987,7 @@
             "metric_type": 1, 
             "scope": "table"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -998,7 +998,7 @@
             "metric_type": 2, 
             "scope": "table"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }, 
     {
         "fields": {
@@ -1009,6 +1009,6 @@
             "metric_type": 1, 
             "scope": "table"
         }, 
-        "model": "website.MetricCatalog"
+        "model": "oltpbench.MetricCatalog"
     }
 ]

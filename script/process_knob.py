@@ -11,7 +11,7 @@ l = 0
 for x in data:
     x = x.replace("\n","")
     l += 1
-    f.write("  {\n    \"model\":\"website.KNOB_PARAMS\",\n    \"fields\":{\n")
+    f.write("  {\n    \"model\":\"oltpbench.KNOB_PARAMS\",\n    \"fields\":{\n")
     f.write("      \""+"db_type"+ "\":\"" +"MYSQL" + "\",\n")
     f.write("      \"params" +  "\":\"" + str(x) + "\"\n")
     if l == len(data):
