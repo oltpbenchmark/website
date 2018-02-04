@@ -1,39 +1,25 @@
 """
-WSGI config for sample project.
+WSGI config for DBDB.IO project.
 
-This module contains the WSGI application used by Django's development server
-and any production WSGI deployments. It should expose a module-level variable
-named ``application``. Django's ``runserver`` and ``runfcgi`` commands discover
-this application via the ``WSGI_APPLICATION`` setting.
-
-Usually you will have the standard Django WSGI application here, but it also
-might make sense to replace the whole Django WSGI application with a custom one
-that later delegates to the Django one. For example, you could introduce WSGI
-middleware here, or combine a Django application with an application of another
-framework.
-
+It exposes the WSGI callable as a module-level variable named ``application``.
 """
-import os, sys
 
-sys.path.append('/var/www/ottertune')
-sys.path.append('/var/www/ottertune/website')
+import os
+import sys
 
-# We defer to a DJANGO_SETTINGS_MODULE already in the environment. This breaks
-# if running multiple sites in the same mod_wsgi process. To fix this, use
-# mod_wsgi daemon mode with each site in its own daemon process, or use
-os.environ["DJANGO_SETTINGS_MODULE"] = "website.settings"
-#os.environ.setdefault("DJANGO_SETTINGS_MODULE", "website.settings")
+base_dir = os.path.dirname(os.path.dirname(__file__))
 
-# This application object is used by any WSGI server configured to use this
-# file. This includes Django's development server, if the WSGI_APPLICATION
-# setting points here.
+# Change the env variable where django looks for the settings module
+# http://stackoverflow.com/a/11817088
+import django.conf
+django.conf.ENVIRONMENT_VARIABLE = "DJANGO_OLTPBENCH_SETTINGS_MODULE"
+os.environ.setdefault("DJANGO_OLTPBENCH_SETTINGS_MODULE", "oltpbench.settings")
+sys.path.append(base_dir)
+
+# Activate virtual env
+#env_dir = os.path.realpath(os.path.join(base_dir, "../../../env"))
+#activate_env = os.path.expanduser(os.path.join(env_dir, "bin/activate_this.py"))
+#execfile(activate_env, dict(__file__=activate_env))
 
 from django.core.wsgi import get_wsgi_application
-#from django.core.handlers.wsgi import WSGIHandler
-
 application = get_wsgi_application()
-#application = WSGIHandler()
-
-# Apply WSGI middleware here.
-# from helloworld.wsgi import HelloWorldApplication
-# application = HelloWorldApplication(application)
