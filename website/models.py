@@ -3,13 +3,14 @@ import re
 from django.db import models
 from django.contrib.auth.models import User
 from django import forms
+from django.core.validators import validate_comma_separated_integer_list
 
 
 class NewResultForm(forms.Form):
     upload_code = forms.CharField(max_length=30)
     sample_data = forms.FileField()
     raw_data = forms.FileField()
-    db_conf_data = forms.FileField()
+    db_parameters_data = forms.FileField()
     benchmark_conf_data = forms.FileField()
     summary_data = forms.FileField()
 
@@ -71,17 +72,17 @@ class ExperimentConf(models.Model):
 FEATURED_VARS = {
     'DB2': [],
     'MYSQL': [
-        re.compile(ur'innodb_buffer_pool_size', re.UNICODE | re.IGNORECASE),
-        re.compile(ur'innodb_buffer_pool_instances', re.UNICODE | re.IGNORECASE),
-        re.compile(ur'innodb_log_file_size', re.UNICODE | re.IGNORECASE),
-        re.compile(ur'innodb_log_buffer_size', re.UNICODE | re.IGNORECASE),
-        re.compile(ur'innodb_flush_log_at_trx_commit', re.UNICODE | re.IGNORECASE),
-        re.compile(ur'innodb_thread_concurrency', re.UNICODE | re.IGNORECASE),
-        re.compile(ur'innodb_file_per_table', re.UNICODE | re.IGNORECASE),
-        re.compile(ur'key_buffer_size', re.UNICODE | re.IGNORECASE),
-        re.compile(ur'table_cache', re.UNICODE | re.IGNORECASE),
-        re.compile(ur'thread_cache', re.UNICODE | re.IGNORECASE),
-        re.compile(ur'query_cache_size', re.UNICODE | re.IGNORECASE),
+        re.compile(r'innodb_buffer_pool_size', re.UNICODE | re.IGNORECASE),
+        re.compile(r'innodb_buffer_pool_instances', re.UNICODE | re.IGNORECASE),
+        re.compile(r'innodb_log_file_size', re.UNICODE | re.IGNORECASE),
+        re.compile(r'innodb_log_buffer_size', re.UNICODE | re.IGNORECASE),
+        re.compile(r'innodb_flush_log_at_trx_commit', re.UNICODE | re.IGNORECASE),
+        re.compile(r'innodb_thread_concurrency', re.UNICODE | re.IGNORECASE),
+        re.compile(r'innodb_file_per_table', re.UNICODE | re.IGNORECASE),
+        re.compile(r'key_buffer_size', re.UNICODE | re.IGNORECASE),
+        re.compile(r'table_cache', re.UNICODE | re.IGNORECASE),
+        re.compile(r'thread_cache', re.UNICODE | re.IGNORECASE),
+        re.compile(r'query_cache_size', re.UNICODE | re.IGNORECASE),
     ],
     'POSTGRES': [],
     'ORACLE': [],
@@ -93,18 +94,19 @@ FEATURED_VARS = {
     'ASSCLOWN': [],
     'HSQLDB': [],
     'H2': [],
-    'NUODB': []
+    'NUODB': [],
+    'PELOTON': [],
 }
 
 
 LEARNING_VARS = {
     'DB2': [],
     'MYSQL': [
-        re.compile(ur'innodb_buffer_pool_size', re.UNICODE | re.IGNORECASE),
-        re.compile(ur'innodb_buffer_pool_instances', re.UNICODE | re.IGNORECASE),
-        re.compile(ur'innodb_log_file_size', re.UNICODE | re.IGNORECASE),
-        re.compile(ur'innodb_log_buffer_size', re.UNICODE | re.IGNORECASE),
-        re.compile(ur'innodb_thread_concurrency', re.UNICODE | re.IGNORECASE),
+        re.compile(r'innodb_buffer_pool_size', re.UNICODE | re.IGNORECASE),
+        re.compile(r'innodb_buffer_pool_instances', re.UNICODE | re.IGNORECASE),
+        re.compile(r'innodb_log_file_size', re.UNICODE | re.IGNORECASE),
+        re.compile(r'innodb_log_buffer_size', re.UNICODE | re.IGNORECASE),
+        re.compile(r'innodb_thread_concurrency', re.UNICODE | re.IGNORECASE),
     ],
     'POSTGRES': [],
     'ORACLE': [],
@@ -116,7 +118,8 @@ LEARNING_VARS = {
     'ASSCLOWN': [],
     'HSQLDB': [],
     'H2': [],
-    'NUODB': []
+    'NUODB': [],
+    'PELOTON': [],
 }
 
 class DBConf(models.Model):
@@ -133,7 +136,8 @@ class DBConf(models.Model):
         'ASSCLOWN',
         'HSQLDB',
         'H2',
-        'NUODB'
+        'NUODB',
+        'PELOTON',
     ])
 
     project = models.ForeignKey(Project)
@@ -187,7 +191,7 @@ class Result(models.Model):
     p95_latency = models.FloatField()
     p99_latency = models.FloatField()
     max_latency = models.FloatField()
-    most_similar = models.CommaSeparatedIntegerField(max_length=100)
+    most_similar = models.CharField(validators=[validate_comma_separated_integer_list], max_length=100)
 
     def __unicode__(self):
         return unicode(self.pk)

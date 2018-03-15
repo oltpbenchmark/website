@@ -1,10 +1,11 @@
+import functools
 import json
 import string
 
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.decorators.cache import cache_page
-from django.core.context_processors import csrf
+from django.template.context_processors import csrf
 from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -16,13 +17,13 @@ from django.utils.datetime_safe import datetime
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.timezone import now
 from math import log
-from numpy import array, linalg
+#from numpy import array, linalg
 from pytz import timezone, os
 from random import choice
-from rexec import FileWrapper
+#from rexec import FileWrapper
 from django.core.cache import cache
 
-from models import Result, Project, DBConf, ExperimentConf, Statistics, NewResultForm, PLOTTABLE_FIELDS, METRIC_META, FEATURED_VARS, LEARNING_VARS
+from .models import Result, Project, DBConf, ExperimentConf, Statistics, NewResultForm, PLOTTABLE_FIELDS, METRIC_META, FEATURED_VARS, LEARNING_VARS
 from website.settings import UPLOAD_DIR
 
 # For the html template to access dict object
@@ -115,7 +116,7 @@ def project(request):
 
     project = Project.objects.get(pk=data['id'])
 
-    results = Result.objects.select_related("db_conf__db_type","benchmark_conf__benchmark_type").filter(project=project)
+    results = Result.objects.filter(project=project)#select_related("db_conf__db_type","benchmark_conf__benchmark_type").filter(project=project)
 
     db_with_data = {}
     benchmark_with_data = {}
@@ -139,7 +140,7 @@ def project(request):
         value_dict = {}
         for res in results:
             value_dict[getattr(res.benchmark_conf, field['field'])] = True
-        f = {'values': [key for key in value_dict.iterkeys()], 'print': field['print'], 'field': field['field']}
+        f = {'values': [key for key in value_dict.keys()], 'print': field['print'], 'field': field['field']}
         filters.append(f)
 
     context = {'project': project,
@@ -229,18 +230,18 @@ def new_result(request):
 def get_result_data_dir(result_id):
     result_path = os.path.join(UPLOAD_DIR, str(result_id % 100))
     try:
-	os.makedirs(result_path)
+        os.makedirs(result_path)
     except OSError as e:
         if e.errno == 17:
             pass
-    return os.path.join(result_path, str(int(result_id) / 100l))
+    return os.path.join(result_path, str(int(result_id) / 100))
 
 def handle_result_file(proj, files):
-    db_conf_lines = "".join(map(lambda x: str(x), files['db_conf_data'].chunks())).split("\n")
-    summary_lines = "".join(map(lambda x: str(x), files['summary_data'].chunks())).split("\n")
+    db_conf_lines = "".join(map(lambda x: str(x), files['db_parameters_data'].chunks())).split("\n")
+    summary_lines = json.loads(files['summary_data'].read().decode('utf-8')) #"".join(map(lambda x: str(x), files['summary_data'].chunks())).split("\n")
 
-    db_type = summary_lines[1].strip().upper()
-    bench_type = summary_lines[3].strip().upper()
+    db_type = summary_lines['DBMS Type'].strip().upper()
+    bench_type = summary_lines['Benchmark Type'].strip().upper()
    
     
     if not db_type in DBConf.DB_TYPES:
@@ -257,12 +258,12 @@ def handle_result_file(proj, files):
         if len(ele) > 1:
             value = ele[1]
         for v in LEARNING_VARS[db_type]:
-    	    if v.match(key):
-	    	similar_conf_list.append([key,value])
+            if v.match(key):
+                similar_conf_list.append([key,value])
         db_conf_list.append([key, value])
-    	
+        
     db_conf_str = json.dumps(db_conf_list)
-    similar_conf_str = json.dumps(similar_conf_list)	
+    similar_conf_str = json.dumps(similar_conf_list)    
     try:
         db_confs = DBConf.objects.filter(configuration=db_conf_str,similar_conf=similar_conf_str)
         if len(db_confs) < 1:
@@ -276,7 +277,7 @@ def handle_result_file(proj, files):
         db_conf.project = proj
         db_conf.db_type = db_type
         db_conf.similar_conf = similar_conf_str
-	db_conf.save()
+        db_conf.save()
         db_conf.name = db_type + '@' + db_conf.creation_time.strftime("%Y-%m-%d,%H") + '#' + str(db_conf.pk)
         db_conf.save()
     bench_conf_lines = "".join(map(lambda x: str(x).strip(), files['benchmark_conf_data'].chunks())).split("\n")
@@ -294,11 +295,17 @@ def handle_result_file(proj, files):
         bench_conf.configuration = bench_conf_str
         bench_conf.benchmark_type = bench_type
         bench_conf.creation_time = now()
-        for line in summary_lines[6:]:
-            if line == '':
-                continue
-            kv = line.split('=')
-            setattr(bench_conf, kv[0], kv[1])
+        for k, v in summary_lines.items():
+            unwanted = [
+                       'Benchmark Type',
+                       'Current Timestamp (milliseconds)',
+                       'DBMS Type',
+                       'DBMS Version',
+                       'Latency Distribution',
+                       'Throughput (requests/second)',
+                       ]
+            if k not in unwanted:
+                setattr(bench_conf, k, v)
         bench_conf.save()
         bench_conf.name = bench_type + '@' + bench_conf.creation_time.strftime("%Y-%m-%d,%H") + '#' + str(bench_conf.pk)
         bench_conf.save()
@@ -307,22 +314,18 @@ def handle_result_file(proj, files):
     result.db_conf = db_conf
     result.benchmark_conf = bench_conf
     result.project = proj
-    result.timestamp = datetime.fromtimestamp(int(summary_lines[0]), timezone("UTC"))
-    latency_dict = {}
-    line = summary_lines[4][1:-1]
-    for field in line.split(','):
-        data = field.split('=')
-        latency_dict[data[0].strip()] = data[1].strip()
-    result.avg_latency = float(latency_dict['avg'])
-    result.min_latency = float(latency_dict['min'])
-    result.p25_latency = float(latency_dict['25th'])
-    result.p50_latency = float(latency_dict['median'])
-    result.p75_latency = float(latency_dict['75th'])
-    result.p90_latency = float(latency_dict['90th'])
-    result.p95_latency = float(latency_dict['95th'])
-    result.p99_latency = float(latency_dict['99th'])
-    result.max_latency = float(latency_dict['max'])
-    result.throughput = float(summary_lines[5])
+    result.timestamp = datetime.fromtimestamp(summary_lines['Current Timestamp (milliseconds)'] // 1000, timezone("UTC"))
+    latency_dict = summary_lines['Latency Distribution']
+    result.avg_latency = float(latency_dict['Average Latency (microseconds)'])
+    result.min_latency = float(latency_dict['Minimum Latency (microseconds)'])
+    result.p25_latency = float(latency_dict['25th Percentile Latency (microseconds)'])
+    result.p50_latency = float(latency_dict['Median Latency (microseconds)'])
+    result.p75_latency = float(latency_dict['75th Percentile Latency (microseconds)'])
+    result.p90_latency = float(latency_dict['90th Percentile Latency (microseconds)'])
+    result.p95_latency = float(latency_dict['95th Percentile Latency (microseconds)'])
+    result.p99_latency = float(latency_dict['99th Percentile Latency (microseconds)'])
+    result.max_latency = float(latency_dict['Maximum Latency (microseconds)'])
+    result.throughput = float(summary_lines['Throughput (requests/second)'])
     result.save()
 
     path_prefix = get_result_data_dir(result.pk)
@@ -446,7 +449,7 @@ def get_benchmark_data(request):
         return render(request, '404.html')
 
     results = Result.objects.filter(benchmark_conf=benchmark_conf)
-    results = sorted(results, cmp=lambda x, y: int(y.throughput - x.throughput))
+    results = sorted(results, key=functools.cmp_to_key(lambda x, y: int(y.throughput - x.throughput)))
 
     data_package = {'results': [],
                     'error': 'None',
@@ -514,8 +517,8 @@ def result_similar(a, b):
             if bkv[0] == kv[0]:
                 if bkv[1] != kv[1]:
                     return False
-		else:
-		    break
+        else:
+            break
     return True
 
 
@@ -578,7 +581,7 @@ def update_similar(request):
     diff_results = filter(lambda x: x != target, results)
     diff_results = filter(lambda x: not result_similar(x, target), diff_results)
     scores = [apply_model(linear_model, x, target) for x in diff_results]
-    similars = sorted(zip(diff_results, scores), cmp=lambda x, y: x[1] > y[1] and 1 or (x[1] < y[1] and -1 or 0))
+    similars = sorted(zip(diff_results, scores), key=functools.cmp_to_key(lambda x, y: x[1] > y[1] and 1 or (x[1] < y[1] and -1 or 0)))
     if len(similars) > 5:
         similars = similars[:5]
 
@@ -595,7 +598,7 @@ def result(request):
     sames = {}   
     similars = {}
   
-    results = Result.objects.select_related("db_conf__db_type","db_conf__configuration","db_conf__similar_conf").filter(project=target.project, benchmark_conf=target.benchmark_conf)
+    results = Result.objects.filter(project=target.project, benchmark_conf=target.benchmark_conf)#select_related("db_conf__db_type","db_conf__configuration","db_conf__similar_conf").filter(project=target.project, benchmark_conf=target.benchmark_conf)
     results = filter(lambda x: x.db_conf.db_type == target.db_conf.db_type, results)
     sames = []
     sames = filter(lambda x:  result_similar(x,target) and x != target , results)
@@ -626,14 +629,14 @@ def result(request):
         same_id = []
         same_id.append(str(target.pk))
         for x in same_id:   
-	    key = metric + ',data,' + x ;
- 	    tmp = cache.get(key);
+            key = metric + ',data,' + x ;
+            tmp = cache.get(key);
             if tmp != None:
                 data_package[metric]['data'][int(x)] = []
-            	data_package[metric]['data'][int(x)].extend(tmp);
-		continue;	
+                data_package[metric]['data'][int(x)].extend(tmp);
+                continue;   
 
-	    ts = Statistics.objects.filter(result=x) 
+            ts = Statistics.objects.filter(result=x) 
             if len(ts) > 0:
                 offset = ts[0].time
                 if len(ts) > 1:
@@ -642,9 +645,9 @@ def result(request):
                 for t in ts:
                     data_package[metric]['data'][int(x)].append(
                         [t.time - offset, getattr(t, metric) * METRIC_META[metric]['scale']])
-	    	cache.set(key,data_package[metric]['data'][int(x)],60*5) 
-	
-	
+            cache.set(key,data_package[metric]['data'][int(x)],60*5) 
+    
+    
     
     context = {'result': target, 
      #Result.objects.get(id=request.GET['id']),
@@ -653,7 +656,7 @@ def result(request):
                'default_metrics': ['throughput', 'p99_latency'],
                'data': json.dumps(data_package),
                'same_runs': sames,
-	       #contacts,
+           #contacts,
                # sames,
                'similar_runs': similars
     }
@@ -700,29 +703,29 @@ def get_timeline_data(request):
 
     # Get all results related to the selected DBMS, sort by time
     results = Result.objects.filter(project=request.GET['proj'])
-    results = filter(lambda x: x.db_conf.db_type in request.GET['db'].split(','), results)
-    results = sorted(results, cmp=lambda x, y: int((x.timestamp - y.timestamp).total_seconds()))
+    results = list(filter(lambda x: x.db_conf.db_type in request.GET['db'].split(','), results))
+    results = sorted(results, key=functools.cmp_to_key(lambda x, y: int((x.timestamp - y.timestamp).total_seconds())))
 
     # Determine which benchmark is selected
     benchmarks = []
     if request.GET['ben'] == 'grid':
         benchmarks = ExperimentConf.BENCHMARK_TYPES
         revs = 10
-        results = filter(lambda x: x.benchmark_conf.benchmark_type in benchmarks, results)
+        results = list(filter(lambda x: x.benchmark_conf.benchmark_type in benchmarks, results))
         table_results = []
     elif request.GET['ben'] == 'show_none':
         benchmarks = []
         table_results = []
     else:
         benchmarks = [request.GET['ben']]
-        benchmark_confs = filter(lambda x: x != '', request.GET['spe'].strip().split(','))
-        results = filter(lambda x: str(x.benchmark_conf.pk) in benchmark_confs, results)
+        benchmark_confs = list(filter(lambda x: x != '', request.GET['spe'].strip().split(',')))
+        results = list(filter(lambda x: str(x.benchmark_conf.pk) in benchmark_confs, results))
 
-        for f in filter(lambda x: x != '', request.GET.getlist('add[]', [])):
+        for f in list(filter(lambda x: x != '', request.GET.getlist('add[]', []))):
             key, value = f.split(':')
             if value == 'select_all':
                 continue
-            results = filter(lambda x: getattr(x.benchmark_conf, key) == value, results)
+            results = list(filter(lambda x: getattr(x.benchmark_conf, key) == value, results))
 
         table_results = results
 
@@ -747,7 +750,7 @@ def get_timeline_data(request):
     # For plotting charts
     for metric in metrics:
         for bench in benchmarks:
-            b_r = filter(lambda x: x.benchmark_conf.benchmark_type == bench, results)
+            b_r = list(filter(lambda x: x.benchmark_conf.benchmark_type == bench, results))
             if len(b_r) == 0:
                 continue
 
@@ -761,7 +764,7 @@ def get_timeline_data(request):
             }
 
             for db in request.GET['db'].split(','):
-                d_r = filter(lambda x: x.db_conf.db_type == db, b_r)
+                d_r = list(filter(lambda x: x.db_conf.db_type == db, b_r))
                 d_r = d_r[-revs:]
                 out = [
                     [
