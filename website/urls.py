@@ -9,7 +9,7 @@ from website import views as website_views
 
 admin.autodiscover()
 
-urlpatterns = [ 
+urlpatterns = [
     url(r'^signup/', website_views.signup_view),
     url(r'^login/', website_views.login_view),
     url(r'^auth/', website_views.auth_and_login),

@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
 import re
-from django.db import models
 from django.contrib.auth.models import User
-from django import forms
 from django.core.validators import validate_comma_separated_integer_list
+from django.db import models
+from django.utils.encoding import python_2_unicode_compatible
+from django import forms
 
 
 class NewResultForm(forms.Form):
@@ -16,7 +19,7 @@ class NewResultForm(forms.Form):
 
 
 class Project(models.Model):
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
     name = models.CharField(max_length=64)
     description = models.TextField()
     creation_time = models.DateTimeField()
@@ -24,13 +27,13 @@ class Project(models.Model):
 
     upload_code = models.CharField(max_length=30)
 
-    def delete(self, using=None):
+    def delete(self, using=None, keep_parents=False):
         targets = DBConf.objects.filter(project=self)
         results = Result.objects.filter(project=self)
-        for t in targets:
-            t.delete()
-        for r in results:
-            r.delete()
+        for target in targets:
+            target.delete()
+        for result in results:
+            result.delete()
         super(Project, self).delete(using)
 
 
@@ -52,11 +55,13 @@ class ExperimentConf(models.Model):
         'sibench'
     ])]
 
-    project = models.ForeignKey(Project)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=512)
     configuration = models.TextField()
-    benchmark_type = models.CharField(max_length=sum(map(lambda x: len(x) + 1, BENCHMARK_TYPES)))
+    benchmark_type = models.CharField(
+        max_length=sum(len(x) + 1 for x in BENCHMARK_TYPES)
+    )
     creation_time = models.DateTimeField()
     isolation = models.TextField()
     scalefactor = models.TextField()
@@ -69,20 +74,23 @@ class ExperimentConf(models.Model):
     ]
 
 
+_MYSQL_RE_FLAGS = re.UNICODE | re.IGNORECASE
+
+
 FEATURED_VARS = {
     'DB2': [],
     'MYSQL': [
-        re.compile(r'innodb_buffer_pool_size', re.UNICODE | re.IGNORECASE),
-        re.compile(r'innodb_buffer_pool_instances', re.UNICODE | re.IGNORECASE),
-        re.compile(r'innodb_log_file_size', re.UNICODE | re.IGNORECASE),
-        re.compile(r'innodb_log_buffer_size', re.UNICODE | re.IGNORECASE),
-        re.compile(r'innodb_flush_log_at_trx_commit', re.UNICODE | re.IGNORECASE),
-        re.compile(r'innodb_thread_concurrency', re.UNICODE | re.IGNORECASE),
-        re.compile(r'innodb_file_per_table', re.UNICODE | re.IGNORECASE),
-        re.compile(r'key_buffer_size', re.UNICODE | re.IGNORECASE),
-        re.compile(r'table_cache', re.UNICODE | re.IGNORECASE),
-        re.compile(r'thread_cache', re.UNICODE | re.IGNORECASE),
-        re.compile(r'query_cache_size', re.UNICODE | re.IGNORECASE),
+        re.compile(r'innodb_buffer_pool_size', _MYSQL_RE_FLAGS),
+        re.compile(r'innodb_buffer_pool_instances', _MYSQL_RE_FLAGS),
+        re.compile(r'innodb_log_file_size', _MYSQL_RE_FLAGS),
+        re.compile(r'innodb_log_buffer_size', _MYSQL_RE_FLAGS),
+        re.compile(r'innodb_flush_log_at_trx_commit', _MYSQL_RE_FLAGS),
+        re.compile(r'innodb_thread_concurrency', _MYSQL_RE_FLAGS),
+        re.compile(r'innodb_file_per_table', _MYSQL_RE_FLAGS),
+        re.compile(r'key_buffer_size', _MYSQL_RE_FLAGS),
+        re.compile(r'table_cache', _MYSQL_RE_FLAGS),
+        re.compile(r'thread_cache', _MYSQL_RE_FLAGS),
+        re.compile(r'query_cache_size', _MYSQL_RE_FLAGS),
     ],
     'POSTGRES': [],
     'ORACLE': [],
@@ -102,11 +110,11 @@ FEATURED_VARS = {
 LEARNING_VARS = {
     'DB2': [],
     'MYSQL': [
-        re.compile(r'innodb_buffer_pool_size', re.UNICODE | re.IGNORECASE),
-        re.compile(r'innodb_buffer_pool_instances', re.UNICODE | re.IGNORECASE),
-        re.compile(r'innodb_log_file_size', re.UNICODE | re.IGNORECASE),
-        re.compile(r'innodb_log_buffer_size', re.UNICODE | re.IGNORECASE),
-        re.compile(r'innodb_thread_concurrency', re.UNICODE | re.IGNORECASE),
+        re.compile(r'innodb_buffer_pool_size', _MYSQL_RE_FLAGS),
+        re.compile(r'innodb_buffer_pool_instances', _MYSQL_RE_FLAGS),
+        re.compile(r'innodb_log_file_size', _MYSQL_RE_FLAGS),
+        re.compile(r'innodb_log_buffer_size', _MYSQL_RE_FLAGS),
+        re.compile(r'innodb_thread_concurrency', _MYSQL_RE_FLAGS),
     ],
     'POSTGRES': [],
     'ORACLE': [],
@@ -121,6 +129,7 @@ LEARNING_VARS = {
     'NUODB': [],
     'PELOTON': [],
 }
+
 
 class DBConf(models.Model):
     DB_TYPES = sorted([
@@ -140,13 +149,13 @@ class DBConf(models.Model):
         'PELOTON',
     ])
 
-    project = models.ForeignKey(Project)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=512)
     creation_time = models.DateTimeField()
     configuration = models.TextField()
-    similar_conf = models.TextField(default = "zbh")
-    db_type = models.CharField(max_length=max(map(lambda x: len(x), DB_TYPES)))
+    similar_conf = models.TextField(default="zbh")
+    db_type = models.CharField(max_length=max(len(x) for x in DB_TYPES))
 
 
 PLOTTABLE_FIELDS = [
@@ -163,23 +172,75 @@ PLOTTABLE_FIELDS = [
 ]
 
 METRIC_META = {
-    'throughput': {'unit': 'transactions/second', 'lessisbetter': False, 'scale': 1, 'print': 'Throughput'},
-    'p99_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 0.001, 'print': '99% Latency'},
-    'p95_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 0.001, 'print': '95% Latency'},
-    'p90_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 0.001, 'print': '90% Latency'},
-    'p75_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 0.001, 'print': '75% Latency'},
-    'p50_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 0.001, 'print': 'Med. Latency'},
-    'p25_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 0.001, 'print': '25% Latency'},
-    'min_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 0.001, 'print': 'Min Latency'},
-    'avg_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 0.001, 'print': 'Avg. Latency'},
-    'max_latency': {'unit': 'milisecond', 'lessisbetter': True, 'scale': 0.001, 'print': 'Max Latency'}
+    'throughput': {
+        'unit': 'transactions/second',
+        'lessisbetter': False,
+        'scale': 1,
+        'print': 'Throughput'
+        },
+    'p99_latency': {
+        'unit': 'milisecond',
+        'lessisbetter': True,
+        'scale': 0.001,
+        'print': '99% Latency'
+        },
+    'p95_latency': {
+        'unit': 'milisecond',
+        'lessisbetter': True,
+        'scale': 0.001,
+        'print': '95% Latency'
+        },
+    'p90_latency': {
+        'unit': 'milisecond',
+        'lessisbetter': True,
+        'scale': 0.001,
+        'print': '90% Latency'
+        },
+    'p75_latency': {
+        'unit': 'milisecond',
+        'lessisbetter': True,
+        'scale': 0.001,
+        'print': '75% Latency'
+        },
+    'p50_latency': {
+        'unit': 'milisecond',
+        'lessisbetter': True,
+        'scale': 0.001,
+        'print': 'Med. Latency'
+        },
+    'p25_latency': {
+        'unit': 'milisecond',
+        'lessisbetter': True,
+        'scale': 0.001,
+        'print': '25% Latency'
+        },
+    'min_latency': {
+        'unit': 'milisecond',
+        'lessisbetter': True,
+        'scale': 0.001,
+        'print': 'Min Latency'
+        },
+    'avg_latency': {
+        'unit': 'milisecond',
+        'lessisbetter': True,
+        'scale': 0.001,
+        'print': 'Avg. Latency'
+        },
+    'max_latency': {
+        'unit': 'milisecond',
+        'lessisbetter': True,
+        'scale': 0.001,
+        'print': 'Max Latency'
+        },
 }
 
 
+@python_2_unicode_compatible
 class Result(models.Model):
-    project = models.ForeignKey(Project)
-    benchmark_conf = models.ForeignKey(ExperimentConf)
-    db_conf = models.ForeignKey(DBConf)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    benchmark_conf = models.ForeignKey(
+        ExperimentConf, on_delete=models.CASCADE)
+    db_conf = models.ForeignKey(DBConf, on_delete=models.CASCADE)
     timestamp = models.DateTimeField()
     throughput = models.FloatField()
     avg_latency = models.FloatField()
@@ -191,14 +252,16 @@ class Result(models.Model):
     p95_latency = models.FloatField()
     p99_latency = models.FloatField()
     max_latency = models.FloatField()
-    most_similar = models.CharField(validators=[validate_comma_separated_integer_list], max_length=100)
+    most_similar = models.CharField(
+        validators=[validate_comma_separated_integer_list],
+        max_length=100)
 
-    def __unicode__(self):
-        return unicode(self.pk)
+    def __str__(self):
+        return self.pk
 
 
 class Statistics(models.Model):
-    result = models.ForeignKey(Result)
+    result = models.ForeignKey(Result, on_delete=models.CASCADE)
     time = models.IntegerField()
     throughput = models.FloatField()
     avg_latency = models.FloatField()
@@ -210,4 +273,3 @@ class Statistics(models.Model):
     p95_latency = models.FloatField()
     p99_latency = models.FloatField()
     max_latency = models.FloatField()
-
