@@ -19,7 +19,6 @@ from django.utils.datetime_safe import datetime
 from django.utils.timezone import now
 from django.views.decorators.csrf import csrf_exempt
 from pytz import timezone, os
-from website.settings import UPLOAD_DIR
 
 from .models import (
     Result, Project, DBConf, ExperimentConf, Statistics, NewResultForm,
@@ -248,16 +247,6 @@ def new_result(request):
     return HttpResponse("POST please\n")
 
 
-def get_result_data_dir(result_id):
-    result_path = os.path.join(UPLOAD_DIR, str(result_id % 100))
-    try:
-        os.makedirs(result_path)
-    except OSError as err:
-        if err.errno == 17:
-            pass
-    return os.path.join(result_path, str(int(result_id) / 100))
-
-
 def handle_result_file(proj, files):
     p_chunks = [str(x) for x in files['db_parameters_data'].chunks()]
     db_conf_lines = "".join(p_chunks).split("\n")
@@ -383,16 +372,6 @@ def handle_result_file(proj, files):
     res.throughput = \
         float(summary_lines['Throughput (requests/second)'])
     res.save()
-
-    path_prefix = get_result_data_dir(res.pk)
-    with open(path_prefix + '_sample', 'wb') as dest:
-        for chunk in files['sample_data'].chunks():
-            dest.write(chunk)
-        dest.close()
-    with open(path_prefix + '_raw', 'wb') as dest:
-        for chunk in files['raw_data'].chunks():
-            dest.write(chunk)
-        dest.close()
 
     sample_chunks = [str(x) for x in files['sample_data'].chunks()]
     sample_lines = "".join(sample_chunks).split("\n")[1:]
@@ -751,31 +730,6 @@ def result(request):
         'similar_runs': similars
     }
     return render(request, 'result.html', context)
-
-
-@login_required(login_url='/login/')
-def get_result_data_file(request):
-    target = get_object_or_404(Result, pk=request.GET['id'])
-
-    if target.project.user != request.user:
-        return render(request, '404.html')
-
-    _id = int(request.GET['id'])
-    _type = request.GET['type']
-
-    prefix = get_result_data_dir(_id)
-
-    if _type == 'sample':
-        return HttpResponse(
-            FileWrapper(open(prefix + '_' + _type)),
-            content_type='text/plain')
-    elif _type == 'raw':
-        response = HttpResponse(
-            FileWrapper(open(prefix + '_' + _type)),
-            content_type='application/gzip')
-        response['Content-Disposition'] = \
-            'attachment; filename=result_' + str(_id) + '.raw.gz'
-        return response
 
 
 # Data Format:
