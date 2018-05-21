@@ -52,7 +52,8 @@ class ExperimentConf(models.Model):
         'chbenchmark',
         'voter',
         'linkbench',
-        'sibench'
+        'sibench',
+        'noop'
     ])]
 
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
