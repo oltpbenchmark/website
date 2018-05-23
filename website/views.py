@@ -718,7 +718,7 @@ def result(request):
                         t.time - offset,
                         t.metric * METRIC_META[metric]['scale']
                     ])
-            cache.set(key, data_package[metric]['data'][int(x)], 60*5)
+                cache.set(key, data_package[metric]['data'][int(x)], 60*5)
 
     context = {
         'result': target,

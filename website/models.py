@@ -258,7 +258,7 @@ class Result(models.Model):
         max_length=100)
 
     def __str__(self):
-        return self.pk
+        return str(self.pk)
 
 
 class Statistics(models.Model):
