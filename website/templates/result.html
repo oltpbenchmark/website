@@ -11,8 +11,8 @@
         <td>{{ result.pk }}</td>
     </tr>
     <tr>
-        <td><div class="text-top text-right">DB Conf</div></td>
-        <td><a href="/db_conf/?id={{ result.db_conf.pk }}">{{ result.db_conf.name }}</a></td>
+        <td><div class="text-top text-right">DB Type</div></td>
+        <td>{{ result.db_conf.db_type }}</td>
     </tr>
     <tr>
         <td><div class="text-right">Benchmark Conf</div></td>
@@ -31,12 +31,16 @@
         <td>{{ result.p99_latency }} {{ metric_meta|get_item:"p99_latency"|get_item:"unit" }}</td>
     </tr>
     <tr>
-        <td><div class="text-right">Sampled data</div></td>
-        <td><a href="/get_result_data_file/?id={{ result.pk }}&type=sample">Download</a></td>
+        <td><div class="text-right">Git Hash</div></td>
+        {% if result.db_conf.db_type == 'PELOTON' %}
+        <td><a href="https://github.com/cmu-db/peloton/commit/{{ result.git_hash }}">{{ result.git_hash }}</a></td>
+        {% else %}
+        <td>{{ result.git_hash }}</td>
+        {% endif %}
     </tr>
     <tr>
-        <td><div class="text-right">Raw data</div></td>
-        <td><a href="/get_result_data_file/?id={{ result.pk }}&type=raw">Download</a></td>
+        <td><div class="text-right">Result OK</div></td>
+        <td>{{ result.result_ok }}</td>
     </tr>
    
     </tbody>
@@ -58,16 +62,6 @@
         <li><label><input type="checkbox" name="same_run" value="{{ run.pk }}" /> {{ run.pk }}@{{ run.timestamp }}<a href="/result/?id={{ run.pk }}">(view)</a></label></li>
  	{% endfor %}
 </ul>
-    </div>
-</div>
-<div id="similar">
-    <div><h4>Similar-Configuration Runs (<a href="/update_similar/?id={{ result.pk }}">update</a>)</h4></div>
-    <div class="checkbox boxbody">
-        <ul>
-       {% for run in similar_runs %}
-        <li><label><input type="checkbox" name="same_run" value="{{ run.pk }}" /> {{ run.pk }}@{{ run.timestamp }}<a href="/result/?id={{ run.pk }}">(view)</a></label></li>
-        {% endfor %}
-        </ul>
     </div>
 </div>
 <div id="metric">

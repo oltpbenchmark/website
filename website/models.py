@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-import re
 from django.contrib.auth.models import User
-from django.core.validators import validate_comma_separated_integer_list
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 from django import forms
@@ -11,9 +9,8 @@ from django import forms
 
 class NewResultForm(forms.Form):
     upload_code = forms.CharField(max_length=30)
-    sample_data = forms.FileField()
-    raw_data = forms.FileField()
-    db_parameters_data = forms.FileField()
+    upload_hash = forms.CharField(max_length=40, required=False)
+    result_ok = forms.CharField(max_length=5)
     benchmark_conf_data = forms.FileField()
     summary_data = forms.FileField()
 
@@ -75,63 +72,6 @@ class ExperimentConf(models.Model):
     ]
 
 
-_MYSQL_RE_FLAGS = re.UNICODE | re.IGNORECASE
-
-
-FEATURED_VARS = {
-    'DB2': [],
-    'MYSQL': [
-        re.compile(r'innodb_buffer_pool_size', _MYSQL_RE_FLAGS),
-        re.compile(r'innodb_buffer_pool_instances', _MYSQL_RE_FLAGS),
-        re.compile(r'innodb_log_file_size', _MYSQL_RE_FLAGS),
-        re.compile(r'innodb_log_buffer_size', _MYSQL_RE_FLAGS),
-        re.compile(r'innodb_flush_log_at_trx_commit', _MYSQL_RE_FLAGS),
-        re.compile(r'innodb_thread_concurrency', _MYSQL_RE_FLAGS),
-        re.compile(r'innodb_file_per_table', _MYSQL_RE_FLAGS),
-        re.compile(r'key_buffer_size', _MYSQL_RE_FLAGS),
-        re.compile(r'table_cache', _MYSQL_RE_FLAGS),
-        re.compile(r'thread_cache', _MYSQL_RE_FLAGS),
-        re.compile(r'query_cache_size', _MYSQL_RE_FLAGS),
-    ],
-    'POSTGRES': [],
-    'ORACLE': [],
-    'SQLSERVER': [],
-    'SQLITE': [],
-    'AMAZONRDS': [],
-    'HSTORE': [],
-    'SQLAZURE': [],
-    'ASSCLOWN': [],
-    'HSQLDB': [],
-    'H2': [],
-    'NUODB': [],
-    'PELOTON': [],
-}
-
-
-LEARNING_VARS = {
-    'DB2': [],
-    'MYSQL': [
-        re.compile(r'innodb_buffer_pool_size', _MYSQL_RE_FLAGS),
-        re.compile(r'innodb_buffer_pool_instances', _MYSQL_RE_FLAGS),
-        re.compile(r'innodb_log_file_size', _MYSQL_RE_FLAGS),
-        re.compile(r'innodb_log_buffer_size', _MYSQL_RE_FLAGS),
-        re.compile(r'innodb_thread_concurrency', _MYSQL_RE_FLAGS),
-    ],
-    'POSTGRES': [],
-    'ORACLE': [],
-    'SQLSERVER': [],
-    'SQLITE': [],
-    'AMAZONRDS': [],
-    'HSTORE': [],
-    'SQLAZURE': [],
-    'ASSCLOWN': [],
-    'HSQLDB': [],
-    'H2': [],
-    'NUODB': [],
-    'PELOTON': [],
-}
-
-
 class DBConf(models.Model):
     DB_TYPES = sorted([
         'DB2',
@@ -150,13 +90,8 @@ class DBConf(models.Model):
         'PELOTON',
     ])
 
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    name = models.CharField(max_length=50)
-    description = models.CharField(max_length=512)
-    creation_time = models.DateTimeField()
-    configuration = models.TextField()
-    similar_conf = models.TextField(default="zbh")
-    db_type = models.CharField(max_length=max(len(x) for x in DB_TYPES))
+    db_type = models.CharField(max_length=max(len(x) for x in DB_TYPES),
+                               choices=[(x, x) for x in DB_TYPES])
 
 
 PLOTTABLE_FIELDS = [
@@ -253,24 +188,8 @@ class Result(models.Model):
     p95_latency = models.FloatField()
     p99_latency = models.FloatField()
     max_latency = models.FloatField()
-    most_similar = models.CharField(
-        validators=[validate_comma_separated_integer_list],
-        max_length=100)
+    git_hash = models.CharField(max_length=40, blank=True, null=True)
+    result_ok = models.BooleanField()
 
     def __str__(self):
         return str(self.pk)
-
-
-class Statistics(models.Model):
-    result = models.ForeignKey(Result, on_delete=models.CASCADE)
-    time = models.IntegerField()
-    throughput = models.FloatField()
-    avg_latency = models.FloatField()
-    min_latency = models.FloatField()
-    p25_latency = models.FloatField()
-    p50_latency = models.FloatField()
-    p75_latency = models.FloatField()
-    p90_latency = models.FloatField()
-    p95_latency = models.FloatField()
-    p99_latency = models.FloatField()
-    max_latency = models.FloatField()

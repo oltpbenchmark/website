@@ -12,11 +12,7 @@ class ProjectAdmin(admin.ModelAdmin):
     list_display = ('user', 'name', 'last_update', 'creation_time')
     list_display_links = ('name', 'last_update', 'creation_time')
 
-class DBConfAdmin(admin.ModelAdmin):
-    list_display = [ 'name', 'project', 'creation_time', 'db_type' ]
-
 admin.site.register(Project, ProjectAdmin)
 admin.site.register(ExperimentConf, ExperimentConfAdmin)
-admin.site.register(DBConf, DBConfAdmin)
 
 admin.site.register(Result)

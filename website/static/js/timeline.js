@@ -54,6 +54,12 @@ function renderPlot(data, div_id) {
             show: true,
             tooltipLocation: 'nw',
             yvalues: 2,
+            tooltipContentEditor: function (str, seriesIndex, pointIndex) {
+                if ('PELOTON' in data.data) {
+                    return str + data.data['PELOTON'][pointIndex][4];
+                }
+                return str;
+            },
             formatString:'<table class="jqplot-highlighter"><tr><td>date:</td><td>%s</td></tr> <tr><td>result:</td><td>%s</td></tr></table>'
         },
         cursor: {show: true, zoom:true, showTooltip:false, clickReset:true}

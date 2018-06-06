@@ -17,11 +17,8 @@ urlpatterns = [
     url(r'^$', website_views.home),
     url(r'^logout/', website_views.logout_view),
 
-    url(r'^ajax_new/', website_views.ajax_new),
-
     url(r'^new_result/', website_views.new_result),
     url(r'^result/', website_views.result),
-    url(r'^update_similar/', website_views.update_similar),
 
     url(r'^edit_project/', website_views.edit_project),
     url(r'^project/', website_views.project),
@@ -34,8 +31,8 @@ urlpatterns = [
     url(r'^get_benchmark_conf_file/', website_views.get_benchmark_conf_file),
     url(r'^update_benchmark/', website_views.update_benchmark_conf),
 
-    url(r'^db_conf/', website_views.db_conf_view),
     url(r'^get_data/', website_views.get_timeline_data),
+    url(r'^get_recent_data/', website_views.get_recent_data),
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
