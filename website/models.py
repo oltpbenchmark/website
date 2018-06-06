@@ -88,6 +88,7 @@ class DBConf(models.Model):
         'H2',
         'NUODB',
         'PELOTON',
+        'MEMSQL',
     ])
 
     db_type = models.CharField(max_length=max(len(x) for x in DB_TYPES),
