@@ -25,10 +25,7 @@ class Project(models.Model):
     upload_code = models.CharField(max_length=30)
 
     def delete(self, using=None, keep_parents=False):
-        targets = DBConf.objects.filter(project=self)
         results = Result.objects.filter(project=self)
-        for target in targets:
-            target.delete()
         for result in results:
             result.delete()
         super(Project, self).delete(using)
